@@ -1,0 +1,1 @@
+java -jar spring_cxf_service.jar
