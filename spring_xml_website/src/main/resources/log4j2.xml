@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="off" monitorInterval="1800">
+    <properties>
+        <property name="LOG_HOME">${sys:catalina.home}</property>
+    </properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d %-5p (%F:%L) - %m%n"/>
+        </Console>
+        <RollingRandomAccessFile name="servlet"
+                                 fileName="${LOG_HOME}/logs/servlet.log"
+                                 filePattern="${LOG_HOME}/logs/servlet.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout
+                    pattern="%d %-5p (%F:%L) - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingRandomAccessFile>
+        <RollingRandomAccessFile name="druid_conn"
+                                 fileName="${LOG_HOME}/logs/druid_conn.log"
+                                 filePattern="${LOG_HOME}/logs/druid_conn.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout
+                    pattern="%d %-5p (%F:%L) - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingRandomAccessFile>
+        <RollingRandomAccessFile name="filter"
+                                 fileName="${LOG_HOME}/logs/filter.log"
+                                 filePattern="${LOG_HOME}/logs/filter.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout
+                    pattern="%d %-5p (%F:%L) - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingRandomAccessFile>
+    </Appenders>
+
+    <Loggers>
+        <logger name="servlet" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="servlet"/>
+        </logger>
+        <logger name="filter" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="filter"/>
+        </logger>
+        <logger name="druid_conn" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="druid_conn"/>
+        </logger>
+        <root level="info" includeLocation="true">
+            <appender-ref ref="Console"/>
+        </root>
+    </Loggers>
+</Configuration>
