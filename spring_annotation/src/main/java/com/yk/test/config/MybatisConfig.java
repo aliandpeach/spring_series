@@ -10,11 +10,10 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
-import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
 import java.io.IOException;
@@ -22,42 +21,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Service
+@Configuration
 @MapperScan("com.yk.example.dao")
 public class MybatisConfig {
-    public MybatisConfig() {
-
-    }
-
-    @Getter
-    @Setter
-    @Value("${jdbc.driver}")
-    private String driver;
-
-    @Value("${jdbc.url}")
-    @Getter
-    @Setter
-    private String url;
-
-    @Value("${jdbc.username}")
-    @Getter
-    @Setter
-    private String username;
-
-    @Value("${jdbc.password}")
-    @Getter
-    @Setter
-    private String password;
-
-    @Value("${jdbc.maxActive}")
-    @Getter
-    @Setter
-    private int maxActive;
-
-    @Bean
-    public static PropertySourcesPlaceholderConfigurer propertyConfigure() {
-        return new PropertySourcesPlaceholderConfigurer();
-    }
 
     @Bean
     public DataSource getDataSource() {
@@ -80,32 +46,30 @@ public class MybatisConfig {
         ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
         List<String> mapperLocations = new ArrayList<>();
         mapperLocations.add("classpath*:mapper/**/*.xml");
-        List<Resource> resources = new ArrayList();
-        if (mapperLocations != null) {
-            for (String mapperLocation : mapperLocations) {
-                try {
-                    Resource[] mappers = resourceResolver.getResources(mapperLocation);
-                    resources.addAll(Arrays.asList(mappers));
-                } catch (IOException e) {
-                    // ignore
-                }
+        List<Resource> resources = new ArrayList<>();
+        for (String mapperLocation : mapperLocations) {
+            try {
+                Resource[] mappers = resourceResolver.getResources(mapperLocation);
+                resources.addAll(Arrays.asList(mappers));
+            } catch (IOException e) {
+                // ignore
             }
         }
         return resources.toArray(new Resource[resources.size()]);
     }
 
     @Bean("sqlSessionFactory")
-    public SqlSessionFactory getSqlSessionFactory() throws Exception {
+    public SqlSessionFactory getSqlSessionFactory(DataSource dataSource) throws Exception {
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
-        sqlSessionFactoryBean.setDataSource(getDataSource());
+        sqlSessionFactoryBean.setDataSource(dataSource);
         sqlSessionFactoryBean.setMapperLocations(resolveMapperLocations());
         sqlSessionFactoryBean.setTypeAliasesPackage("com.yk.test.example.model");
         return sqlSessionFactoryBean.getObject();
     }
 
     @Bean("sqlSessionTemplate")
-    public SqlSessionTemplate getSqlSessionTemplate() throws Exception {
-        SqlSessionTemplate sqlSessionTemplate = new SqlSessionTemplate(getSqlSessionFactory());
+    public SqlSessionTemplate getSqlSessionTemplate(SqlSessionFactory sqlSessionFactory) throws Exception {
+        SqlSessionTemplate sqlSessionTemplate = new SqlSessionTemplate(sqlSessionFactory);
         return sqlSessionTemplate;
     }
 
