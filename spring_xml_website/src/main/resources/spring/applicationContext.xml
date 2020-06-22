@@ -101,4 +101,7 @@
             <tx:method name="*"/>
         </tx:attributes>
     </tx:advice>
+
+    <!--声明事务管理，采用注解方式-->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
 </beans>
