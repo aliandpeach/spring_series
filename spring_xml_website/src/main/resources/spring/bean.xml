@@ -18,9 +18,9 @@
       http://www.springframework.org/schema/mvc
       http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
-    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
-        <property name="prefix" value="/WEB-INF/jsp" />
-        <property name="suffix" value=".jsp" />
+    <bean class="com.yk.demo.model.Car">
+        <property name="brand" value="1"/>
+        <property name="color" value="red"/>
+        <property name="speed" value="200"/>
     </bean>
 </beans>

@@ -9,26 +9,47 @@
          version="3.0">
 
     <context-param>
+        <param-name>log4jConfiguration</param-name>
+        <param-value>classpath:log4j2.xml</param-value>
+    </context-param>
+
+    <listener>
+        <listener-class>
+            org.apache.logging.log4j.web.Log4jServletContextListener
+        </listener-class>
+    </listener>
+
+    <context-param>
         <param-name>contextConfigLocation</param-name>
-        <param-value>classpath*:spring/applicationContext.xml,classpath*:spring/spring-*.xml</param-value>
+        <param-value>classpath*:spring/applicationContext.xml</param-value>
     </context-param>
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
+
+    <!-- 用于注解的启动配置 -->
+    <!--<context-param>
+        <param-name>contextClass</param-name>
+        <param-value>org.springframework.web.context.support.AnnotationConfigWebApplicationContext</param-value>
+    </context-param>
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>com.yk.AppConfig</param-value>
+    </context-param>-->
 
     <servlet>
         <servlet-name>springMVC</servlet-name>
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
         <init-param>
             <param-name>contextConfigLocation</param-name>
-            <param-value>classpath*:spring/applicationContext.xml,classpath*:spring/spring-*.xml</param-value>
+            <param-value>classpath*:spring/applicationContext.xml</param-value>
         </init-param>
-        <load-on-startup>1</load-on-startup>
+        <load-on-startup>2</load-on-startup>
     </servlet>
 
     <servlet-mapping>
         <servlet-name>springMVC</servlet-name>
-        <url-pattern>/</url-pattern>
+        <url-pattern>*.html</url-pattern>
     </servlet-mapping>
 
 

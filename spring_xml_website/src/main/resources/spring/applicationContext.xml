@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
@@ -6,21 +7,25 @@
        xmlns:aop="http://www.springframework.org/schema/aop"
        xmlns:tx="http://www.springframework.org/schema/tx"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-      http://www.springframework.org/schema/beans/spring-beans-5.0.xsd
+      http://www.springframework.org/schema/beans/spring-beans.xsd
       http://www.springframework.org/schema/context
       http://www.springframework.org/schema/context/spring-context.xsd
       http://www.springframework.org/schema/tx
-      http://www.springframework.org/schema/tx/spring-tx-5.0.xsd
+      http://www.springframework.org/schema/tx/spring-tx.xsd
+      http://www.springframework.org/schema/cache
+      http://www.springframework.org/schema/cache/spring-cache.xsd
       http://www.springframework.org/schema/aop
-      http://www.springframework.org/schema/aop/spring-aop-5.0.xsd
+      http://www.springframework.org/schema/aop/spring-aop.xsd
       http://www.springframework.org/schema/mvc
-      http://www.springframework.org/schema/mvc/spring-mvc-5.0.xsd http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
+      http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
     <context:component-scan base-package="com.yk"/>
+    <aop:config proxy-target-class="true"/>
+    <context:annotation-config/>
 
     <context:property-placeholder location="classpath:druid.properties" ignore-unresolvable="true"/>
     <bean name="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
-        <property name="driver" value="${jdbc.driverClassName}"/>
+        <property name="driverClassName" value="${jdbc.driverClassName}"/>
         <property name="url" value="${jdbc.url}"/>
         <property name="username" value="${jdbc.username}"/>
         <property name="password" value="${jdbc.password}"/>
@@ -89,6 +94,7 @@
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="dataSource"/>
     </bean>
+    <tx:annotation-driven transaction-manager="transactionManager"/>
 
     <aop:config proxy-target-class="true">
         <aop:pointcut id="serviceMethod" expression="(execution(* com.yk..service..*(..)))
@@ -102,6 +108,21 @@
         </tx:attributes>
     </tx:advice>
 
-    <!--声明事务管理，采用注解方式-->
-    <tx:annotation-driven transaction-manager="transactionManager"/>
+    <!--开启注解扫描-->
+    <mvc:annotation-driven>
+        <mvc:message-converters>
+            <!--Http请求默认字符集ISO-8859-1 ，Spring中也是此字符集，需要手动配置以解决中文乱码问题-->
+            <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+                <property name="supportedMediaTypes">
+                    <list>
+                        <bean class="org.springframework.http.MediaType">
+                            <constructor-arg value="text" />
+                            <constructor-arg value="plain" />
+                            <constructor-arg value="UTF-8" />
+                        </bean>
+                    </list>
+                </property>
+            </bean>
+        </mvc:message-converters>
+    </mvc:annotation-driven>
 </beans>
