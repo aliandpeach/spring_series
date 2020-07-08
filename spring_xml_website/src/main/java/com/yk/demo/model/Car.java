@@ -41,4 +41,17 @@ public class Car implements BeanFactoryAware, BeanNameAware, InitializingBean, D
     public void afterPropertiesSet() throws Exception {
 
     }
+
+    public void init() throws Exception {
+        this.speed = 1000;
+    }
+
+    /**
+     * 利用静态方法初始化 Car Bean ， 注解中无需写factory-bean
+     * @param name
+     * @return
+     */
+    public static Car newCar(String name){
+        return new Car();
+    }
 }

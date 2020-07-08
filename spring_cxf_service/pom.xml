@@ -94,8 +94,8 @@
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-client</artifactId>
-            <version>5.15.0</version>
+            <artifactId>activemq-all</artifactId>
+            <version>5.15.2</version>
         </dependency>
         <dependency>
             <groupId>ant</groupId>
@@ -187,6 +187,13 @@
                 <directory>src/main/resources</directory>
                 <includes>
                     <include>**/*</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
                 </includes>
             </resource>
         </resources>

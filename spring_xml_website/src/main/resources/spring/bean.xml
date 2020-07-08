@@ -18,9 +18,12 @@
       http://www.springframework.org/schema/mvc
       http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
-    <bean class="com.yk.demo.model.Car">
+    <bean class="com.yk.demo.model.Car" init-method="init" factory-method="newCar">
         <property name="brand" value="1"/>
         <property name="color" value="red"/>
         <property name="speed" value="200"/>
+        <constructor-arg type="java.lang.String" index="0">
+            <value>name</value>
+        </constructor-arg>
     </bean>
 </beans>
