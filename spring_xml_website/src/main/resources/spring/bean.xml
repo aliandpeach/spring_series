@@ -18,12 +18,24 @@
       http://www.springframework.org/schema/mvc
       http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
-    <bean class="com.yk.demo.model.Car" init-method="init" factory-method="newCar">
-        <property name="brand" value="1"/>
-        <property name="color" value="red"/>
-        <property name="speed" value="200"/>
-        <constructor-arg type="java.lang.String" index="0">
-            <value>name</value>
-        </constructor-arg>
+    <bean id="car1" class="com.yk.demo.model.Car">
+        <property name="brand" value="brand1"/>
+        <property name="color" value="red1"/>
+        <property name="speed" value="1601"/>
+    </bean>
+
+    <bean id="car2" class="com.yk.demo.model.Car" init-method="init">
+    </bean>
+
+    <bean id="car3" class="com.yk.demo.model.Car" factory-method="newCar">
+        <constructor-arg index="0" type="java.lang.String" value="brand3"/>
+        <constructor-arg index="1" type="java.lang.String" value="red3"/>
+        <constructor-arg index="2" type="java.lang.String" value="1603"/>
+    </bean>
+
+    <bean id="moto" class="com.yk.demo.model.Moto" init-method="init" factory-method="newMoto">
+        <constructor-arg index="0" type="java.lang.String" value="brand3"/>
+        <constructor-arg index="1" type="java.lang.String" value="red3"/>
+        <constructor-arg index="2" type="java.lang.String" value="1603"/>
     </bean>
 </beans>

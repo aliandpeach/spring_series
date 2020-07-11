@@ -1,16 +1,26 @@
 package com.yk.base.config;
 
 
+import com.yk.demo.model.Car;
+import com.yk.demo.model.Moto;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.PathResource;
+import org.springframework.core.io.support.EncodedResource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.web.context.support.ServletContextResource;
+import org.springframework.web.util.WebUtils;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.util.Enumeration;
+import java.util.Optional;
 import java.util.Properties;
 
 @WebListener
@@ -71,62 +81,91 @@ public class StartUpListener implements ServletContextListener {
             e.printStackTrace();
         }
 
-
-        Properties pro = new Properties();
-        try {
-            InputStream inputStream1 = Thread.currentThread().getContextClassLoader().getResource("/config/env.properties").openStream();
-            pro.load(inputStream1);
-            InputStream inputStream2 = StartUpListener.class.getClassLoader().getResource("/config/env.properties").openStream();
-            pro.load(inputStream2);
+        ClassPathResource env = new ClassPathResource("spring/bean.xml"); //类路径的文件
+        String path1 = env.getPath(); //类路径的文件
+        try (InputStream in = env.getInputStream()) {
+            DataInputStream data = new DataInputStream(in);
+            DataOutputStream out = new DataOutputStream(new FileOutputStream("D:\\env.txt"));
+            int size = in.available();
+            byte[] buf = new byte[size];
+            data.readFully(buf);
+            out.write(buf);
+            out.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        try {
-            InputStream inputStream3 = StartUpListener.class.getResource("/config/env.properties").openStream();
-            pro.load(inputStream3);
+        String realPath = sce.getServletContext().getRealPath("/");
+        PathResource env1 = new PathResource(realPath + "WEB-INF/classes/spring/bean.xml");// WritableResource
+        /*String path = env1.getPath();
+        try (OutputStream out = env1.getOutputStream()) {
+        } catch (IOException e) {
+            e.printStackTrace();
+        }*/
+
+        ServletContextResource contextResource = new ServletContextResource(sce.getServletContext(), "/WEB-INF/classes/spring/bean.xml");
+        String abPath = WebUtils.getTempDir(sce.getServletContext()).getAbsolutePath();
+        try (InputStream in = contextResource.getInputStream(); InputStreamReader reader = new InputStreamReader(in, "UTF-8"); StringWriter stringWriter = new StringWriter()) {
+            copy(stringWriter, reader);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-
-        ClassPathResource env = new ClassPathResource("config/env.properties");
-
         /*
-        Thread.currentThread().getClass().getClassLoader().getResource("").getFile();
-        Thread.currentThread().getClass().getResource("");
-        ClassLoader.getSystemResources("");
-        */
-
-        /*
-        Resource xxx = new FileSystemResource("D:\xxx\xxx.properties").getInputStream();
-        Resource env = new ClassPathResource("config/env.properties").getInputStream();
+        Resource xxx = new FileSystemResource("D:\xxx\xxx.txt").getInputStream();
+        Resource env = new ClassPathResource("spring/bean.xml").getInputStream();
         Resource env1 = new ServletContextResource(servletContext, "").getInputStream();
         */
 
-        /*
-        EncodedResource encodedResource = new EncodedResource(new ClassPathResource(""),"UTF-8");
-        FileCopyUtils.copyToString(encodedResource.getReader());
-        */
+        EncodedResource encodedResource = new EncodedResource(new ClassPathResource("spring/bean.xml"), "UTF-8");
+        try {
+            String content = FileCopyUtils.copyToString(encodedResource.getReader());
+            Optional.of(content).ifPresent(System.out::println);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        try (InputStream in = Thread.currentThread().getContextClassLoader().getResource("spring/bean.xml").openStream(); InputStreamReader reader = new InputStreamReader(in, "UTF-8"); StringWriter stringWriter = new StringWriter();) {
+            copy(stringWriter, reader);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         /**
-         * 资源加载
+         * 批量资源加载
          */
 
 //        Resource[] resource = new PathMatchingResourcePatternResolver().getResources("classpath*:com/**/*.xml");
 //        Resource resource = new PathMatchingResourcePatternResolver().getResource("classpath*:com/**/*.xml");
 //        resource.getInputStream();
 
-        /*
-        BeanFactory factory = new DefaultListableBeanFactory();
+        DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
         XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory);
-        reader.loadBeanDefinitions(new PathMatchingResourcePatternResolver().getResources(""));
-        Car car = factory.getBean(Car.class);
+        try {
+            reader.loadBeanDefinitions(new PathMatchingResourcePatternResolver().getResources("classpath:spring/bean.xml"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        Car car1 = factory.getBean("car1", Car.class);
+        Car car2 = factory.getBean("car2", Car.class);
+        Car car3 = factory.getBean("car3", Car.class);
+        Moto moto = factory.getBean(Moto.class);
         factory.addBeanPostProcessor(new MyBeanPostProcessor());
-        */
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
 
+    }
+
+    private void copy(StringWriter writer, InputStreamReader reader) throws IOException {
+        int byteCount = 0;
+        char[] buffer = new char[4069];
+        int bytesRead = -1;
+        while ((bytesRead = reader.read(buffer)) != -1) {
+            writer.write(buffer, 0, bytesRead);
+        }
+        writer.flush();
+        String content = writer.toString();
+        Optional.of(content).ifPresent(System.out::println);
     }
 }

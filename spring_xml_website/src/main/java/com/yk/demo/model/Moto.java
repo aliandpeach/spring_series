@@ -6,7 +6,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.*;
 
 @Data
-public class Car implements BeanFactoryAware, BeanNameAware, InitializingBean, DisposableBean {
+public class Moto implements BeanFactoryAware, BeanNameAware, InitializingBean, DisposableBean {
 
     private String brand;
 
@@ -16,10 +16,11 @@ public class Car implements BeanFactoryAware, BeanNameAware, InitializingBean, D
 
     private BeanFactory beanFactory;
 
-    public Car() {
+    public Moto() {
+        System.out.println();
     }
 
-    public Car(String brand, String color, int speed) {
+    public Moto(String brand, String color, int speed) {
         this.brand = brand;
         this.color = color;
         this.speed = speed;
@@ -58,11 +59,11 @@ public class Car implements BeanFactoryAware, BeanNameAware, InitializingBean, D
     }
 
     /**
-     * 利用静态方法初始化 Car Bean ， 注解中无需写factory-bean
+     * 利用静态方法初始化 Moto Bean ， 注解中无需写factory-bean
      *
-     * @return Car
+     * @return Moto
      */
-    public static Car newCar(String brand, String color, String speed) {
-        return new Car();
+    public static Moto newMoto(String brand, String color, String speed) {
+        return new Moto();
     }
 }
