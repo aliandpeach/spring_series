@@ -5,8 +5,24 @@ import lombok.Data;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.*;
 
+import java.util.*;
+
 @Data
 public class Car implements BeanFactoryAware, BeanNameAware, InitializingBean, DisposableBean {
+
+    List<Moto> listMoto = new ArrayList<>();
+    List<Integer> listInteger = new ArrayList<>();
+    Map<Integer, String> map = new HashMap<>();
+
+    List<Integer> utilTestList = new LinkedList<>();
+
+    public List<Integer> getUtilTestList() {
+        return utilTestList;
+    }
+
+    public void setUtilTestList(List<Integer> utilTestList) {
+        this.utilTestList = utilTestList;
+    }
 
     private String brand;
 
@@ -64,5 +80,29 @@ public class Car implements BeanFactoryAware, BeanNameAware, InitializingBean, D
      */
     public static Car newCar(String brand, String color, String speed) {
         return new Car();
+    }
+
+    public List<Moto> getListMoto() {
+        return listMoto;
+    }
+
+    public void setListMoto(List<Moto> listMoto) {
+        this.listMoto = listMoto;
+    }
+
+    public List<Integer> getListInteger() {
+        return listInteger;
+    }
+
+    public void setListInteger(List<Integer> listInteger) {
+        this.listInteger = listInteger;
+    }
+
+    public Map<Integer, String> getMap() {
+        return map;
+    }
+
+    public void setMap(Map<Integer, String> map) {
+        this.map = map;
     }
 }

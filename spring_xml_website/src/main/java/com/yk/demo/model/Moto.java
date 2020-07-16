@@ -2,11 +2,24 @@ package com.yk.demo.model;
 
 
 import lombok.Data;
+import org.mybatis.spring.SqlSessionTemplate;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.*;
 
 @Data
 public class Moto implements BeanFactoryAware, BeanNameAware, InitializingBean, DisposableBean {
+
+    private Car car4;
+
+    private SqlSessionTemplate sqlSessionTemplate;
+
+    public Car getCar4() {
+        return car4;
+    }
+
+    public void setCar4(Car car4) {
+        this.car4 = car4;
+    }
 
     private String brand;
 

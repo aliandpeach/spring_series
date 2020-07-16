@@ -1,11 +1,17 @@
 package com.yk.base.config;
 
 
+import com.yk.demo.configuration.AppConfig;
+import com.yk.demo.configuration.AppConfigImport;
 import com.yk.demo.model.Car;
 import com.yk.demo.model.Moto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.PathResource;
 import org.springframework.core.io.support.EncodedResource;
@@ -19,12 +25,12 @@ import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import java.io.*;
 import java.net.URL;
-import java.util.Enumeration;
-import java.util.Optional;
-import java.util.Properties;
+import java.util.*;
 
 @WebListener
 public class StartUpListener implements ServletContextListener {
+    Logger logger = LoggerFactory.getLogger("demo");
+
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         //JDK提供的方法
@@ -145,11 +151,32 @@ public class StartUpListener implements ServletContextListener {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        factory.addBeanPostProcessor(new MyBeanPostProcessor());
+        factory.addBeanPostProcessor(new MyInstantiationAwareBeanProcessor());
+
         Car car1 = factory.getBean("car1", Car.class);
         Car car2 = factory.getBean("car2", Car.class);
         Car car3 = factory.getBean("car3", Car.class);
+
+        Car car4 = factory.getBean("car4", Car.class);
+        Car car5 = factory.getBean("car5", Car.class);
+        Car car6 = factory.getBean("car6", Car.class);
+
         Moto moto = factory.getBean(Moto.class);
-        factory.addBeanPostProcessor(new MyBeanPostProcessor());
+        List<String> utilTestList = factory.getBean("utilTestList", LinkedList.class);
+        Map<String, Integer> utilTestMap = factory.getBean("utilTestMap", Map.class);
+
+        ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext(new String[]{"spring/bean1.xml"});
+        Car car7 = context.getBean("car7", Car.class);
+
+        AnnotationConfigApplicationContext annotation = new AnnotationConfigApplicationContext();
+        annotation.register(AppConfig.class);
+        annotation.register(AppConfigImport.class);
+        annotation.refresh();
+
+        Car car8 = annotation.getBean("car8", Car.class);
+        Moto moto5 = annotation.getBean("moto5", Moto.class);
+        logger.info("start up");
     }
 
     @Override

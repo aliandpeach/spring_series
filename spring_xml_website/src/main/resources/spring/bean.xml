@@ -5,6 +5,8 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:aop="http://www.springframework.org/schema/aop"
        xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:p="http://www.springframework.org/schema/p"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
       http://www.springframework.org/schema/beans/spring-beans.xsd
       http://www.springframework.org/schema/context
@@ -16,7 +18,9 @@
       http://www.springframework.org/schema/aop
       http://www.springframework.org/schema/aop/spring-aop.xsd
       http://www.springframework.org/schema/mvc
-      http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+      http://www.springframework.org/schema/mvc/spring-mvc.xsd
+      http://www.springframework.org/schema/util
+      http://www.springframework.org/schema/util/spring-util.xsd">
 
     <bean id="car1" class="com.yk.demo.model.Car">
         <property name="brand" value="brand1"/>
@@ -24,7 +28,8 @@
         <property name="speed" value="1601"/>
     </bean>
 
-    <bean id="car2" class="com.yk.demo.model.Car" init-method="init">
+    <bean id="car2" class="com.yk.demo.model.Car" init-method="init" p:listInteger-ref="utilTestList">
+        <!--<property name="listInteger" ref="utilTestList" />-->
     </bean>
 
     <bean id="car3" class="com.yk.demo.model.Car" factory-method="newCar">
@@ -33,9 +38,54 @@
         <constructor-arg index="2" type="java.lang.String" value="1603"/>
     </bean>
 
+    <bean id="car4" class="com.yk.demo.model.Car">
+        <property name="listMoto" ref="moto">
+        </property>
+    </bean>
+
+    <bean id="car5" class="com.yk.demo.model.Car">
+        <property name="listInteger">
+            <list>
+                <value>1</value>
+                <value>2</value>
+                <value>3</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="car6" class="com.yk.demo.model.Car">
+        <property name="map">
+            <map>
+                <entry>
+                    <key>
+                        <value>1</value>
+                    </key>
+                    <value>string</value>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
     <bean id="moto" class="com.yk.demo.model.Moto" init-method="init" factory-method="newMoto">
         <constructor-arg index="0" type="java.lang.String" value="brand3"/>
         <constructor-arg index="1" type="java.lang.String" value="red3"/>
         <constructor-arg index="2" type="java.lang.String" value="1603"/>
     </bean>
+
+    <util:list id="utilTestList" list-class="java.util.LinkedList">
+        <value>1</value>
+        <value>2</value>
+        <value>3</value>
+    </util:list>
+
+    <util:map id="utilTestMap" key-type="java.lang.String" value-type="java.lang.Integer" map-class="java.util.HashMap">
+        <entry key="key1" value="1"/>
+        <entry key="key2" value="2"/>
+        <entry key="key3" value="3"/>
+    </util:map>
+
+    <bean id="cacheSettings" class="com.yk.demo.model.CacheSettings" depends-on="initData"
+          p:systemSettings-ref="systemSettings"/>
+    <bean id="initData" class="com.yk.demo.model.SettingsInit"/>
+    <bean id="systemSettings" class="com.yk.demo.model.SystemSettings"/>
 </beans>

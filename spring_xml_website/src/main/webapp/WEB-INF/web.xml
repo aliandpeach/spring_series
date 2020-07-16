@@ -23,8 +23,24 @@
         <param-name>contextConfigLocation</param-name>
         <param-value>classpath*:spring/applicationContext.xml</param-value>
     </context-param>
+    <!-- 用于启动WebApplicationContext -->
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <!--
+        在整合spring容器时使用ContextLoaderListener，它实现了ServletContextListener监听器接口，
+        ServletContextListener只负责监听web容器启动和关闭的事件。
+
+        而RequestContextListener实现ServletRequestListener监听器接口，
+        该监听器监听HTTP请求事件，web服务器接收的每一次请求都会通知该监听器。
+
+        spring容器启动和关闭操作由web容器的启动和关闭事件触发，
+        但如果spring容器中的Bean需要request，session，globalsession作用域的支持，
+        spring容器本身就必须获得web容器的HTTP请求事件，以HTTP请求的事件”驱动”Bean作用域的控制逻辑
+    -->
+    <listener>
+        <listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
     </listener>
 
     <!-- 用于注解的启动配置 -->
@@ -37,12 +53,27 @@
         <param-value>com.yk.AppConfig</param-value>
     </context-param>-->
 
+    <!--
+        在DispatcherServlet的初始化过程中，
+        框架会在web应用的WEB-INF文件夹下默认寻找名为[servlet-name]-servlet.xml 的配置文件，生成文件中定义的bean。
+        如以下默认寻找dispatcher-servlet.xml
+    -->
+
+    <!--
+        在Spring Web应用程序中，有两种类型的容器，ApplicationContext和WebApplicationContext.
+        ApplicationContext是由ContextLoaderListener创建并配置的或Web.xml。
+        而WebApplicationContext是ApplicationContext的子上下文环境。是由DispatcherServlet 启动时创建配置的
+
+        DispatcherServlet 和 ContextLoaderListener之间的关系。
+        所以说如果没有配置listener参数，只配置了dispatcherServlet时，tomcat启动时是不会初始化Spring Web上下文的，
+        因为Spring Web是基于Spring的，你没有配置Spring，所以也不会启动它的子上下文Spring Web
+    -->
     <servlet>
         <servlet-name>springMVC</servlet-name>
         <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
         <init-param>
             <param-name>contextConfigLocation</param-name>
-            <param-value>classpath*:spring/applicationContext.xml</param-value>
+            <param-value>classpath*:spring/spring-mvc.xml</param-value>
         </init-param>
         <load-on-startup>2</load-on-startup>
     </servlet>
