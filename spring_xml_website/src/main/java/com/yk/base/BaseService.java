@@ -7,6 +7,7 @@ import java.io.Serializable;
 
 @Service
 public abstract class BaseService<M extends Serializable> {
+
     @Autowired
     protected BaseDAO<M> baseDAO;
 }

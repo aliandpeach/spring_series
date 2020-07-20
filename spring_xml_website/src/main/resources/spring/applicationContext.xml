@@ -6,6 +6,8 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:aop="http://www.springframework.org/schema/aop"
        xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:p="http://www.springframework.org/schema/p"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
       http://www.springframework.org/schema/beans/spring-beans.xsd
       http://www.springframework.org/schema/context
@@ -22,6 +24,10 @@
     <context:component-scan base-package="com.yk"/>
     <aop:config proxy-target-class="true"/>
     <context:annotation-config/>
+
+    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"
+          p:location="classpath:druid.properties" p:fileEncoding="UTF-8"/>
+
 
     <context:property-placeholder location="classpath:druid.properties" ignore-unresolvable="true"/>
     <bean name="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
@@ -116,9 +122,9 @@
                 <property name="supportedMediaTypes">
                     <list>
                         <bean class="org.springframework.http.MediaType">
-                            <constructor-arg value="text" />
-                            <constructor-arg value="plain" />
-                            <constructor-arg value="UTF-8" />
+                            <constructor-arg value="text"/>
+                            <constructor-arg value="plain"/>
+                            <constructor-arg value="UTF-8"/>
                         </bean>
                     </list>
                 </property>
