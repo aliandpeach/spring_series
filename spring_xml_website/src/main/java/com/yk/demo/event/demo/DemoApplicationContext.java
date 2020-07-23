@@ -1,17 +1,16 @@
 package com.yk.demo.event.demo;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class DemoApplicationContext {
 
     /**
      * 存放所有的监听器
      */
-    Set<DemoApplicationListener> listeners;
+    private CopyOnWriteArrayList<DemoApplicationListener> listeners;
 
-    public DemoApplicationContext() {
-        this.listeners = new HashSet<>();
+    private DemoApplicationContext() {
+        this.listeners = new CopyOnWriteArrayList<>();
     }
 
     /**
@@ -30,8 +29,19 @@ public class DemoApplicationContext {
      * @param event 事件
      */
     public void publishEvent(DemoApplicationEvent event) {
+        /**
+         * CopyOnWriteArrayList 可以安全的进行遍历，不必担心遍历过程中的add/remove操作
+         */
         for (DemoApplicationListener listener : listeners) {
             listener.onApplicationEvent(event);
         }
+    }
+
+    public static DemoApplicationContext getInstance() {
+        return DemoApplicationContextHolder.INSTANCE;
+    }
+
+    private static class DemoApplicationContextHolder {
+        public static DemoApplicationContext INSTANCE = new DemoApplicationContext();
     }
 }

@@ -5,7 +5,7 @@ import java.util.EventObject;
 public class DemoApplicationEvent {
 
 
-    private MessageUnit messageUnit;
+    private MessageForm messageForm;
 
     /**
      * Constructs a prototypical Event.
@@ -13,11 +13,11 @@ public class DemoApplicationEvent {
      * @param source The object on which the Event initially occurred.
      * @throws IllegalArgumentException if source is null.
      */
-    public DemoApplicationEvent(MessageUnit source) {
-        this.messageUnit = source;
+    public DemoApplicationEvent(MessageForm source) {
+        this.messageForm = source;
     }
 
-    public MessageUnit getMessageUnit() {
-        return messageUnit;
+    public MessageForm getMessageForm() {
+        return messageForm;
     }
 }
