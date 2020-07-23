@@ -30,7 +30,7 @@ public class DemoApplicationContext {
      */
     public void publishEvent(DemoApplicationEvent event) {
         /**
-         * CopyOnWriteArrayList 可以安全的进行遍历，不必担心遍历过程中的add/remove操作
+         * CopyOnWriteArrayList 可以安全的进行遍历，不必担心遍历过程中其他线程的add/remove操作
          */
         for (DemoApplicationListener listener : listeners) {
             listener.onApplicationEvent(event);

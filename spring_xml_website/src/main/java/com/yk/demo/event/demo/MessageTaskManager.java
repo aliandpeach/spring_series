@@ -3,6 +3,9 @@ package com.yk.demo.event.demo;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * 抽象出来的任务类，订阅者通过实现该抽象类方法，实现订阅
+ */
 public abstract class MessageTaskManager {
 
     private ExecutorService executor = Executors.newFixedThreadPool(3);

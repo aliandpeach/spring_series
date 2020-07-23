@@ -3,6 +3,12 @@ package com.yk.demo.event.demo;
 import java.util.Map;
 import java.util.concurrent.*;
 
+/**
+ * 路由， 实际的消费者，通过分发消息到各个订阅者
+ *
+ * 订阅者（实际业务类）不必再每个去实现DemoApplicationListener接口，否则都需要交给DemoApplicationContext管理
+ * 这样基础功能就不需要再关注业务
+ */
 public class DemoEventConsumerProxy implements DemoApplicationListener {
 
     private ExecutorService executor = Executors.newFixedThreadPool(3);
