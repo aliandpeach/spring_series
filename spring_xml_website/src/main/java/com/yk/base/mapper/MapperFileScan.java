@@ -12,7 +12,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 /**
- * 该类负责扫描mybatis 的 mapper配置文件(xml)
+ * 该类负责扫描mybatis 的 mapper配置文件(xml), 可以在该类中增加一个@PostConstruct方法，主动去扫描各个jar或者war中的mapper xml
  */
 @Component
 public class MapperFileScan {
