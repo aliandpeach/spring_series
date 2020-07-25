@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
  * 订阅者
  */
 @Component
-public class DemoEventSubscriber extends MessageTaskManager implements InitializingBean {
+public class DemoEventSubscriber1 extends MessageTaskManager implements InitializingBean {
 
     @Override
     protected MessageTopic getMessageTopic() {

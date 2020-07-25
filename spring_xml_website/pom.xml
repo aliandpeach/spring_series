@@ -208,6 +208,10 @@
                     <include>**/*.txt</include>
                 </includes>
             </resource>
+            <resource>
+                <directory>src/main/resources/services</directory>
+                <targetPath>META-INF/services</targetPath>
+            </resource>
         </resources>
         <plugins>
             <plugin>
