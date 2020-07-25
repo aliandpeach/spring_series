@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
+/**
+ * 该类负责扫描mybatis 的 mapper配置文件(xml)
+ */
 @Component
 public class MapperFileScan {
 
