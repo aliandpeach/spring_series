@@ -1,6 +1,8 @@
 package com.yk.base.config;
 
 
+import com.yk.base.mapper.TestInterfaceMapperService;
+import com.yk.base.uitl.SpringContext;
 import com.yk.demo.configuration.AppConfig;
 import com.yk.demo.configuration.AppConfigImport;
 import com.yk.demo.model.Car;
@@ -29,6 +31,7 @@ import java.util.*;
 
 @WebListener
 public class StartUpListener implements ServletContextListener {
+
     Logger logger = LoggerFactory.getLogger("demo");
 
     @Override
@@ -55,13 +58,15 @@ public class StartUpListener implements ServletContextListener {
         try {
             // 带/ 从根目录位置查找，不带/, 从当前包位置查找, 该方法会先处理参数是否带/的过程，不带就找TestResource.class的全类限定名
             InputStream in1 = StartUpListener.class.getResource("/druid.properties").openStream();
-            String s1 = StartUpListener.class.getResource("/").getPath();//
-            String s2 = StartUpListener.class.getResource("").getPath(); // path : /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/com/yk/base/config/
+            // path : /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+            String s1 = StartUpListener.class.getResource("/").getPath();
+            // path : /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/com/yk/base/config/
+            String s2 = StartUpListener.class.getResource("").getPath();
 
             // 默认从根目录查询，不能带/, 属于简化版的class.getResource方法 (web项目中，带不带/都可以，这是因为web项目获取的是相对路径)
             InputStream in2 = StartUpListener.class.getClassLoader().getResource("druid.properties").openStream();
-            String s3 = StartUpListener.class.getClassLoader().getResource("/").getPath();//
-            String s4 = StartUpListener.class.getClassLoader().getResource("").getPath();
+            String s3 = StartUpListener.class.getClassLoader().getResource("/").getPath();// /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+            String s4 = StartUpListener.class.getClassLoader().getResource("").getPath(); // /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
 
             // 无法获取到getClassLoader 不可用
             // InputStream in3 = Thread.currentThread().getClass().getClassLoader().getResource("druid.properties").openStream();
@@ -73,13 +78,13 @@ public class StartUpListener implements ServletContextListener {
 
             // 默认从根目录查询，不能带/, 属于简化版的class.getResource方法 (web项目中，带不带/都可以)
             InputStream in5 = Thread.currentThread().getContextClassLoader().getResource("druid.properties").openStream();
-            String s7 = Thread.currentThread().getContextClassLoader().getResource("/").getPath();//
-            String s8 = Thread.currentThread().getContextClassLoader().getResource("").getPath();
+            String s7 = Thread.currentThread().getContextClassLoader().getResource("/").getPath();// /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+            String s8 = Thread.currentThread().getContextClassLoader().getResource("").getPath(); // /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
 
-            String s9 = this.getClass().getClassLoader().getResource("/").getPath();//
-            String s10 = this.getClass().getClassLoader().getResource("").getPath();
+            String s9 = this.getClass().getClassLoader().getResource("/").getPath();// /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+            String s10 = this.getClass().getClassLoader().getResource("").getPath();// /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
 
-            String s11 = this.getClass().getResource("/").getPath();//
+            String s11 = this.getClass().getResource("/").getPath();// path : /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
             String s12 = this.getClass().getResource("").getPath(); // path : /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/com/yk/base/config/
 
             Properties properties = new Properties();
@@ -177,6 +182,9 @@ public class StartUpListener implements ServletContextListener {
         Car car8 = annotation.getBean("car8", Car.class);
         Moto moto5 = annotation.getBean("moto5", Moto.class);
         logger.info("start up");
+
+        TestInterfaceMapperService mapperService = SpringContext.getInstance().getBean(TestInterfaceMapperService.class);
+        mapperService.test();
     }
 
     @Override
