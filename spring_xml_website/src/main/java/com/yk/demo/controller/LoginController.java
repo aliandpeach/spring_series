@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
@@ -18,9 +19,9 @@ public class LoginController {
     @Autowired
     private HttpServletRequest request;
 
-    @PostConstruct
-    public void init() throws IOException {
-//        HttpServletRequest request1 = ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
-        logger.info("LoginController init...");
+    public ModelAndView login() {
+        return new ModelAndView("login");
+
     }
+
 }

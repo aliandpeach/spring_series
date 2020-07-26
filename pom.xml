@@ -13,5 +13,7 @@
         <module>spring_cxf_service</module>
         <module>spring_annotation</module>
         <module>spring_xml_website</module>
+        <module>springboot_service</module>
+        <module>springboot_website</module>
     </modules>
 </project>
