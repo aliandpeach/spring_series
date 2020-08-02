@@ -26,7 +26,7 @@ public class IndexController {
         map.put("thValue", "设置当前元素的value值");
         map.put("thEach", Arrays.asList("列表", "遍历列表"));
         map.put("thIf", "msg is not null");
-        map.put("thObject", new UserEntity("sadfa", "asfasfd", "asfsaf", "asdfasf", "saf", "asfd", "sadf", 1));
+        map.put("thObject", new UserEntity("id", "username", "password", "description"));
         return "index";
     }
 
@@ -36,20 +36,12 @@ public class IndexController {
         private String username;
         private String password;
         private String description;
-        private String details;
-        private String f;
-        private String g;
-        private int i;
 
-        public UserEntity(String id, String username, String password, String description, String details, String f, String g, int i) {
+        public UserEntity(String id, String username, String password, String description) {
             this.id = id;
             this.username = username;
             this.password = password;
             this.description = description;
-            this.details = details;
-            this.f = f;
-            this.g = g;
-            this.i = i;
         }
     }
 }
