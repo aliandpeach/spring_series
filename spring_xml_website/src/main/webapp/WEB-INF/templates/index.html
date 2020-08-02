@@ -1,4 +1,3 @@
-<html lang="cn" xmlns:th="http://www.thymeleaf.org">
 <!DOCTYPE html>
 <html lang="cn" xmlns:th="http://www.thymeleaf.org">
 <head>
@@ -28,7 +27,7 @@
 <p th:text="${thIf}" th:if="${not #strings.isEmpty(thIf)}"></p>
 
 <!--th:insert 把代码块插入当前div中，优先级最高，类似的有th:replace，th:include，~{} ：代码块表达式 -->
-<div th:insert="~{grammar/common::thCommon}"></div>
+<!--<div th:insert="~{grammar/common::thCommon}"></div>-->
 
 <!--th:object 声明变量，和*{} 一起使用-->
 <div th:object="${thObject}">

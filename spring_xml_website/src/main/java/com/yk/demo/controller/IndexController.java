@@ -7,7 +7,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 
 @Controller
@@ -33,21 +32,21 @@ public class IndexController {
 
     @Data
     private class UserEntity {
-        private String a;
-        private String b;
-        private String c;
-        private String d;
-        private String e;
+        private String id;
+        private String username;
+        private String password;
+        private String description;
+        private String details;
         private String f;
         private String g;
         private int i;
 
-        public UserEntity(String a, String b, String c, String d, String e, String f, String g, int i) {
-            this.a = a;
-            this.b = b;
-            this.c = c;
-            this.d = d;
-            this.e = e;
+        public UserEntity(String id, String username, String password, String description, String details, String f, String g, int i) {
+            this.id = id;
+            this.username = username;
+            this.password = password;
+            this.description = description;
+            this.details = details;
             this.f = f;
             this.g = g;
             this.i = i;
