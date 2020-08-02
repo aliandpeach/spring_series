@@ -100,7 +100,8 @@
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="dataSource"/>
     </bean>
-    <tx:annotation-driven transaction-manager="transactionManager"/>
+    <!-- 对@Transacational 注解的Bean进行讲过处理，以织入事务管理切面 -->
+    <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
 
     <aop:config proxy-target-class="true">
         <aop:pointcut id="serviceMethod" expression="(execution(* com.yk..service..*(..)))
@@ -114,8 +115,16 @@
         </tx:attributes>
     </tx:advice>
 
-    <!--开启注解扫描-->
+
+    <!--开启切面编程自动代理-->
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+
+    <!--开启注解扫描 -->
     <mvc:annotation-driven>
+        <!-- use for converting @RequestBody method parameters and @ResponseBody method return values -->
+        <!-- 当Controller配置的是ResponseBody, 默认会使用message-converts -->
+        <!-- 所以当controller 返回 return "index" 或者 ModelMap时,不能使用@ResponseBody -->
+        <!-- ModelAndView没有该限制 -->
         <mvc:message-converters>
             <!--Http请求默认字符集ISO-8859-1 ，Spring中也是此字符集，需要手动配置以解决中文乱码问题-->
             <bean class="org.springframework.http.converter.StringHttpMessageConverter">
@@ -131,4 +140,12 @@
             </bean>
         </mvc:message-converters>
     </mvc:annotation-driven>
+
+    <bean id="restTemplate" class="org.springframework.web.client.RestTemplate">
+        <property name="messageConverters">
+            <list>
+                <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+            </list>
+        </property>
+    </bean>
 </beans>
