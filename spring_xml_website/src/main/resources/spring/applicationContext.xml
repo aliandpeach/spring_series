@@ -21,8 +21,17 @@
       http://www.springframework.org/schema/mvc
       http://www.springframework.org/schema/mvc/spring-mvc.xsd">
 
+    <!--<context:component-scan/>标签是告诉Spring 来扫描指定包下的类，
+    并注册被@Component，@Controller，@Service，@Repository等注解标记的组件。
+    而<mvc:annotation-driven/>是告知Spring，我们启用注解驱动。
+    然后Spring会自动为我们注册上面说到的几个Bean到工厂中，来处理我们的请求。-->
     <context:component-scan base-package="com.yk"/>
     <aop:config proxy-target-class="true"/>
+
+    <!--使用<context:annotation- config/>隐式地向 Spring容器注册
+    AutowiredAnnotationBeanPostProcessor、RequiredAnnotationBeanPostProcessor、
+    CommonAnnotationBeanPostProcessor以及PersistenceAnnotationBeanPostProcessor
+    这4个BeanPostProcessor-->
     <context:annotation-config/>
 
     <bean class="com.yk.base.config.EncryptPropertyPlaceholderConfigurer"
@@ -120,6 +129,15 @@
     <aop:aspectj-autoproxy proxy-target-class="true"/>
 
     <!--开启注解扫描 -->
+    <!--
+        这个配置会自动注册三个类
+        RequestMappingHandlerMapping
+        RequestMappingHandlerAdapter
+        ExceptionHandlerExceptionResolver
+        以支持使用注解@Controller的注解方法（如@RequestMapping、@ExceptionHandler）来处理request，
+        并开启一系列默认功能设置，有了这个配置，就能将所有请求映射到@Controller修饰的handler上，
+        以及对应的@RequestMapping上，仅仅配置这个，可以处理数据接口，但是无法映射静态资源，这时我们再添加一个配置即可
+    -->
     <mvc:annotation-driven>
         <!-- use for converting @RequestBody method parameters and @ResponseBody method return values -->
         <!-- 当Controller配置的是ResponseBody, 默认会使用message-converts -->
