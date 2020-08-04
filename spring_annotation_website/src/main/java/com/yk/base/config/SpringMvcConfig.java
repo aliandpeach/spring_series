@@ -1,17 +1,9 @@
 package com.yk.base.config;
 
-import com.alibaba.druid.pool.DruidDataSource;
 import com.yk.base.handler.BaseHandler;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.PropertySources;
-import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -19,8 +11,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
-
-import javax.sql.DataSource;
 
 /**
  * 如果使用继承 WebMvcConfigurationSupport 的方式
@@ -53,33 +43,7 @@ import javax.sql.DataSource;
 @Configuration //相当bean.xml
 @ComponentScan(basePackages = {"com.yk"}) //开启扫包
 @EnableWebMvc //相当开启注解版springmvc 相当web.xml 该工程完全省略了web.xml
-@PropertySources(value = {@PropertySource("classpath:druid.properties")})
 public class SpringMvcConfig implements WebMvcConfigurer {
-
-    @Getter
-    @Setter
-    @Value("${jdbc.driver}")
-    private String driver;
-
-    @Value("${jdbc.url}")
-    @Getter
-    @Setter
-    private String url;
-
-    @Value("${jdbc.username}")
-    @Getter
-    @Setter
-    private String username;
-
-    @Value("${jdbc.password}")
-    @Getter
-    @Setter
-    private String password;
-
-    @Value("${jdbc.maxActive}")
-    @Getter
-    @Setter
-    private int maxActive;
 
     /***配置视图解析器*/
     /*
@@ -166,31 +130,5 @@ public class SpringMvcConfig implements WebMvcConfigurer {
         commonsMultipartResolver.setMaxInMemorySize(102400);
         commonsMultipartResolver.setDefaultEncoding(CHARACTER_ENCODING);
         return commonsMultipartResolver;
-    }
-
-    @Bean
-    public DataSource dataSource() {
-        DruidDataSource druidDataSource = new DruidDataSource();
-        druidDataSource.setDriverClassName(driver);
-        druidDataSource.setUrl(url);
-        druidDataSource.setUsername(username);
-        druidDataSource.setPassword(password);
-        druidDataSource.setMaxActive(maxActive);
-        druidDataSource.setInitialSize(1);
-        druidDataSource.setMinIdle(5);
-        druidDataSource.setMaxWait(60000);
-        druidDataSource.setValidationQuery("SELECT 1");
-        return druidDataSource;
-    }
-
-    /**
-     * 通过构造函数注入
-     *
-     * @param dataSource
-     * @return
-     */
-    @Bean
-    public PlatformTransactionManager transactionManager(DataSource dataSource) {
-        return new DataSourceTransactionManager(dataSource);
     }
 }
