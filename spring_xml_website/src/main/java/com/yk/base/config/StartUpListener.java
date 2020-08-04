@@ -138,7 +138,7 @@ public class StartUpListener implements ServletContextListener {
         EncodedResource encodedResource = new EncodedResource(new ClassPathResource("spring/bean.xml"), "UTF-8");
         try {
             String content = FileCopyUtils.copyToString(encodedResource.getReader());
-            Optional.of(content).ifPresent(System.out::println);
+//            Optional.of(content).ifPresent(System.out::println);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -1,19 +1,12 @@
-package com.yk.test.config;
+package com.yk.base.config;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
-import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -25,37 +18,22 @@ import java.util.Arrays;
 import java.util.List;
 
 @Configuration
-@MapperScan("com.yk.example.dao")
+//@MapperScan("com.yk.example.dao")
 public class MybatisConfig {
 
-    @Bean
-    public DataSource getDataSource() {
-        BeanConfig config = SpringContextUtil.getInstance().getBean("newBeanConfig", BeanConfig.class);
-        DruidDataSource druidDataSource = new DruidDataSource();
-        druidDataSource.setDriverClassName(config.getDriver());
-        druidDataSource.setUrl(config.getUrl());
-        druidDataSource.setUsername(config.getUsername());
-        druidDataSource.setPassword(config.getPassword());
-        druidDataSource.setMaxActive(config.getMaxActive());
-        druidDataSource.setInitialSize(1);
-        druidDataSource.setMinIdle(5);
-        druidDataSource.setMaxWait(60000);
-        druidDataSource.setValidationQuery("SELECT 1");
-        return druidDataSource;
-    }
-
+    @Autowired
+    private DataSource dataSource;
 
     private Resource[] resolveMapperLocations() {
-        ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
+        ResourcePatternResolver resourceResolver1 = new PathMatchingResourcePatternResolver();
         List<String> mapperLocations = new ArrayList<>();
-        mapperLocations.add("classpath*:mapper/**/*.xml");
+        mapperLocations.add("classpath*:mappers/**/*.xml");
         List<Resource> resources = new ArrayList<>();
         for (String mapperLocation : mapperLocations) {
             try {
-                Resource[] mappers = resourceResolver.getResources(mapperLocation);
+                Resource[] mappers = resourceResolver1.getResources(mapperLocation);
                 resources.addAll(Arrays.asList(mappers));
             } catch (IOException e) {
-                // ignore
             }
         }
         return resources.toArray(new Resource[resources.size()]);
@@ -66,7 +44,7 @@ public class MybatisConfig {
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
         sqlSessionFactoryBean.setDataSource(dataSource);
         sqlSessionFactoryBean.setMapperLocations(resolveMapperLocations());
-        sqlSessionFactoryBean.setTypeAliasesPackage("com.yk.test.example.model");
+        sqlSessionFactoryBean.setTypeAliasesPackage("com.yk.demo");
         return sqlSessionFactoryBean.getObject();
     }
 

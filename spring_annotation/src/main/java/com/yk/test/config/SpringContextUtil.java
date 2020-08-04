@@ -28,6 +28,10 @@ public class SpringContextUtil implements ApplicationContextAware {
         return context.getBean(clazz);
     }
 
+    public <T> T getBean(String name, Class<T> clazz) {
+        return context.getBean(name, clazz);
+    }
+
     private static class ContextUtilHolder {
         public static SpringContextUtil contextUtil = context.getBean(SpringContextUtil.class);
     }

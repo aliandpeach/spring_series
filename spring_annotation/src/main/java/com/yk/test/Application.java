@@ -14,7 +14,7 @@ public class Application {
         TestBeanServiceImpl service = SpringContextUtil.getInstance().getBean(TestBeanServiceImpl.class);
         service.test();
 
-        BeanConfig beanConfig = applicationContext.getBean(BeanConfig.class);
+        BeanConfig beanConfig = applicationContext.getBean("newBeanConfig", BeanConfig.class);
         System.out.println(beanConfig);
         MybatisConfig mybatisConfig = applicationContext.getBean(MybatisConfig.class);
         System.out.println(mybatisConfig);
