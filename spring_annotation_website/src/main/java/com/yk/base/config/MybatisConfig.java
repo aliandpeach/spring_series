@@ -1,6 +1,7 @@
 package com.yk.base.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.yk.base.util.DESUtils;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.ibatis.session.SqlSessionFactory;
@@ -8,15 +9,22 @@ import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
+import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
+import org.springframework.core.annotation.Order;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
@@ -25,35 +33,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Configuration
+
+@Component
 @MapperScan("com.yk.demo")
-@PropertySources(value = {@PropertySource("classpath:druid.properties")})
+@ComponentScan("com.yk")
+@PropertySource("classpath:druid.properties")
+@Order(3)
 public class MybatisConfig {
-
-    @Getter
-    @Setter
-    @Value("${jdbc.driverClassName}")
-    private String driver;
-
-    @Value("${jdbc.url}")
-    @Getter
-    @Setter
-    private String url;
-
-    @Value("${jdbc.username}")
-    @Getter
-    @Setter
-    private String username;
-
-    @Value("${jdbc.password}")
-    @Getter
-    @Setter
-    private String password;
-
-    @Value("${jdbc.maxActive}")
-    @Getter
-    @Setter
-    private int maxActive;
 
     private Resource[] resolveMapperLocations() {
         ResourcePatternResolver resourceResolver1 = new PathMatchingResourcePatternResolver();
@@ -90,18 +76,19 @@ public class MybatisConfig {
         MapperScannerConfigurer mapperScannerConfigurer = new MapperScannerConfigurer();
         mapperScannerConfigurer.setSqlSessionTemplateBeanName("sqlSessionTemplate");
 //        mapperScannerConfigurer.setSqlSessionFactoryBeanName("sqlSessionFactory");
-        mapperScannerConfigurer.setBasePackage("com.yk.test.example.dao");
+        mapperScannerConfigurer.setBasePackage("com.yk.base");
         return mapperScannerConfigurer;
     }
 
     @Bean("dataSource")
     public DataSource dataSource() {
+        BeanConfig beanConfig = SpringContext.getInstance().getBean("newBeanConfig", BeanConfig.class);
         DruidDataSource druidDataSource = new DruidDataSource();
-        druidDataSource.setDriverClassName(driver);
-        druidDataSource.setUrl(url);
-        druidDataSource.setUsername(username);
-        druidDataSource.setPassword(password);
-        druidDataSource.setMaxActive(maxActive);
+        druidDataSource.setDriverClassName(beanConfig.getDriver());
+        druidDataSource.setUrl(beanConfig.getUrl());
+        druidDataSource.setUsername(DESUtils.decryptString(beanConfig.getUsername()));
+        druidDataSource.setPassword(DESUtils.decryptString(beanConfig.getPassword()));
+        druidDataSource.setMaxActive(beanConfig.getMaxActive());
         druidDataSource.setInitialSize(1);
         druidDataSource.setMinIdle(5);
         druidDataSource.setMaxWait(60000);
@@ -118,5 +105,12 @@ public class MybatisConfig {
     @Bean
     public PlatformTransactionManager transactionManager(DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
+    }
+
+    @Bean
+    public static PropertySourcesPlaceholderConfigurer propertyConfigure() {
+        PropertySourcesPlaceholderConfigurer source = new PropertySourcesPlaceholderConfigurer();
+//        source.setLocation(new ClassPathResource("config/env.properties"));
+        return source;
     }
 }

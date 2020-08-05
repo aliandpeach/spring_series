@@ -28,7 +28,9 @@ public class BaseWebApplicationInitializer implements WebApplicationInitializer 
         servletContext.setInitParameter("log4jConfiguration", "classpath:log4j2.xml");
         servletContext.addListener(new Log4jServletContextListener());
         AnnotationConfigWebApplicationContext webApplicationContext = new AnnotationConfigWebApplicationContext();
-        webApplicationContext.register(SpringMvcConfig.class);
+        webApplicationContext.register(MybatisConfig.class, SpringMvcConfig.class, BeanConfig.class);
+        webApplicationContext.setServletContext(servletContext);
+
         DispatcherServlet dispatcherServlet = new DispatcherServlet(webApplicationContext);
         ServletRegistration.Dynamic servlet = servletContext.addServlet("dispatcherServlet", dispatcherServlet);
         servlet.addMapping("*.html");//添加上下文路径地址

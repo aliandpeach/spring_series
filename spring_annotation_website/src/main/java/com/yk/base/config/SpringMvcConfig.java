@@ -4,6 +4,7 @@ import com.yk.base.handler.BaseHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -43,6 +44,7 @@ import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 @Configuration //相当bean.xml
 @ComponentScan(basePackages = {"com.yk"}) //开启扫包
 @EnableWebMvc //相当开启注解版springmvc 相当web.xml 该工程完全省略了web.xml
+@Order(2)
 public class SpringMvcConfig implements WebMvcConfigurer {
 
     /***配置视图解析器*/
