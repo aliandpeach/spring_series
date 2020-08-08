@@ -49,18 +49,15 @@ public class MybatisConfig {
 
     private Resource[] resolveMapperLocations() {
         ResourcePatternResolver resourceResolver = new PathMatchingResourcePatternResolver();
-        List<String> mapperLocations = new ArrayList<>();
-        mapperLocations.add("classpath*:mapper/**/*.xml");
-        List<Resource> resources = new ArrayList<>();
-        for (String mapperLocation : mapperLocations) {
-            try {
-                Resource[] mappers = resourceResolver.getResources(mapperLocation);
-                resources.addAll(Arrays.asList(mappers));
-            } catch (IOException e) {
-                // ignore
-            }
+
+        Resource[] mappers = new Resource[0];
+        try {
+            mappers = resourceResolver.getResources("classpath*:mapper/**/*.xml");
+        } catch (IOException e) {
+            // ignore
         }
-        return resources.toArray(new Resource[resources.size()]);
+
+        return mappers;
     }
 
     @Bean("sqlSessionFactory")

@@ -2,24 +2,18 @@ package com.yk.base.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.yk.base.util.DESUtils;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
 import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.context.annotation.PropertySources;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
@@ -29,9 +23,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.sql.DataSource;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 
 @Component
@@ -41,19 +32,17 @@ import java.util.List;
 @Order(3)
 public class MybatisConfig {
 
+    private Logger logger = LoggerFactory.getLogger("demo");
+
     private Resource[] resolveMapperLocations() {
         ResourcePatternResolver resourceResolver1 = new PathMatchingResourcePatternResolver();
-        List<String> mapperLocations = new ArrayList<>();
-        mapperLocations.add("classpath*:mappers/**/*.xml");
-        List<Resource> resources = new ArrayList<>();
-        for (String mapperLocation : mapperLocations) {
-            try {
-                Resource[] mappers = resourceResolver1.getResources(mapperLocation);
-                resources.addAll(Arrays.asList(mappers));
-            } catch (IOException e) {
-            }
+        Resource[] mappers = new Resource[0];
+        try {
+            mappers = resourceResolver1.getResources("classpath*:mappers/**/*.xml");
+        } catch (IOException e) {
+            logger.error("resolveMapperLocations errors", e);
         }
-        return resources.toArray(new Resource[resources.size()]);
+        return mappers;
     }
 
     @Bean("sqlSessionFactory")
