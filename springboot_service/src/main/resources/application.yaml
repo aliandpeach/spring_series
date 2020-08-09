@@ -1,2 +1,7 @@
+spring:
+  application:
+    name: springboot-service
 server:
   port: 9023
+  servlet:
+    context-path: /
