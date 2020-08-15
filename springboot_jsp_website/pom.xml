@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>spring_series</artifactId>
+        <groupId>com.yk.spring.pro</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--springboot-war 步骤(3) jar改为war-->
+    <packaging>jar</packaging>
+
+    <artifactId>springboot_jsp_website</artifactId>
+
+    <!-- 非parent的配置 -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>2.1.7.RELEASE</version>
+                <scope>import</scope>
+                <type>pom</type>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- jsp支持依赖 Provided 编译和测试的时候使用-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!--<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>-->
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-jasper</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>jstl</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.16.22</version>
+        </dependency>
+    </dependencies>
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>**/*.*</include>
+                </includes>
+                <excludes>
+                    <exclude>assembly/*.*</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <!--不使用parent的构建方式，那么spring-boot-maven-plugin 必须加上repackage，
+                才能打包出springboot特定的jar(内部包含所有依赖，以spring-boot-loader模块启动
+                (MANIFEST.MF指定的Main-Class是spring提供的，有它来启动我们工程的Main)) -->
+
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.yk.Application</mainClass>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- 该插件配合spring-boot-maven-plugin，把jar和src/main/webapp/的jsp打包到一起,
+                 这样才能在不打包为war的情况下正常访问到jsp页面-->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${project.name}</finalName>
+                            <descriptor>/src/main/resources/assembly/assembly.xml</descriptor>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--假设不使用spring-boot-maven-plugin，
+                使用maven-jar-plugin和maven-assembly-plugin也可以打包
+                (一个zip包内，包含了所有依赖和工程jar,MANIFEST.MF也会指定Main-Class和lib)
+                但是这种打包出来的包不能以spring-boot-loader模块的方式跑, 是以Java的委派模式启动的，
+                有一个显著的问题就是src/main/webapp/下的jsp无法响应请求-->
+
+            <!--<plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.1.1</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+                            <mainClass>com.yk.Application</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>&lt;!&ndash; 配置执行器 &ndash;&gt;
+                        <id>make-assembly</id>
+                        <phase>install</phase>&lt;!&ndash; 绑定到package生命周期阶段上 &ndash;&gt;
+                        <goals>
+                            <goal>single</goal>&lt;!&ndash; 只运行一次 &ndash;&gt;
+                        </goals>
+                        <configuration>
+                            <finalName>${project.name}</finalName>
+                            <descriptor>/src/main/resources/assembly/assembly.xml</descriptor>&lt;!&ndash;配置描述文件路径&ndash;&gt;
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>-->
+
+            <!--springboot-war 步骤(4) maven-war-plugin-->
+            <!--<plugin>
+                <artifactId>maven-war-plugin</artifactId>
+                <version>2.6</version>
+                <configuration>
+                    &lt;!&ndash;如果想在没有web.xml文件的情况下构建WAR，请设置为false。&ndash;&gt;
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>-->
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: springboot_jsp_website
+  mvc:
+    view:
+      prefix: /views/
+      suffix: .jsp
+
+  #关闭默认模板引擎
+  thymeleaf:
+    cache: false
+    enabled: false
+server:
+  port: 9023
+  servlet:
+    context-path: /
+  ssl:
+    enable: true
+    key-store: classpath:key/website_a.jks
+    key-password: Admin@1234
+    key-store-type: JKS
+    key-store-password: Admin@123

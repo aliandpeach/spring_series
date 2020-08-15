@@ -7,41 +7,60 @@ import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Collection;
-import java.util.List;
 
 @SpringBootApplication
-@EnableAsync
-@EnableScheduling
+//@EnableAsync
+//@EnableScheduling
 //@EnableAspectJAutoProxy(proxyTargetClass = true)
-public class Application {
+public class Application extends SpringBootServletInitializer {
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication();
         application.run(Application.class);
     }
 
 
+    /**
+     * springboot-war 步骤(1)
+     * 增加@Override configure方法
+     */
+    /**
+     * 打包为war包后的启动配置
+     *
+     * @param builder
+     * @return
+     */
+    /*@Override
+    public SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+        return builder.sources(Application.class);
+    }*/
+
+    /**
+     * springboot-war 步骤(2)
+     * 注释掉这些SSL配置
+     */
     @Bean
     public ServletWebServerFactory servletContainerInitializer() {
         TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory() {
             @Override
             public void postProcessContext(Context context) {
                 // 配置静态资源访问
-                /*SecurityConstraint constraint1 = new SecurityConstraint();
-                constraint1.setUserConstraint("NONE");
-                SecurityCollection collection1 = new SecurityCollection();
-                collection1.addPattern("/static/");
-                constraint1.addCollection(collection1);
-                context.addConstraint(constraint1);*/
+//                SecurityConstraint constraint1 = new SecurityConstraint();
+//                constraint1.setUserConstraint("NONE");
+//                SecurityCollection collection1 = new SecurityCollection();
+//                collection1.addPattern("/static/");
+//                constraint1.addCollection(collection1);
+//                context.addConstraint(constraint1);
 
                 SecurityConstraint constraint = new SecurityConstraint();
                 constraint.setUserConstraint("CONFIDENTIAL");
@@ -110,7 +129,6 @@ public class Application {
                         connector.setScheme("https");
 
                         Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
-                        // pom中不指定resources的话，就需要写成 classpath:key/website_a.jks
                         protocol.setKeystoreFile("key/website_a.jks");
                         protocol.setKeyPass("Admin@1234");
                         protocol.setKeystorePass("Admin@123");

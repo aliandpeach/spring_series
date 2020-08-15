@@ -16,5 +16,6 @@
         <module>springboot_service</module>
         <module>springboot_website</module>
         <module>spring_annotation_website</module>
+        <module>springboot_jsp_website</module>
     </modules>
 </project>
