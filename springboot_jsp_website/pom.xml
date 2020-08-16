@@ -111,7 +111,7 @@
             <!--假设不使用spring-boot-maven-plugin，
                 使用maven-jar-plugin和maven-assembly-plugin也可以打包
                 (一个zip包内，包含了所有依赖和工程jar,MANIFEST.MF也会指定Main-Class和lib)
-                但是这种打包出来的包不能以spring-boot-loader模块的方式跑, 是以Java的委派模式启动的，
+                但是这种打包出来的包不能以spring-boot-loader模块的方式跑, 是以Java的传统模式启动的，
                 有一个显著的问题就是src/main/webapp/下的jsp无法响应请求-->
 
             <!--<plugin>
@@ -146,12 +146,13 @@
                 </executions>
             </plugin>-->
 
-            <!--springboot-war 步骤(4) maven-war-plugin-->
+
+            <!--springboot-war 步骤(4) maven-war-plugin 和 spring-boot-maven-plugin同时启用-->
+            <!--3.0版本插件不存在web.xml缺少时无法打包的情况-->
             <!--<plugin>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.6</version>
+                <version>3.0.0</version>
                 <configuration>
-                    &lt;!&ndash;如果想在没有web.xml文件的情况下构建WAR，请设置为false。&ndash;&gt;
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>-->

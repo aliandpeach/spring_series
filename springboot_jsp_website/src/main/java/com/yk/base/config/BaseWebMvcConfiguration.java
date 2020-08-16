@@ -7,7 +7,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupp
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
 /**
- * 该配置类继承 WebMvcConfigurationSupport 和@EnableWebMvc作用一致 (@EnableWebMvc相当于继承后没有任何方法覆盖)
+ * 该配置类继承 WebMvcConfigurationSupport 和@EnableWebMvc作用一致
+ * (@EnableWebMvc相当于继承WebMvcConfigurationSupport后没有任何方法覆盖)
  */
 @Configuration
 public class BaseWebMvcConfiguration extends WebMvcConfigurationSupport {
