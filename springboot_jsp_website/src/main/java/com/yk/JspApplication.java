@@ -23,10 +23,10 @@ import java.util.Collection;
 //@EnableAsync
 //@EnableScheduling
 //@EnableAspectJAutoProxy(proxyTargetClass = true)
-public class Application extends SpringBootServletInitializer {
+public class JspApplication extends SpringBootServletInitializer {
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication();
-        application.run(Application.class);
+        application.run(JspApplication.class);
     }
 
 

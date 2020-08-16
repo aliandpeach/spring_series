@@ -12,23 +12,20 @@ import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactor
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.Collection;
-import java.util.List;
 
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling
 //@EnableAspectJAutoProxy(proxyTargetClass = true)
-public class Application {
+public class ServiceApplication {
     public static void main(String[] args) {
         SpringApplication application = new SpringApplication();
-        application.run(Application.class);
+        application.run(ServiceApplication.class);
     }
-
 
     @Bean
     public ServletWebServerFactory servletContainerInitializer() {

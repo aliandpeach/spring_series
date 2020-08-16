@@ -77,7 +77,7 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <mainClass>com.yk.Application</mainClass>
+                    <mainClass>com.yk.JspApplication</mainClass>
                 </configuration>
                 <executions>
                     <execution>
@@ -123,7 +123,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>com.yk.Application</mainClass>
+                            <mainClass>com.yk.JspApplication</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
