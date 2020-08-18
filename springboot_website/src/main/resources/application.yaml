@@ -1,2 +1,5 @@
-server:
-  port: 9024
+spring:
+  security:
+    user:
+      name: user
+      password: Admin@123
