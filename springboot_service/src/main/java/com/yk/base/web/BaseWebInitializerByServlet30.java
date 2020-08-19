@@ -2,6 +2,7 @@ package com.yk.base.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Configuration;
 
 import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;
@@ -17,6 +18,7 @@ import java.util.Set;
  *
  * 确实是这样的，embedded tomcat不生效哦 (原理肯定是WebAppServiceLoader类有关)
  */
+@Configuration
 public class BaseWebInitializerByServlet30 implements ServletContainerInitializer {
     private Logger logger = LoggerFactory.getLogger("base");
 

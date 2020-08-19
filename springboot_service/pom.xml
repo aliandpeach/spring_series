@@ -94,12 +94,25 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
+                <!-- 替换@xxx@ -->
+                <filtering>true</filtering>
                 <includes>
                     <include>**/*.*</include>
                 </includes>
                 <excludes>
-                    <exclude>services</exclude>
+                    <exclude>/services/*</exclude>
+                    <exclude>application*.yaml</exclude>
+                    <exclude>assembly.xml</exclude>
                 </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <!-- 替换@xxx@ -->
+                <filtering>true</filtering>
+                <includes>
+                    <include>application-${profileActives}.yaml</include>
+                    <include>application.yaml</include>
+                </includes>
             </resource>
             <resource>
                 <directory>src/main/resources/services</directory>
@@ -122,6 +135,41 @@
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${project.name}</finalName>
+                            <descriptor>/src/main/resources/assembly.xml</descriptor>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <profileActives>dev</profileActives>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>prod</id>
+            <properties>
+                <profileActives>prod</profileActives>
+            </properties>
+        </profile>
+    </profiles>
 </project>

@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: springboot-service
+  security:
+    user:
+      name: user
+      password: Admin@123
+server:
+  port: 9023
+  servlet:
+    context-path: /
+  ssl:
+    enable: true
+    key-store: classpath:key/website_a.jks
+    key-password: Admin@1234
+    key-store-type: JKS
+    key-store-password: Admin@123
