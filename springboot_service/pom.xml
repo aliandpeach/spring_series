@@ -24,6 +24,7 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+        <!-- 自动添加Tomcat和SpringMVC的依赖 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -94,8 +95,6 @@
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
-                <!-- 替换@xxx@ -->
-                <filtering>true</filtering>
                 <includes>
                     <include>**/*.*</include>
                 </includes>
@@ -107,7 +106,7 @@
             </resource>
             <resource>
                 <directory>src/main/resources</directory>
-                <!-- 替换@xxx@ -->
+                <!-- 替换@xxx@ 证书文件为二进制数据，但是通过txt打开后会有@xxx@的字符串段，所以上面的<resource>不能加<filtering>-->
                 <filtering>true</filtering>
                 <includes>
                     <include>application-${profileActives}.yaml</include>

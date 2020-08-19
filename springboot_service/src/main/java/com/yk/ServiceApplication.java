@@ -5,14 +5,18 @@ import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
+import org.springframework.boot.Banner;
+import org.springframework.boot.ResourceBanner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
@@ -26,7 +30,17 @@ import java.util.Collection;
 //@EnableAspectJAutoProxy(proxyTargetClass = true)
 public class ServiceApplication {
     public static void main(String[] args) {
+        Banner banner = new ResourceBanner(new ClassPathResource("banner.txt"));
+        /*SpringApplicationBuilder builder = new SpringApplicationBuilder();
+        builder.main(ServiceApplication.class);
+        builder.bannerMode(Banner.Mode.CONSOLE);
+        builder.banner(banner);
+        builder.run(args);*/
+
         SpringApplication application = new SpringApplication();
+        application.setMainApplicationClass(ServiceApplication.class);
+        application.setBanner(banner);
+        application.setBannerMode(Banner.Mode.CONSOLE);
         application.run(ServiceApplication.class);
     }
 
