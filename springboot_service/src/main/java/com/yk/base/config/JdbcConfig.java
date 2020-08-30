@@ -2,7 +2,9 @@ package com.yk.base.config;
 
 import com.alibaba.druid.pool.DruidDataSource;
 import com.yk.base.util.DESUtils;
+import com.zaxxer.hikari.HikariDataSource;
 import lombok.Data;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,7 +16,7 @@ import java.sql.SQLException;
 
 @Configuration
 @ConfigurationProperties(prefix = "jdbc")
-@PropertySources({@PropertySource("classpath:druid.properties")})
+@PropertySources({@PropertySource("classpath:druid.properties"), @PropertySource("classpath:Hikari.properties")})
 @Data
 public class JdbcConfig {
     private String driverClassName;
@@ -25,6 +27,9 @@ public class JdbcConfig {
 
     private String password;
 
+    @Value("${druid.maxActive}")
+    private int maxActive;
+
     @Bean
     public JdbcConfig newConfig() {
         return this;
@@ -32,6 +37,9 @@ public class JdbcConfig {
 
     @Bean("dataSource")
     public DataSource dataSource() throws SQLException {
+        // 也可以使用SpringBoot2提供的高性能数据库连接池
+        HikariDataSource hikariDataSource = new HikariDataSource();
+
         DruidDataSource dataSource = new DruidDataSource();
         dataSource.setDriverClassName(driverClassName);
         dataSource.setUrl(url);
@@ -40,7 +48,7 @@ public class JdbcConfig {
 
         dataSource.setDbType("mysql");
         //最大连接池数量
-        dataSource.setMaxActive(30);
+        dataSource.setMaxActive(maxActive);
         // 初始化时建立物理连接的个数
         dataSource.setInitialSize(5);
         // 最小连接池数量

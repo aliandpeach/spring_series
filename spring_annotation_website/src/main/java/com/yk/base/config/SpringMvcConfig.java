@@ -34,11 +34,13 @@ import java.util.List;
  * <p>
  * <p>
  * 有时候我们需要自己定制一些项目的设置，可以有以下几种使用方式：
- * 1、@EnableWebMvc+extends WebMvcConfigurationAdapter，在扩展的类中重写父类的方法即可，
- * 这种方式会屏蔽springboot的@EnableAutoConfiguration中的设置
+ * 1、@EnableWebMvc + extends WebMvcConfigurerAdapter，在扩展的类中重写父类的方法即可，
+ * 这种方式会屏蔽springboot的@EnableAutoConfiguration 中的设置 (WebMvcConfigurerAdapter 5.0以上已经标记为了Deprecated)
+ *
  * 2、extends WebMvcConfigurationSupport，在扩展的类中重写父类的方法即可，
- * 这种方式会屏蔽springboot的@EnableAutoConfiguration中的设置
- * 3、extends WebMvcConfigurationAdapter/WebMvcConfigurer，
+ * 这种方式会屏蔽springboot的@EnableAutoConfiguration 中的设置
+ *
+ * 3、extends WebMvcConfigurer，
  * 在扩展的类中重写父类的方法即可，这种方式依旧使用springboot的@EnableAutoConfiguration中的设置
  * <p>
  * <p>

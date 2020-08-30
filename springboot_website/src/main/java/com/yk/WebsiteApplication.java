@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletComponentScan;
@@ -37,6 +38,7 @@ public class WebsiteApplication extends SpringBootServletInitializer {
     }
 
     @Bean
+    @ConditionalOnMissingBean(name = "dispatcherServlet1")
     public Servlet dispatcherServlet1() {
         GenericServlet servlet = new GenericServlet() {
             @Override

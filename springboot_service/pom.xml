@@ -101,8 +101,14 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
+            <artifactId>spring-boot-loader</artifactId>
+            <scope>provided</scope>
         </dependency>
+
+        <!--<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>-->
 
         <!-- mybatis-spring-boot-starter是个集成包，因此对MyBatis、MyBatis-Spring和SpringBoot的jar包都存在依赖 -->
         <dependency>
