@@ -5,6 +5,9 @@ import java.util.Map;
 
 public class UserModel {
 
+
+    private long id;
+
     private int age;
 
     private String name;
@@ -66,6 +69,14 @@ public class UserModel {
 
     public void setHairColor(String hairColor) {
         this.hairColor = hairColor;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     @Override

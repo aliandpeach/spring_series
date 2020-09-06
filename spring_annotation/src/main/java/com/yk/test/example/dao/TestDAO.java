@@ -16,9 +16,10 @@ public class TestDAO {
     @Autowired
     private EnvConfig envConfig;
 
-    public void testQuery() {
+    public List<Map<String, Object>> testQuery() {
         System.out.println("test Query...");
-        List<Map<String, String>> list = sqlSessionTemplate.selectList("testDAO.testQuery");
+        List<Map<String, Object>> list = sqlSessionTemplate.selectList("testDAO.testQuery");
         System.out.println(list);
+        return list;
     }
 }
