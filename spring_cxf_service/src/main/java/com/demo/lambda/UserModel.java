@@ -29,6 +29,10 @@ public class UserModel {
         return r;
     }
 
+    public UserModel(long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
     public UserModel() {
     }
 

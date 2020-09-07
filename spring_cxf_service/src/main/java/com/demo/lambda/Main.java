@@ -8,11 +8,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Main {
@@ -150,13 +152,27 @@ public class Main {
         map1.forEach((ax, bx) -> map3.merge(ax, bx, (map1_value, map2_value) -> map2_value));
 
         //
+
+
         Map<Long, UserModel> mapk = new HashMap<Long, UserModel>();
         Map<Long, UserModel> mapw = new HashMap<Long, UserModel>();
+
+        AtomicLong integer1 = new AtomicLong(0);
+        IntStream.range(0, 5).forEach((t) -> mapk.put(integer1.incrementAndGet(), new UserModel(integer1.get(), "AUser_" + integer1.get())));
+        integer1.getAndDecrement();
+        IntStream.range(0, 5).forEach((t) -> mapw.put(integer1.incrementAndGet(), new UserModel(integer1.get(), "BUser_" + integer1.get())));
+
         Map<Long, UserModel> u = Stream.concat(mapk.entrySet().stream(), mapw.entrySet().stream())
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
-                        (value1, value2) -> new UserModel()));
+                        (value1, value2) -> new UserModel(value1.getId(), value1.getName())));
+
+        u = Stream.of(mapk.entrySet().stream(), mapw.entrySet().stream())
+                .flatMap(t -> t).collect(Collectors.toMap(t -> t.getKey(), t -> t.getValue(), (tz, ty) -> new UserModel(ty.getId(), ty.getName()), () -> new LinkedHashMap<>()));
+
+        u = mapk.entrySet().stream()
+                .collect(Collectors.toMap(t -> t.getKey(), t -> t.getValue(), (tz, ty) -> new UserModel(tz.getId(), tz.getName()), () -> new LinkedHashMap<>(mapw)));
         System.out.println();
     }
 }
