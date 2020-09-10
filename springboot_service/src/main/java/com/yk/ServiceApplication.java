@@ -17,6 +17,8 @@ import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -28,6 +30,7 @@ import java.util.Collection;
 @EnableScheduling
 // 注解类的说明是为了注册@WebListener@WebFilter@WebServlet 但同时也说明了内置tomcat才有用 本工程采用外置tomcat不需要该注解,一样可以生效
 @ServletComponentScan
+@PropertySources({@PropertySource("classpath:Hikari.properties")})
 //@EnableAspectJAutoProxy(proxyTargetClass = true)
 public class ServiceApplication {
     public static void main(String[] args) {
