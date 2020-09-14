@@ -20,11 +20,40 @@
             </Policies>
             <DefaultRolloverStrategy max="20"/>
         </RollingRandomAccessFile>
+        <RollingRandomAccessFile name="activemq"
+                                 fileName="${LOG_HOME}/logs/activemq.log"
+                                 filePattern="${LOG_HOME}/logs/activemq.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout
+                    pattern="%d %-5p (%F:%L) - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingRandomAccessFile>
+
+        <RollingRandomAccessFile name="base"
+                                 fileName="${LOG_HOME}/logs/base.log"
+                                 filePattern="${LOG_HOME}/logs/base.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout
+                    pattern="%d %-5p (%F:%L) - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingRandomAccessFile>
     </Appenders>
 
     <Loggers>
+        <logger name="com.yk.base" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="base"/>
+        </logger>
         <logger name="demo" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="demo"/>
+        </logger>
+        <logger name="activemq" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="activemq"/>
         </logger>
         <root level="info" includeLocation="true">
             <appender-ref ref="Console"/>
