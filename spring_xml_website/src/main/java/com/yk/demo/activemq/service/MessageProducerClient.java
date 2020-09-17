@@ -16,6 +16,7 @@ import javax.jms.TopicSubscriber;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.Optional;
 
 /**
  * 消息发布客户端
@@ -26,6 +27,7 @@ public class MessageProducerClient extends Client {
 
     @Override
     public void sendMessage(MessageForm form) {
+        Optional.ofNullable(form).map(t -> t.getSource()).orElseThrow(() -> new RuntimeException(""));
         try (ByteArrayOutputStream bytesout = new ByteArrayOutputStream();
              ObjectOutputStream out = new ObjectOutputStream(bytesout);) {
 

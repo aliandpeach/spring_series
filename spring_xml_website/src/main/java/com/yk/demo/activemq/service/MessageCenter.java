@@ -2,6 +2,7 @@ package com.yk.demo.activemq.service.sdk;
 
 import com.yk.demo.activemq.service.Client;
 import com.yk.demo.activemq.service.MessageConsumerClient;
+import com.yk.demo.activemq.service.MessageForm;
 import com.yk.demo.activemq.service.MessageListenerProxy;
 import com.yk.demo.activemq.service.MessageProducerClient;
 import com.yk.demo.activemq.service.MessageTaskManager;
@@ -64,16 +65,6 @@ public class MessageCenter {
         }
     }
 
-    public synchronized void addSubscribes(MessageTaskManager task) {
-        MessageTopic topic = task.getTopic();
-        Optional.ofNullable(listenerProxys.get(topic)).ifPresent(t -> t.addSubscribes(task));
-    }
-
-    public synchronized void delSubscribes(MessageTaskManager task) {
-        MessageTopic topic = task.getTopic();
-        Optional.ofNullable(listenerProxys.get(topic)).ifPresent(t -> t.delSubscribes(task));
-    }
-
     private void initBroker(boolean init){
         if (!init) {
             return;
@@ -93,8 +84,45 @@ public class MessageCenter {
         }
     }
 
+    /**
+     * sdk provider : init
+     *
+     * @param initBroker
+     * @param type
+     * @return
+     * @throws RuntimeException
+     */
     public static MessageCenter newInstance(boolean initBroker, int type) throws RuntimeException {
         int t = Optional.of(type).filter(e -> e <= 2 && e >= 0).orElseThrow(() -> new RuntimeException("type is not correct 0 or 1 or 2 is required"));
         return new MessageCenter(initBroker, t);
+    }
+
+    /**
+     * sdk provider : register
+     * @param task
+     */
+    public synchronized void addSubscribes(MessageTaskManager task) {
+        MessageTopic topic = task.getTopic();
+        Optional.ofNullable(listenerProxys.get(topic)).ifPresent(t -> t.addSubscribes(task));
+    }
+
+    /**
+     * sdk provider : unregister
+     *
+     * @param task
+     */
+    public synchronized void delSubscribes(MessageTaskManager task) {
+        MessageTopic topic = task.getTopic();
+        Optional.ofNullable(listenerProxys.get(topic)).ifPresent(t -> t.delSubscribes(task));
+    }
+
+    /**
+     * sdk provider : send
+     *
+     * @param messageForm
+     */
+    public synchronized void sendMessage(MessageForm messageForm) {
+        Optional.ofNullable(messageForm).map(t -> t.getMessageTopic()).orElseThrow(() -> new RuntimeException("sendMessage error"));
+        producers.get(messageForm.getMessageTopic()).sendMessage(messageForm);
     }
 }
