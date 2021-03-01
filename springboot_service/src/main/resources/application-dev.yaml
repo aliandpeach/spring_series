@@ -10,7 +10,7 @@ server:
   servlet:
     context-path: /
   ssl:
-    enable: true
+    enabled: true
     key-store: classpath:key/website_a.jks
     key-password: Admin@1234
     key-store-type: JKS

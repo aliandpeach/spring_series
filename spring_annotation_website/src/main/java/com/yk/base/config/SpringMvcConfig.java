@@ -2,16 +2,8 @@ package com.yk.base.config;
 
 import com.yk.base.handler.BaseHandler;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
-import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
-import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -19,9 +11,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * 如果使用继承 WebMvcConfigurationSupport 的方式
@@ -54,7 +43,6 @@ import java.util.List;
  * 最后，如果Spring Boot在classpath里看到有 spring webmvc 也会自动添加@EnableWebMvc。
  */
 @Configuration //相当bean.xml
-@ComponentScan(basePackages = {"com.yk"}) //开启扫包
 @EnableWebMvc //相当开启注解版springmvc 相当web.xml 该工程完全省略了web.xml
 @Order(2)
 public class SpringMvcConfig implements WebMvcConfigurer {
@@ -144,29 +132,5 @@ public class SpringMvcConfig implements WebMvcConfigurer {
         commonsMultipartResolver.setMaxInMemorySize(102400);
         commonsMultipartResolver.setDefaultEncoding(CHARACTER_ENCODING);
         return commonsMultipartResolver;
-    }
-
-    @Bean
-    public RestTemplate restTemplate() {
-        HttpComponentsClientHttpRequestFactory httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
-        httpRequestFactory.setConnectTimeout(15000);
-        httpRequestFactory.setReadTimeout(5000);
-        RestTemplate restTemplate = new RestTemplate(httpRequestFactory);
-        /*SimpleClientHttpRequestFactory factory=new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(5000);
-        factory.setReadTimeout(5000);
-        RestTemplate restTemplate = new RestTemplate(factory);
-        FormHttpMessageConverter fastConverter = new FormHttpMessageConverter();
-        WxMappingJackson2HttpMessageConverter wmc=new WxMappingJackson2HttpMessageConverter();
-        restTemplate.getMessageConverters().add(fastConverter);
-        restTemplate.getMessageConverters().add(wmc);
-        return restTemplate;*/
-        List<HttpMessageConverter<?>> converterList = new ArrayList<>();
-        converterList.add(new MappingJackson2HttpMessageConverter());
-        converterList.add(new FormHttpMessageConverter());
-        converterList.add(new MappingJackson2XmlHttpMessageConverter());
-        converterList.add(new StringHttpMessageConverter());
-        restTemplate.setMessageConverters(converterList);
-        return restTemplate;
     }
 }

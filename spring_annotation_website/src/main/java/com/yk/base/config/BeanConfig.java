@@ -4,16 +4,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.annotation.Order;
-import org.springframework.core.io.ClassPathResource;
 
 @Configuration
-@ComponentScan("com.yk")
-@PropertySource("classpath:druid.properties")
+@PropertySources(@PropertySource("classpath:druid.properties"))
 @Order(1)
 public class BeanConfig {
 

@@ -21,7 +21,8 @@ import java.io.IOException;
 
 @SpringBootApplication
 @EnableAutoConfiguration
-// 注解类的说明是为了注册@WebListener@WebFilter@WebServlet 但同时也说明了内置tomcat才有用 本工程采用外置tomcat不需要该注解,一样可以生效
+// @ServletComponentScan 使 @WebListener@WebFilter@WebServlet 注释的类被扫描到
+// 只有内置tomcat才有用 外置tomcat不需要该注解,一样可以生效（因为这三个注释是servlet的标准而不属于SpringBoot）
 @ServletComponentScan
 public class WebsiteApplication extends SpringBootServletInitializer {
     public static void main(String[] args) {

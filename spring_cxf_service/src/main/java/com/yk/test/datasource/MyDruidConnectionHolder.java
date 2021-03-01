@@ -24,9 +24,9 @@ public class MyDruidConnectionHolder
     }
 
     //不适用ConCurrentHashMap是因为其只支持最大16条线程
-    private Map<String, MyDruidDataSource> dataSourceMap = Collections.synchronizedMap(new HashMap());
+    private Map<String, MyDruidDataSource> dataSourceMap = Collections.synchronizedMap(new HashMap<>());
 
-    public synchronized DruidPooledConnection getConnection(DruidDataSource druidDataSource)
+    synchronized DruidPooledConnection getConnection(DruidDataSource druidDataSource)
             throws IllegalAccessException, SQLException
     {
         if (null != ParamHolder.getInstance().getThreadLocalParam() && dataSourceMap.containsKey(ParamHolder.getInstance().getThreadLocalParam()))
@@ -70,6 +70,6 @@ public class MyDruidConnectionHolder
 
     private static class MyDruidConnectionHolderInstance
     {
-        public static MyDruidConnectionHolder INSTANCE = new MyDruidConnectionHolder();
+        static MyDruidConnectionHolder INSTANCE = new MyDruidConnectionHolder();
     }
 }

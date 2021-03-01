@@ -3,6 +3,7 @@ package com.yk;
 import org.apache.catalina.Context;
 import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
+import org.apache.tomcat.util.descriptor.web.LoginConfig;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.springframework.boot.Banner;
@@ -33,6 +34,9 @@ import java.util.Collection;
 @PropertySources({@PropertySource("classpath:Hikari.properties")})
 //@EnableAspectJAutoProxy(proxyTargetClass = true)
 public class ServiceApplication {
+    private static final String KEYPASS = "Admin@1234";
+    private static final String KEYSTOREPASS = "Admin@123";
+    
     public static void main(String[] args) {
         Banner banner = new ResourceBanner(new ClassPathResource("banner.txt"));
         /*SpringApplicationBuilder builder = new SpringApplicationBuilder();
@@ -67,6 +71,11 @@ public class ServiceApplication {
                 collection.addPattern("/*");
                 constraint.addCollection(collection);
                 context.addConstraint(constraint);
+                
+                LoginConfig loginConfig = new LoginConfig();
+                loginConfig.setAuthMethod("CLIENT-CERT");
+                loginConfig.setRealmName("Client Cert Users-only Area");
+                context.setLoginConfig(loginConfig);
             }
         };
         tomcat.addConnectorCustomizers(new TomcatConnectorCustomizer() {
@@ -77,8 +86,8 @@ public class ServiceApplication {
 
                 Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
                 protocol.setKeystoreFile("key/website_a.jks");
-                protocol.setKeyPass("Admin@1234");
-                protocol.setKeystorePass("Admin@123");
+                protocol.setKeyPass(KEYPASS);
+                protocol.setKeystorePass(KEYSTOREPASS);
                 protocol.setKeystoreType("JKS");
                 protocol.setSSLEnabled(true);
                 protocol.setClientAuth("false");
@@ -95,8 +104,8 @@ public class ServiceApplication {
 
         Http11NioProtocol http11NioProtocol = (Http11NioProtocol) connectorAdditional.getProtocolHandler();
         http11NioProtocol.setKeystoreFile("key/website_a.jks");
-        http11NioProtocol.setKeyPass("Admin@1234");
-        http11NioProtocol.setKeystorePass("Admin@123");
+        http11NioProtocol.setKeyPass(KEYPASS);
+        http11NioProtocol.setKeystorePass(KEYSTOREPASS);
         http11NioProtocol.setKeystoreType("JKS");
         http11NioProtocol.setSSLEnabled(true);
         http11NioProtocol.setClientAuth("false");
@@ -130,8 +139,8 @@ public class ServiceApplication {
                         Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
                         // pom中不指定resources的话，就需要写成 classpath:key/website_a.jks
                         protocol.setKeystoreFile("key/website_a.jks");
-                        protocol.setKeyPass("Admin@1234");
-                        protocol.setKeystorePass("Admin@123");
+                        protocol.setKeyPass(KEYPASS);      // Admin@1234
+                        protocol.setKeystorePass(KEYSTOREPASS); // Admin@123
                         protocol.setKeystoreType("JKS");
                         protocol.setSSLEnabled(true);
                         protocol.setClientAuth("false");

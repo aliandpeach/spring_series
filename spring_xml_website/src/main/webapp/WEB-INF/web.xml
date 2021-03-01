@@ -19,11 +19,16 @@
         </listener-class>
     </listener>
 
+    <!-- 这里不配置的话，Spring 会默认通过 ContextLoader.properties 的配置来初始化 XmlWebApplicationContext-->
+    <!--<context-param>
+        <param-name>contextClass</param-name>
+        <param-value>org.springframework.web.context.support.XmlWebApplicationContext</param-value>
+    </context-param>-->
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>classpath*:spring/applicationContext.xml</param-value>
     </context-param>
-    <!-- 用于启动WebApplicationContext -->
+    <!-- 用于初始化 XmlWebApplicationContext -->
     <listener>
         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
     </listener>
@@ -88,6 +93,19 @@
         <welcome-file>index.jsp</welcome-file>
     </welcome-file-list>-->
 
+    <!--
+    <tracking-mode>用于表示容器应该使用哪种技术追踪会话ID，它的合法值有：
+
+    ·URL -> 容器将只在URL中内嵌会话ID，不使用cookie或SSL会话ID，这种方式非常不安全。
+
+    ·COOKIE -> 容器将使用会话cookie追踪会话ID，该技术非常安全。
+
+    ·SSL -> 容器将使用SSL会话ID作为HTTP会话ID，该方法是最安全的方式，但要求使用的所有请求都必须是HTTPS请求。
+
+    也可以为<tracking-mode>配置多个值，表示容器可以使用多种策略。
+
+    只有在追踪模式中使用了COOKIE时，才可以使用<cookie-config>标签。
+    -->
 
     <session-config>
         <cookie-config>

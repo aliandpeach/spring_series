@@ -5,12 +5,12 @@ import com.yk.base.util.DESUtils;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.mybatis.spring.SqlSessionFactoryBean;
 import org.mybatis.spring.SqlSessionTemplate;
-import org.mybatis.spring.annotation.MapperScan;
 import org.mybatis.spring.mapper.MapperScannerConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.annotation.Order;
@@ -26,31 +26,44 @@ import java.io.IOException;
 
 
 @Component
-@MapperScan("com.yk.demo")
-@ComponentScan("com.yk")
 @PropertySource("classpath:druid.properties")
 @Order(3)
 public class MybatisConfig {
 
     private Logger logger = LoggerFactory.getLogger("demo");
+    
+    /**
+     * 为什么无法注入
+     */
+    @Autowired
+    @Qualifier("newBeanConfig")
+    private BeanConfig newBeanConfig;
 
     private Resource[] resolveMapperLocations() {
         ResourcePatternResolver resourceResolver1 = new PathMatchingResourcePatternResolver();
         Resource[] mappers = new Resource[0];
         try {
-            mappers = resourceResolver1.getResources("classpath*:mappers/**/*.xml");
+            mappers = resourceResolver1.getResources("classpath*:mapper/**/*.xml");
         } catch (IOException e) {
             logger.error("resolveMapperLocations errors", e);
         }
         return mappers;
     }
-
-    @Bean("sqlSessionFactory")
-    public SqlSessionFactory getSqlSessionFactory(DataSource dataSource) throws Exception {
+    
+    @Bean("sqlSessionFactoryBean")
+    public SqlSessionFactoryBean getSqlSessionFactoryBean(DataSource dataSource) throws Exception {
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
         sqlSessionFactoryBean.setDataSource(dataSource);
+        // sqlSessionFactoryBean.setTypeHandlersPackage(""); // 设置handler
+        // 指定mapper.xml的位置
         sqlSessionFactoryBean.setMapperLocations(resolveMapperLocations());
+        // 指定模型类
         sqlSessionFactoryBean.setTypeAliasesPackage("com.yk.demo");
+        return sqlSessionFactoryBean;
+    }
+
+    @Bean("sqlSessionFactory")
+    public SqlSessionFactory getSqlSessionFactory(SqlSessionFactoryBean sqlSessionFactoryBean) throws Exception {
         return sqlSessionFactoryBean.getObject();
     }
 
@@ -59,13 +72,21 @@ public class MybatisConfig {
         SqlSessionTemplate sqlSessionTemplate = new SqlSessionTemplate(sqlSessionFactory);
         return sqlSessionTemplate;
     }
-
+    
+    /**
+     * MapperScannerConfigurer 作用等同于@MapperScan BasePackage就是配置于 mapper.xml中namespace的接口
+     *
+     * 使用接口模式必须定义MapperScannerConfigurer的Bean 或者使用@MapperScan指定 basePackage（接口所在的包路径）
+     *
+     * @return
+     */
     @Bean
-    public MapperScannerConfigurer getMapperScannerConfigurer() throws Exception {
+    public MapperScannerConfigurer mapperScannerConfigurer() {
         MapperScannerConfigurer mapperScannerConfigurer = new MapperScannerConfigurer();
         mapperScannerConfigurer.setSqlSessionTemplateBeanName("sqlSessionTemplate");
 //        mapperScannerConfigurer.setSqlSessionFactoryBeanName("sqlSessionFactory");
-        mapperScannerConfigurer.setBasePackage("com.yk.base");
+        mapperScannerConfigurer.setBasePackage("com.yk.demo.**");
+        /*  com.yk.demo.** Spring使用PathMatchingResourcePatternResolver解析, 然后找到接口的.class文件,利用反射生成bean */
         return mapperScannerConfigurer;
     }
 

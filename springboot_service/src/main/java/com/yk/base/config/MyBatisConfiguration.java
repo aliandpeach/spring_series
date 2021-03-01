@@ -48,6 +48,7 @@ public class MyBatisConfiguration {
     public SqlSessionFactory getSqlSessionFactory(DataSource dataSource) throws Exception {
         SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
         sqlSessionFactoryBean.setDataSource(dataSource);
+        // sqlSessionFactoryBean.setTypeHandlersPackage("com"); // 设置handler
         sqlSessionFactoryBean.setMapperLocations(new PathMatchingResourcePatternResolver().getResources("classpath*:mappers/**/*.xml"));
         sqlSessionFactoryBean.setTypeAliasesPackage("com.yk.demo.model");
         return sqlSessionFactoryBean.getObject();
