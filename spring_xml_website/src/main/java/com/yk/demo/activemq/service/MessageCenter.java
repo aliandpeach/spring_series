@@ -1,22 +1,12 @@
-package com.yk.demo.activemq.service.sdk;
+package com.yk.demo.activemq.service;
 
-import com.yk.demo.activemq.service.Client;
-import com.yk.demo.activemq.service.MessageConsumerClient;
-import com.yk.demo.activemq.service.MessageForm;
-import com.yk.demo.activemq.service.MessageListenerProxy;
-import com.yk.demo.activemq.service.MessageProducerClient;
-import com.yk.demo.activemq.service.MessageTaskManager;
-import com.yk.demo.activemq.service.MessageTopic;
 import org.apache.activemq.broker.BrokerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.SSLContext;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 
 public class MessageCenter {
 
