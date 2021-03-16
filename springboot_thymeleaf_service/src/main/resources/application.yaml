@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: springboot_thymeleaf_service
+  #mvc:
+  #  view:
+  #    prefix: /views/
+  #    suffix: .jsp
+
+  #关闭默认模板引擎
+  thymeleaf:
+    cache: false
+    enabled: true
+    prefix: classpath:/thymeleaf/
+    suffix: .html
+    mode: HTML5
+    template-resolver-order: 1
+    encoding: UTF-8
+  mvc:
+    static-path-pattern: /resource/**
+  resources:
+    static-locations: classpath:/thymeleaf/static/, classpath:/thymeleaf/static/, classpath:/public/
+server:
+  port: 9023
+  servlet:
+    context-path: /
+  ssl:
+    enabled: true
+    key-store: classpath:key/website_a.jks
+    key-password: Admin@1234
+    key-store-type: JKS
+    key-store-password: Admin@123

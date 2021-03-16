@@ -25,6 +25,10 @@
         <property name="suffix" value=".jsp"/>
     </bean>-->
 
+    <!-- 下面两个配置只在DispatcherServlet拦截所有请求的情况下配置即可-->
+    <mvc:default-servlet-handler/>
+    <mvc:resources mapping="/jquery/**" location="/plugin/jquery/"/>
+
     <bean id="templateResolver"
           class="org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver">
         <property name="prefix" value="/WEB-INF/templates/"/>

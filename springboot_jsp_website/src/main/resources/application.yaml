@@ -5,11 +5,28 @@ spring:
     view:
       prefix: /views/
       suffix: .jsp
-
+    staticPathPattern: /picture/**
+                      # 相当于 BaseWebMvcConfiguration addResourceHandlers的配置
+  resources:
+    staticLocations: /png/, classpath:/META-INF/resources/, classpath:/resources/, classpath:/static/, classpath:/public/
+                      # 相当于 BaseWebMvcConfiguration addResourceHandlers的配置
   #关闭默认模板引擎
   thymeleaf:
     cache: false
     enabled: false
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  #  url:
+  #  password:
+  #  username:
+    druid:
+      url: jdbc:mysql://192.168.31.105:13306/xywl_online_1?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true
+      username: root
+      password: root
+      initial-size: 10
+      max-active: 100
+      min-idle: 10
 server:
   port: 9023
   servlet:
@@ -20,3 +37,5 @@ server:
     key-password: Admin@1234
     key-store-type: JKS
     key-store-password: Admin@123
+  error:
+    path: /error

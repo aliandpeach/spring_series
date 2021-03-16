@@ -10,49 +10,26 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
-import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 
-import java.io.File;
 import java.util.Collection;
 
 @SpringBootApplication
 //@EnableAsync
 //@EnableScheduling
 //@EnableAspectJAutoProxy(proxyTargetClass = true)
-@ServletComponentScan
-public class JspApplication extends SpringBootServletInitializer
+public class ThymeleafServiceApplication extends SpringBootServletInitializer
 {
     public static void main(String[] args)
     {
         SpringApplication application = new SpringApplication();
-        application.run(JspApplication.class);
+        application.run(ThymeleafServiceApplication.class);
     }
     
-    
-    /**
-     * springboot-war 步骤(1)
-     * 增加@Override configure方法
-     */
-    /**
-     * 打包为war包后的启动配置
-     *
-     * @param builder
-     * @return
-     */
-    /*@Override
-    public SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
-        return builder.sources(Application.class);
-    }*/
-    
-    /**
-     * springboot-war 步骤(2)
-     * 注释掉这些SSL配置
-     */
     @Bean
-    public ServletWebServerFactory servletContainerInitializer()
+    public ServletWebServerFactory thymeleafContainerInitializer()
     {
         TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory()
         {
@@ -75,29 +52,26 @@ public class JspApplication extends SpringBootServletInitializer
                 context.addConstraint(constraint);
             }
         };
-        tomcat.addConnectorCustomizers(new TomcatConnectorCustomizer()
+        tomcat.addConnectorCustomizers((TomcatConnectorCustomizer) connector ->
         {
-            public void customize(Connector connector)
-            {
-                connector.setPort(9024);
-                connector.setSecure(true);
-                connector.setScheme("https");
-                
-                Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
-                protocol.setKeystoreFile("key/website_a.jks");
-                protocol.setKeyPass("Admin@1234");
-                protocol.setKeystorePass("Admin@123");
-                protocol.setKeystoreType("JKS");
-                protocol.setSSLEnabled(true);
-                protocol.setClientAuth("false");
-            }
+            connector.setPort(9025);
+            connector.setSecure(true);
+            connector.setScheme("https");
+            
+            Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
+            protocol.setKeystoreFile("key/website_a.jks");
+            protocol.setKeyPass("Admin@1234");
+            protocol.setKeystorePass("Admin@123");
+            protocol.setKeystoreType("JKS");
+            protocol.setSSLEnabled(true);
+            protocol.setClientAuth("false");
         });
         
         /**
          * 额外增加的Connector
          */
         Connector connectorAdditional = new Connector("org.apache.coyote.http11.Http11NioProtocol");
-        connectorAdditional.setPort(9025);
+        connectorAdditional.setPort(9026);
         connectorAdditional.setSecure(true);
         connectorAdditional.setScheme("https");
         
@@ -114,7 +88,7 @@ public class JspApplication extends SpringBootServletInitializer
     }
     
     /**
-     * customize方法中的Connector与 servletContainerInitializer-customize的Connector是同一个，
+     * customize方法中的Connector与 thymeleafContainerInitializer-customize的Connector是同一个，
      * 所以该Bean的customize会覆盖上面的customize
      *
      * @return
@@ -122,36 +96,28 @@ public class JspApplication extends SpringBootServletInitializer
     @Bean
     public WebServerFactoryCustomizer webServerFactoryCustomizer()
     {
-        WebServerFactoryCustomizer webServerFactoryCustomizernew = new WebServerFactoryCustomizer<TomcatServletWebServerFactory>()
+        WebServerFactoryCustomizer webServerFactoryCustomizernew = (WebServerFactoryCustomizer<TomcatServletWebServerFactory>) factory ->
         {
-            public void customize(TomcatServletWebServerFactory factory)
+            Collection<TomcatConnectorCustomizer> list = factory.getTomcatConnectorCustomizers();
+            for (TomcatConnectorCustomizer tomcatConnectorCustomizer : list)
             {
-                Collection<TomcatConnectorCustomizer> list = factory.getTomcatConnectorCustomizers();
-                for (TomcatConnectorCustomizer tomcatConnectorCustomizer : list)
-                {
-                    Class<?> clazz = tomcatConnectorCustomizer.getClass();
-                    System.out.println(clazz);
-                }
-                factory.addConnectorCustomizers(new TomcatConnectorCustomizer()
-                {
-                    public void customize(Connector connector)
-                    {
-                        connector.setPort(9026);
-                        connector.setSecure(true);
-                        connector.setScheme("https");
-                        
-                        Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
-                        protocol.setKeystoreFile("key/website_a.jks");
-                        protocol.setKeyPass("Admin@1234");
-                        protocol.setKeystorePass("Admin@123");
-                        protocol.setKeystoreType("JKS");
-                        protocol.setSSLEnabled(true);
-                        protocol.setClientAuth("false");
-                    }
-                });
-                // SpringBoot 给内置tomcat的docBase目录默认是 src/main/webapp public static
-                // factory.setDocumentRoot(new File(""));
+                Class<?> clazz = tomcatConnectorCustomizer.getClass();
+                System.out.println(clazz);
             }
+            factory.addConnectorCustomizers((TomcatConnectorCustomizer) connector ->
+            {
+                connector.setPort(9027);
+                connector.setSecure(true);
+                connector.setScheme("https");
+                
+                Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
+                protocol.setKeystoreFile("key/website_a.jks");
+                protocol.setKeyPass("Admin@1234");
+                protocol.setKeystorePass("Admin@123");
+                protocol.setKeystoreType("JKS");
+                protocol.setSSLEnabled(true);
+                protocol.setClientAuth("false");
+            });
         };
         return webServerFactoryCustomizernew;
     }

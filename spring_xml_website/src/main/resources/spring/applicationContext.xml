@@ -32,6 +32,7 @@
     AutowiredAnnotationBeanPostProcessor、RequiredAnnotationBeanPostProcessor、
     CommonAnnotationBeanPostProcessor以及PersistenceAnnotationBeanPostProcessor
     这4个BeanPostProcessor-->
+    <!--有component-scan不再需要annotation-config -->
     <context:annotation-config/>
 
     <bean class="com.yk.base.config.EncryptPropertyPlaceholderConfigurer"

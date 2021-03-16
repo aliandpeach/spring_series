@@ -8,6 +8,12 @@ import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
+/**
+ * 根据@EnableWebMv源码的解释：
+ *  * 1. @EnableWebMvc 修饰配置类，不做任何继承和实现 就能使用WebMvcConfigurationSupport的配置
+ *  * 2. @EnableWebMvc + WebMvcConfigurer
+ *  * 3. 如果WebMvcConfigurer接口没有更多公开的的高级配置，那么就需要继承WebMvcConfigurationSupport， 注意不要添加 @EnableWebMvc
+ */
 @Configuration
 @EnableWebMvc
 public class MvcWebConfig implements WebMvcConfigurer {

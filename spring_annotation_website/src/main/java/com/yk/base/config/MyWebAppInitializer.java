@@ -14,6 +14,7 @@ import javax.servlet.ServletRegistration;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.SessionTrackingMode;
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -38,6 +39,16 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
         return new Class<?>[]{SpringMvcConfig.class};
     }
     
+    
+    /**
+     * 官方文档需要把url-pattern的属性值配置成*.do
+     * 配置成把url-pattern配置为 / 仅仅适用于restful风格的开发
+     * 配置成把url-pattern配置为 /* 会导致所有的请求都得不到响应
+     * 配置成把url-pattern配置为 * 会导致Tomcat服务器运行不起来
+     *
+     * 这里之所以可以配置为 /* 是因为 SpringMvcConfig 中配置了 DefaultServletHandlerConfigurer, 这样spring的拦截就又交给tomcat了
+     *
+     */
     protected String[] getServletMappings()
     {
         return new String[]{"/*"};
@@ -74,6 +85,7 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
                     IOException, ServletException
             {
                 System.out.println();
+                String uri = ((HttpServletRequest)request).getRequestURI();
                 chain.doFilter(request, response);
             }
             
