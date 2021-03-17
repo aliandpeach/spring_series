@@ -5,7 +5,7 @@ spring:
     view:
       prefix: /views/
       suffix: .jsp
-    staticPathPattern: /picture/**
+    staticPathPattern: /yaml/**
                       # 相当于 BaseWebMvcConfiguration addResourceHandlers的配置
   resources:
     staticLocations: /png/, classpath:/META-INF/resources/, classpath:/resources/, classpath:/static/, classpath:/public/

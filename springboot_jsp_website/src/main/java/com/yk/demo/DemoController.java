@@ -43,7 +43,7 @@ public class DemoController
         int count = jdbcTemplate.update("DELETE FROM t_s_role WHERE id = ?", "1");
         try
         {
-            int result = jdbcTemplate.update("UPDATE t_s_role SET `name` = ? WHERE id = ?", "AAAAAAAAAAAA", "2");
+            int result = jdbcTemplate.update("UPDATE t_s_role SET `name` = ? WHERE id = ?", "AAA", "2");
         }
         catch (Exception e)
         {

@@ -151,6 +151,9 @@ public class JspApplication extends SpringBootServletInitializer
                 });
                 // SpringBoot 给内置tomcat的docBase目录默认是 src/main/webapp public static
                 // factory.setDocumentRoot(new File(""));
+                System.out.println("==================JspApplication=================");
+                System.out.println(JspApplication.class.getClassLoader().getResource("").getPath());
+                System.out.println("==================JspApplication=================");
             }
         };
         return webServerFactoryCustomizernew;
