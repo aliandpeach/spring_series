@@ -45,7 +45,7 @@ public class BaseWebMvcConfiguration implements WebMvcConfigurer
     public InternalResourceViewResolver viewResolver()
     {
         InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
-        viewResolver.setPrefix("/views/");
+        viewResolver.setPrefix("/views/"); // 不能像thymeleaf一样写成 classpath:/xxxx/ 估计是无法解析打进jar包里的jsp
         viewResolver.setSuffix(".jsp");
         return viewResolver;
     }

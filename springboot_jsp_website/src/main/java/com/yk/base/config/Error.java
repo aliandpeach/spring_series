@@ -20,6 +20,10 @@ import java.util.Map;
  *
  * DefaultErrorViewResolver默认会返回 /error/4xx.jsp /error/5xx.jsp （页面就需要放入views目录下面的error目录）
  *
+ * 用户自定的ErrorController 默认情形,
+ * 如果没有自定义, 会去执行 BasicErrorController, 再通过 DefaultErrorViewResolver 寻找有没有配置 /error/4xx.jsp /error/5xx.jsp页面, 没有就直接返回error.jsp
+ *
+ * Error > DefaultErrorViewResolver > BasicErrorController
  */
 @Controller
 public class Error implements ErrorController
@@ -49,7 +53,7 @@ public class Error implements ErrorController
     {
         ServletWebRequest requestAttributes = new ServletWebRequest(request);
         Map<String, Object> attr = this.errorAttributes.getErrorAttributes(requestAttributes, false);
-        return new ModelAndView("400");
+        return new ModelAndView("400"); // 不存在或者内部错误的资源请求进入 views/400 页面
     }
     
     /**

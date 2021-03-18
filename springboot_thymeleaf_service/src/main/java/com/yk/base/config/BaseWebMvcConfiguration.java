@@ -2,15 +2,29 @@ package com.yk.base.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
+import java.nio.charset.Charset;
+import java.util.List;
+
 /**
  * 该配置类继承 WebMvcConfigurationSupport 和@EnableWebMvc作用一致
  * (@EnableWebMvc相当于继承WebMvcConfigurationSupport后没有任何方法覆盖)
+ *
+ *
+ * 默认的静态文件配置路径："classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/"
+ *
+ * <p>
+ * 继承WebMvcConfigurationSupport 某些配置失效问题
+ * https://blog.csdn.net/weixin_43606226/article/details/105047572
  */
 @Configuration
 public class BaseWebMvcConfiguration extends WebMvcConfigurationSupport
@@ -82,5 +96,41 @@ public class BaseWebMvcConfiguration extends WebMvcConfigurationSupport
     {
         registry.addResourceHandler("/resource/**").addResourceLocations("classpath:/thymeleaf/static/");
         registry.addResourceHandler("/jquery/**").addResourceLocations("classpath:/thymeleaf/static/");
+        registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
+        registry.addResourceHandler("/other/**").addResourceLocations("classpath:/META-INF/resources/");
+        // 非classpath下的文件 SpringBoot默认是在src/main/webapp  public  static 目录中, 这三个目录和打出来的jar得在同一级目录
+        // 也可以使用factory.setDocumentRoot("test");设置为test目录
+        // 这里的 https://192.168.32.152:9027/png/webapp.png 就可以被访问到
+        registry.addResourceHandler("/png/**").addResourceLocations("/png/");
+    }
+    
+    /**
+     * 页面跳转
+     */
+    @Override
+    protected void addViewControllers(ViewControllerRegistry registry)
+    {
+        registry.addViewController("index").setViewName("index");
+    }
+    
+    /**
+     * 拦截器配置
+     */
+    @Override
+    protected void addInterceptors(InterceptorRegistry registry)
+    {
+//        registry.addInterceptor(new LoginInterceptor())
+//                .addPathPatterns("/**")
+//                .excludePathPatterns("/goLogin", "/login");
+    }
+    
+    /**
+     * 编码配置
+     */
+    @Override
+    protected void configureMessageConverters(List<HttpMessageConverter<?>> converters)
+    {
+        super.configureMessageConverters(converters);
+        converters.add(new StringHttpMessageConverter(Charset.forName("UTF-8")));
     }
 }
