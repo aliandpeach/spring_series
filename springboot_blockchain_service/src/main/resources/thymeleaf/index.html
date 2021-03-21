@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" th:src="@{/jquery/jquery-1.8.0.min.js}" ></script>
+</head>
+<body>
+    <div >
+        <button id="start">开始</button>
+        <button id="stop">停止</button>
+        <div id="status"></div>
+    </div>
+</body>
+<script th:inline="javascript">
+
+    $(function () {
+        debugger;
+        $("#start").click(function () {
+            todo(this.id);
+        });
+        $("#stop").click(function () {
+            todo(this.id);
+        });
+    });
+
+    function todo(status) {
+        $.ajax({
+            type: "post",
+            contentType: "application/json",
+            url: "/block/chain/" + status,
+            data: "",
+            async: true,
+            success: function (result) {
+                if (result.status) {
+                    $("#status").html("");
+                }
+            }
+        });
+    }
+</script>
+</html>
