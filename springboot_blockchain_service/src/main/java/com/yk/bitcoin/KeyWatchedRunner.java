@@ -1,6 +1,7 @@
 package com.yk.bitcoin;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.yk.base.config.BlockchainProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,13 +18,17 @@ public class KeyWatchedRunner implements Runnable
     private Logger status = LoggerFactory.getLogger("generator");
 
     private Logger error = LoggerFactory.getLogger("error");
+    
     @Autowired
     private Cache cache;
+    
+    @Autowired
+    private BlockchainProperties blockchainProperties;
 
     @Override
     public void run()
     {
-        if (!cache.run)
+        if (!cache.run || !blockchainProperties.isExecute())
         {
             status.info("KeyWatchedRunner stopped!");
             return;

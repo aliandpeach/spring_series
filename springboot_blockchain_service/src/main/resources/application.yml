@@ -15,7 +15,7 @@ spring:
     mode: HTML
     template-resolver-order: 1
     encoding: UTF-8
-#  这里不配置 static-path-pattern 和 static-locations
+#  这里不用配置 static-path-pattern 和 static-locations
 #  SpringBoot默认会映射 /** 到 Defaults to classpath:[/META-INF/resources/, /resources/, /static/, /public/].
 #                       以及 "classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/"
 #  mvc:
@@ -32,3 +32,6 @@ server:
     key-password: Admin@1234
     key-store-type: JKS
     key-store-password: Admin@123
+block:
+  chain:
+    execute: @profileActives@

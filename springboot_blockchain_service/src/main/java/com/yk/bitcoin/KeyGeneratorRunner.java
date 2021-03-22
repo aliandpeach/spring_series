@@ -1,5 +1,6 @@
 package com.yk.bitcoin;
 
+import com.yk.base.config.BlockchainProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,13 +22,16 @@ public class KeyGeneratorRunner implements Runnable
 
     @Autowired
     private Cache cache;
+    
+    @Autowired
+    private BlockchainProperties blockchainProperties;
 
     private SecureRandom random = new SecureRandom();
 
     @Override
     public void run()
     {
-        if (!cache.run)
+        if (!cache.run || !blockchainProperties.isExecute())
         {
             status.info("KeyGeneratorRunner stopped!");
             return;
