@@ -111,6 +111,16 @@
                 <includes>
                     <include>**/*.*</include>
                 </includes>
+                <excludes>
+                    <exclude>*.yml</exclude>
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <includes>
+                    <include>*.yml</include>
+                </includes>
+                <filtering>true</filtering>
             </resource>
             <resource>
                 <directory>src/main/resources</directory>
@@ -143,13 +153,13 @@
         <profile>
             <id>dev</id>
             <properties>
-                <profileActives>false</profileActives>
+                <active>false</active>
             </properties>
         </profile>
         <profile>
             <id>prod</id>
             <properties>
-                <profileActives>true</profileActives>
+                <active>true</active>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>

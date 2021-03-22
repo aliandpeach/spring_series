@@ -34,4 +34,4 @@ server:
     key-store-password: Admin@123
 block:
   chain:
-    execute: @profileActives@
+    execute: @active@
