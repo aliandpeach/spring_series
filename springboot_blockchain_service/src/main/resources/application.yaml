@@ -1,6 +1,6 @@
 spring:
   application:
-    name: springboot_thymeleaf_service
+    name: springboot_blockchain_service
   #mvc:
   #  view:
   #    prefix: /views/
@@ -15,6 +15,9 @@ spring:
     mode: HTML
     template-resolver-order: 1
     encoding: UTF-8
+#  这里不配置 static-path-pattern 和 static-locations
+#  SpringBoot默认会映射 /** 到 Defaults to classpath:[/META-INF/resources/, /resources/, /static/, /public/].
+#                       以及 "classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/"
 #  mvc:
 #    static-path-pattern: /resource/**
 #  resources:

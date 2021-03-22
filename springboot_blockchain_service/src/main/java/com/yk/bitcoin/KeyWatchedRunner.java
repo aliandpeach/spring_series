@@ -13,6 +13,8 @@ import java.util.Map;
 public class KeyWatchedRunner implements Runnable
 {
     private Logger logger = LoggerFactory.getLogger("watched");
+    
+    private Logger status = LoggerFactory.getLogger("generator");
 
     private Logger error = LoggerFactory.getLogger("error");
     @Autowired
@@ -23,7 +25,7 @@ public class KeyWatchedRunner implements Runnable
     {
         if (!cache.run)
         {
-            logger.info("KeyWatchedRunner stopped!");
+            status.info("KeyWatchedRunner stopped!");
             return;
         }
         try

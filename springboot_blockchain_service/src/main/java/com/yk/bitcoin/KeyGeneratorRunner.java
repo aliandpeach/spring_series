@@ -12,7 +12,7 @@ import java.util.Map;
 @Service
 public class KeyGeneratorRunner implements Runnable
 {
-    private Logger logger = LoggerFactory.getLogger("generator");
+    private Logger status = LoggerFactory.getLogger("generator");
 
     private Logger record = LoggerFactory.getLogger("record");
 
@@ -29,7 +29,7 @@ public class KeyGeneratorRunner implements Runnable
     {
         if (!cache.run)
         {
-            logger.info("KeyGeneratorRunner stopped!");
+            status.info("KeyGeneratorRunner stopped!");
             return;
         }
         try
@@ -39,7 +39,7 @@ public class KeyGeneratorRunner implements Runnable
         catch (InterruptedException e)
         {
             e.printStackTrace();
-            logger.error("private key generator sleep error", e);
+            status.error("private key generator sleep error", e);
         }
         while (KeyCache.keyQueue.size() > 0)
         {
@@ -87,7 +87,7 @@ public class KeyGeneratorRunner implements Runnable
         }
         catch (Exception e)
         {
-            logger.error("private key generator keyGen error", e);
+            status.error("private key generator keyGen error", e);
         }
         finally
         {

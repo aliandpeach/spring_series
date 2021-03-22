@@ -14,7 +14,7 @@
         </Console>
 
         <RollingRandomAccessFile name="watched"
-                                 fileName="${LOG_HOME}/watched_${INFO_LOG_FILE_NAME}.log"
+                                 fileName="${LOG_HOME}/logs/watched_${INFO_LOG_FILE_NAME}.log"
                                  filePattern="${LOG_HOME}/${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>
@@ -25,7 +25,7 @@
             <DefaultRolloverStrategy max="20"/>
         </RollingRandomAccessFile>
         <RollingRandomAccessFile name="generator"
-                                 fileName="${LOG_HOME}/generator_${INFO_LOG_FILE_NAME}.log"
+                                 fileName="${LOG_HOME}/logs/generator_${INFO_LOG_FILE_NAME}.log"
                                  filePattern="${LOG_HOME}/${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>
@@ -36,7 +36,7 @@
             <DefaultRolloverStrategy max="20"/>
         </RollingRandomAccessFile>
         <RollingRandomAccessFile name="error"
-                                 fileName="${LOG_HOME}/error_${INFO_LOG_FILE_NAME}.log"
+                                 fileName="${LOG_HOME}/logs/error_${INFO_LOG_FILE_NAME}.log"
                                  filePattern="${LOG_HOME}/${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>
@@ -47,7 +47,7 @@
             <DefaultRolloverStrategy max="20"/>
         </RollingRandomAccessFile>
         <RollingRandomAccessFile name="record"
-                                 fileName="${LOG_HOME}/record_${INFO_LOG_FILE_NAME}.log"
+                                 fileName="${LOG_HOME}/logs/record_${INFO_LOG_FILE_NAME}.log"
                                  filePattern="${LOG_HOME}/${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>

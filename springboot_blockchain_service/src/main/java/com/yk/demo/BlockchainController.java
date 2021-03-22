@@ -4,10 +4,10 @@ import com.yk.bitcoin.Cache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -19,30 +19,23 @@ public class BlockchainController
 {
     @Autowired
     private Cache cache;
-
-    @RequestMapping(value = "/welcome", method = RequestMethod.GET)
-    public ModelAndView welcome()
-    {
-        ModelAndView model = new ModelAndView("index");
-        return model;
-    }
-
+    
     @RequestMapping(value = "/{status}", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public Map<String, String> opt(@PathVariable("status") String status)
+    public Map<String, String> opt(@PathVariable("status") String status, @RequestBody Map<String, String> body)
     {
         if (null != status && status.equalsIgnoreCase("start"))
         {
-            synchronized (this)
+            synchronized (BlockchainController.class)
             {
-                cache.run = true;
+                //cache.run = true;
             }
         }
         else
         {
-            synchronized (this)
+            synchronized (BlockchainController.class)
             {
-                cache.run = false;
+                //cache.run = false;
             }
         }
         return new HashMap<>(Collections.singletonMap("status", "OK"));

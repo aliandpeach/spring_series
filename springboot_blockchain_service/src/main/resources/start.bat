@@ -1,0 +1,1 @@
+java -jar springboot_blockchain_service-1.0-SNAPSHOT.jar --spring.config.location=./*.yaml
