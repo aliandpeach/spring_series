@@ -28,9 +28,13 @@ public class KeyWatchedRunner implements Runnable
     @Override
     public void run()
     {
-        if (!cache.run || !blockchainProperties.isExecute())
+        if ((!cache.run || !blockchainProperties.isExecute()) && KeyCache.keyQueue.size() <= 0)
         {
             status.info("KeyWatchedRunner stopped!");
+            synchronized (KeyCache.lock)
+            {
+                KeyCache.lock.notifyAll();
+            }
             return;
         }
         try
@@ -60,7 +64,7 @@ public class KeyWatchedRunner implements Runnable
             Map<String, String> params = new HashMap<>();
             Map<String, String> temp = new HashMap<>();
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < 50; i++)
+            for (int i = 0; i < blockchainProperties.getConsume(); i++)
             {
                 Map<String, String> keyMap = KeyCache.keyQueue.poll();
                 if (keyMap == null)

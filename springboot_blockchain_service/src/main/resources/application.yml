@@ -35,3 +35,6 @@ server:
 block:
   chain:
     execute: @active@
+    consume: 10
+    produce: 10
+    secure: false

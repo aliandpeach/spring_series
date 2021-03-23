@@ -12,6 +12,12 @@ public class BlockchainProperties
 {
     private boolean execute = false;
     
+    private int consume = 20;
+    
+    private int produce = 1000;
+    
+    private boolean secure = false;
+    
     public boolean isExecute()
     {
         return execute;
@@ -20,5 +26,35 @@ public class BlockchainProperties
     public void setExecute(boolean execute)
     {
         this.execute = execute;
+    }
+    
+    public int getConsume()
+    {
+        return consume;
+    }
+    
+    public void setConsume(int consume)
+    {
+        this.consume = consume;
+    }
+    
+    public int getProduce()
+    {
+        return produce;
+    }
+    
+    public void setProduce(int produce)
+    {
+        this.produce = produce;
+    }
+    
+    public boolean isSecure()
+    {
+        return secure;
+    }
+    
+    public void setSecure(boolean secure)
+    {
+        this.secure = secure;
     }
 }

@@ -15,7 +15,7 @@
 
         <RollingRandomAccessFile name="watched"
                                  fileName="${LOG_HOME}/logs/watched_${INFO_LOG_FILE_NAME}.log"
-                                 filePattern="${LOG_HOME}/${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
+                                 filePattern="${LOG_HOME}/logs/watched_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
@@ -26,7 +26,7 @@
         </RollingRandomAccessFile>
         <RollingRandomAccessFile name="generator"
                                  fileName="${LOG_HOME}/logs/generator_${INFO_LOG_FILE_NAME}.log"
-                                 filePattern="${LOG_HOME}/${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
+                                 filePattern="${LOG_HOME}/logs/generator_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
@@ -37,7 +37,7 @@
         </RollingRandomAccessFile>
         <RollingRandomAccessFile name="error"
                                  fileName="${LOG_HOME}/logs/error_${INFO_LOG_FILE_NAME}.log"
-                                 filePattern="${LOG_HOME}/${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
+                                 filePattern="${LOG_HOME}/logs/error_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
@@ -48,7 +48,7 @@
         </RollingRandomAccessFile>
         <RollingRandomAccessFile name="record"
                                  fileName="${LOG_HOME}/logs/record_${INFO_LOG_FILE_NAME}.log"
-                                 filePattern="${LOG_HOME}/${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
+                                 filePattern="${LOG_HOME}/logs/record_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
