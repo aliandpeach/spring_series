@@ -1,5 +1,7 @@
 package com.yk.bitcoin;
 
+import com.yk.crypto.Base58;
+import com.yk.crypto.Sha256Hash;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;

@@ -1,32 +1,39 @@
-package com.yk.bitcoin;
-
-/*
- * Copyright 2011 Google Inc.
- * Copyright 2018 Andreas Schildbach
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+package com.yk.crypto;
 
 
 import java.math.BigInteger;
 import java.util.Arrays;
 
+/**
+ * Base58 is a way to encode Bitcoin addresses (or arbitrary data) as alphanumeric strings.
+ * <p>
+ * Note that this is not the same base58 as used by Flickr, which you may find referenced around the Internet.
+ * <p>
+ * You may want to consider working with {@link PrefixedChecksummedBytes} instead, which
+ * adds support for testing the prefix and suffix bytes commonly found in addresses.
+ * <p>
+ * Satoshi explains: why base-58 instead of standard base-64 encoding?
+ * <ul>
+ * <li>Don't want 0OIl characters that look the same in some fonts and
+ * could be used to create visually identical looking account numbers.</li>
+ * <li>A string with non-alphanumeric characters is not as easily accepted as an account number.</li>
+ * <li>E-mail usually won't line-break if there's no punctuation to break at.</li>
+ * <li>Doubleclicking selects the whole number as one word if it's all alphanumeric.</li>
+ * </ul>
+ * <p>
+ * However, note that the encoding/decoding runs in O(n&sup2;) time, so it is not useful for large data.
+ * <p>
+ * The basic idea of the encoding is to treat the data bytes as a large number represented using
+ * base-256 digits, convert the number to be represented using base-58 digits, preserve the exact
+ * number of leading zeros (which are otherwise lost during the mathematical operations on the
+ * numbers), and finally represent the resulting base-58 digits as alphanumeric ASCII characters.
+ */
 public class Base58
 {
     public static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
     private static final char ENCODED_ZERO = ALPHABET[0];
     private static final int[] INDEXES = new int[128];
-
+    
     static
     {
         Arrays.fill(INDEXES, -1);
@@ -35,7 +42,7 @@ public class Base58
             INDEXES[ALPHABET[i]] = i;
         }
     }
-
+    
     /**
      * Encodes the given bytes as a base58 string (no checksum is appended).
      *
@@ -78,7 +85,7 @@ public class Base58
         // Return encoded string (including encoded leading zeros).
         return new String(encoded, outputStart, encoded.length - outputStart);
     }
-
+    
     /**
      * Encodes the given version and bytes as a base58 string. A checksum is appended.
      *
@@ -90,7 +97,7 @@ public class Base58
     {
         if (version < 0 || version > 255)
             throw new IllegalArgumentException("Version not in range.");
-
+        
         // A stringified buffer is:
         // 1 byte version + data bytes + 4 bytes check code (a truncated hash)
         byte[] addressBytes = new byte[1 + payload.length + 4];
@@ -100,15 +107,15 @@ public class Base58
         System.arraycopy(checksum, 0, addressBytes, payload.length + 1, 4);
         return Base58.encode(addressBytes);
     }
-
+    
     /**
      * Decodes the given base58 string into the original data bytes.
      *
      * @param input the base58-encoded string to decode
      * @return the decoded data bytes
-     * @throws RuntimeException if the given string is not a valid base58 string
+     * @throws IllegalArgumentException if the given string is not a valid base58 string
      */
-    public static byte[] decode(String input) throws RuntimeException
+    public static byte[] decode(String input) throws IllegalArgumentException
     {
         if (input.length() == 0)
         {
@@ -122,7 +129,7 @@ public class Base58
             int digit = c < 128 ? INDEXES[c] : -1;
             if (digit < 0)
             {
-                throw new RuntimeException("");
+                throw new IllegalArgumentException("Invalid character '" + Character.toString(c) + "' at position " + i);
             }
             input58[i] = (byte) digit;
         }
@@ -151,13 +158,33 @@ public class Base58
         // Return decoded data (including original number of leading zeros).
         return Arrays.copyOfRange(decoded, outputStart - zeros, decoded.length);
     }
-
-    public static BigInteger decodeToBigInteger(String input) throws RuntimeException
+    
+    public static BigInteger decodeToBigInteger(String input) throws IllegalArgumentException
     {
         return new BigInteger(1, decode(input));
     }
-
-
+    
+    /**
+     * Decodes the given base58 string into the original data bytes, using the checksum in the
+     * last 4 bytes of the decoded data to verify that the rest are correct. The checksum is
+     * removed from the returned data.
+     *
+     * @param input the base58-encoded string to decode (which should include the checksum)
+     * @throws IllegalArgumentException if the input is not base 58 or the checksum does not validate.
+     */
+    public static byte[] decodeChecked(String input) throws IllegalArgumentException
+    {
+        byte[] decoded = decode(input);
+        if (decoded.length < 4)
+            throw new IllegalArgumentException("Input too short: " + decoded.length);
+        byte[] data = Arrays.copyOfRange(decoded, 0, decoded.length - 4);
+        byte[] checksum = Arrays.copyOfRange(decoded, decoded.length - 4, decoded.length);
+        byte[] actualChecksum = Arrays.copyOfRange(Sha256Hash.hashTwice(data), 0, 4);
+        if (!Arrays.equals(checksum, actualChecksum))
+            throw new IllegalArgumentException("Checksum does not validate");
+        return data;
+    }
+    
     /**
      * Divides a number, represented as an array of bytes each containing a single digit
      * in the specified base, by the given divisor. The given number is modified in-place
@@ -184,4 +211,3 @@ public class Base58
         return (byte) remainder;
     }
 }
-

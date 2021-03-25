@@ -2,6 +2,7 @@ package com.yk.bitcoin;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.yk.base.config.BlockchainProperties;
+import com.yk.httprequest.HttpClientUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
