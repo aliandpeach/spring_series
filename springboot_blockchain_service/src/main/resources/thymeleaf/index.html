@@ -2,13 +2,22 @@
 <html lang="cn" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <style>
+        .bold {
+            font-weight: bold;
+        }
+    </style>
     <script type="text/javascript" th:src="@{/jquery/jquery-1.8.0.min.js}" ></script>
 </head>
 <body>
     <div>
         <button th:disabled="${run}" id="start">开始</button>
         <button th:disabled="${!run}" id="stop">停止</button>
-        <div id="status"></div>
+        <span id="_status" class="bold" th:text="${status}"></span>
+    </div>
+    <div>
+        <input th:disabled="${run}" id="minKey" th:value="${minKey}"/>
+        <input th:disabled="${run}" id="maxKey" th:value="${maxKey}"/>
     </div>
     <div>
         <a th:href="@{/logs/record_info.log}" target="_blank">地址</a>
@@ -39,12 +48,12 @@
             type: "post",
             contentType: "application/json",
             url: "/block/chain/" + status,
-            data: '{"a": "1"}',
+            data: '{"min": "' + $("#minKey").val() + '", "max": "' + $("#maxKey").val() + '"}',
             async: true,
             success: function (result) {
-                if (result.status === 'OK') {
-                    window.location.href = "/";
-                }
+                var _status = result.status;
+                $("#_status").html(_status);
+                window.location.href = "/";
             }
         });
     }

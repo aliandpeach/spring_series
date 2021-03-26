@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.yk.bitcoin.KeyCache.LOCK;
+
 @Service
 public class KeyWatchedRunner implements Runnable
 {
@@ -32,9 +34,9 @@ public class KeyWatchedRunner implements Runnable
         if ((!cache.isRun() || !blockchainProperties.isExecute()) && KeyCache.keyQueue.size() <= 0)
         {
             status.info("KeyWatchedRunner stopped! " + "current thread = " + Thread.currentThread().getName());
-            synchronized (KeyCache.lock)
+            synchronized (LOCK)
             {
-                KeyCache.lock.notifyAll();
+                LOCK.notifyAll();
             }
             return;
         }
@@ -48,17 +50,17 @@ public class KeyWatchedRunner implements Runnable
         }
         try
         {
-            synchronized (KeyCache.lock)
+            synchronized (LOCK)
             {
                 while (KeyCache.keyQueue.size() <= 0)
                 {
                     try
                     {
-                        KeyCache.lock.wait();
+                        LOCK.wait();
                     }
                     catch (InterruptedException e)
                     {
-                        error.error("KeyWatchedRunner KeyCache.lock error", e);
+                        error.error("KeyWatchedRunner KeyCache.LOCK error", e);
                     }
                 }
             }
@@ -115,9 +117,9 @@ public class KeyWatchedRunner implements Runnable
                 }
             }
 
-            synchronized (KeyCache.lock)
+            synchronized (LOCK)
             {
-                KeyCache.lock.notifyAll();
+                LOCK.notifyAll();
             }
         }
         catch (Exception e)

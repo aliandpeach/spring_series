@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
+import static com.yk.bitcoin.KeyCache.LOCK;
+
 @Service
 public class KeyGeneratorRunner implements Runnable
 {
@@ -38,12 +40,6 @@ public class KeyGeneratorRunner implements Runnable
     
     private final BigInteger one = new BigInteger("1", 16);
     
-    @Autowired
-    private volatile BigInteger min;
-    
-    @Autowired
-    private BigInteger max;
-    
     private SecureRandom secure = new SecureRandom();
     
     private Random random = new Random();
@@ -66,15 +62,15 @@ public class KeyGeneratorRunner implements Runnable
         }
         while (KeyCache.keyQueue.size() > 0)
         {
-            synchronized (KeyCache.lock)
+            synchronized (LOCK)
             {
                 try
                 {
-                    KeyCache.lock.wait();
+                    LOCK.wait();
                 }
                 catch (InterruptedException e)
                 {
-                    error.error("KeyGeneratorRunner KeyCache.lock error", e);
+                    error.error("KeyGeneratorRunner KeyCache.LOCK error", e);
                 }
             }
         }
@@ -87,18 +83,18 @@ public class KeyGeneratorRunner implements Runnable
             }
             
             byte[] barray;
-            synchronized (KeyCache.lock)
+            synchronized (LOCK)
             {
-                if (!(min.compareTo(max) < 0))
+                if (!(cache.getMin().compareTo(cache.getMax()) < 0))
                 {
                     break;
                 }
-                barray = min.toByteArray();
+                barray = cache.getMin().toByteArray();
                 
                 String hex = HexUtil.encodeHexStr(barray);
                 // 多线程同步打印
                 hex_key.info(Thread.currentThread().getName() + "-current hex = " + hex + ", binary string = " + BinHexSHAUtil.bytes2BinaryString(barray));
-                min = min.add(one);
+                cache.setMin(cache.getMin().add(one));
             }
             byte[] key = new byte[32];
             
@@ -107,7 +103,7 @@ public class KeyGeneratorRunner implements Runnable
             {
                 String prk = generator.keyGen(key, true);
                 String puk = generator.addressGen(key);
-                recordLogger.info(prk + ", " + puk);
+                recordLogger.info(Thread.currentThread().getName() + ", " + prk + ", " + puk);
                 Map<String, String> keyAddr = new HashMap<>();
                 keyAddr.put("privatekey", prk);
                 keyAddr.put("publickey", puk);
@@ -145,9 +141,9 @@ public class KeyGeneratorRunner implements Runnable
 //        {
 //            error.error("KeyGeneratorRunner private key generator keyGen error", e);
 //        }
-        synchronized (KeyCache.lock)
+        synchronized (LOCK)
         {
-            KeyCache.lock.notifyAll();
+            LOCK.notifyAll();
         }
     }
 }

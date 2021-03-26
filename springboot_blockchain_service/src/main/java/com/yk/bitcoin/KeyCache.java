@@ -8,5 +8,5 @@ public class KeyCache
 {
     public static BlockingQueue<Map<String, String>> keyQueue = new LinkedBlockingQueue<>();
 
-    public static final Object lock = new Object();
+    public static final Object LOCK = new Object();
 }
