@@ -19,11 +19,7 @@ public class IndexController
     {
         ModelAndView model = new ModelAndView("index");
         
-        boolean run = false;
-        synchronized (BlockchainController.class)
-        {
-            run = cache.run;
-        }
+        boolean run = cache.isRun();
         model.addObject("run", run);
         return model;
     }

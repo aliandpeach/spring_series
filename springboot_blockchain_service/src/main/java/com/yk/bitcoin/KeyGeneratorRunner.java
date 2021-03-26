@@ -1,11 +1,14 @@
 package com.yk.bitcoin;
 
+import cn.hutool.core.util.HexUtil;
 import com.yk.base.config.BlockchainProperties;
+import com.yk.crypto.BinHexSHAUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,9 +17,13 @@ import java.util.Random;
 @Service
 public class KeyGeneratorRunner implements Runnable
 {
-    private Logger status = LoggerFactory.getLogger("generator");
+    private Logger recordLogger = LoggerFactory.getLogger("record");
     
-    private Logger record = LoggerFactory.getLogger("record");
+    private Logger error = LoggerFactory.getLogger("error");
+    
+    private Logger status = LoggerFactory.getLogger("status");
+    
+    private Logger hex_key = LoggerFactory.getLogger("hex_key");
     
     @Autowired
     private KeyGenerator generator;
@@ -27,6 +34,16 @@ public class KeyGeneratorRunner implements Runnable
     @Autowired
     private BlockchainProperties blockchainProperties;
     
+    private final BigInteger zero = new BigInteger("0", 16);
+    
+    private final BigInteger one = new BigInteger("1", 16);
+    
+    @Autowired
+    private volatile BigInteger min;
+    
+    @Autowired
+    private BigInteger max;
+    
     private SecureRandom secure = new SecureRandom();
     
     private Random random = new Random();
@@ -34,9 +51,9 @@ public class KeyGeneratorRunner implements Runnable
     @Override
     public void run()
     {
-        if (!cache.run || !blockchainProperties.isExecute())
+        if (!cache.isRun() || !blockchainProperties.isExecute())
         {
-            status.info("KeyGeneratorRunner stopped!");
+            status.info("KeyGeneratorRunner stopped! " + "current thread = " + Thread.currentThread().getName());
             return;
         }
         try
@@ -45,8 +62,7 @@ public class KeyGeneratorRunner implements Runnable
         }
         catch (InterruptedException e)
         {
-            e.printStackTrace();
-            status.error("private key generator sleep error", e);
+            error.error("KeyGeneratorRunner Thread.sleep error", e);
         }
         while (KeyCache.keyQueue.size() > 0)
         {
@@ -58,38 +74,77 @@ public class KeyGeneratorRunner implements Runnable
                 }
                 catch (InterruptedException e)
                 {
-                    e.printStackTrace();
+                    error.error("KeyGeneratorRunner KeyCache.lock error", e);
                 }
             }
-        }
-        try
-        {
-            for (int i = 0; i < blockchainProperties.getProduce(); i++)
-            {
-                byte[] keyBytes = new byte[32];
-                if (blockchainProperties.isSecure())
-                {
-                    secure.nextBytes(keyBytes);
-                }
-                else
-                {
-                    random.nextBytes(keyBytes);
-                }
-                
-                String prikey = generator.keyGen(keyBytes, true);
-                String pubkey = generator.addressGen(keyBytes);
-                record.info(prikey + ", " + pubkey);
-                Map<String, String> keyAddr = new HashMap<>();
-                keyAddr.put("privatekey", prikey);
-                keyAddr.put("publickey", pubkey);
-                KeyCache.keyQueue.offer(keyAddr);
-            }
-        }
-        catch (Exception e)
-        {
-            status.error("private key generator keyGen error", e);
         }
         
+        while (true)
+        {
+            if (KeyCache.keyQueue.size() >= blockchainProperties.getProduce())
+            {
+                break;
+            }
+            
+            byte[] barray;
+            synchronized (KeyCache.lock)
+            {
+                if (!(min.compareTo(max) < 0))
+                {
+                    break;
+                }
+                barray = min.toByteArray();
+                
+                String hex = HexUtil.encodeHexStr(barray);
+                // 多线程同步打印
+                hex_key.info(Thread.currentThread().getName() + "-current hex = " + hex + ", binary string = " + BinHexSHAUtil.bytes2BinaryString(barray));
+                min = min.add(one);
+            }
+            byte[] key = new byte[32];
+            
+            System.arraycopy(barray, 0, key, key.length - barray.length, barray.length);
+            try
+            {
+                String prk = generator.keyGen(key, true);
+                String puk = generator.addressGen(key);
+                recordLogger.info(prk + ", " + puk);
+                Map<String, String> keyAddr = new HashMap<>();
+                keyAddr.put("privatekey", prk);
+                keyAddr.put("publickey", puk);
+                KeyCache.keyQueue.offer(keyAddr);
+            }
+            catch (Exception e)
+            {
+                error.error("KeyGeneratorRunner private key generator keyGen error", e);
+            }
+        }
+//        try
+//        {
+//            for (int i = 0; i < blockchainProperties.getProduce(); i++)
+//            {
+//                byte[] keyBytes = new byte[32];
+//                if (blockchainProperties.isSecure())
+//                {
+//                    secure.nextBytes(keyBytes);
+//                }
+//                else
+//                {
+//                    random.nextBytes(keyBytes);
+//                }
+//
+//                String prikey = generator.keyGen(keyBytes, true);
+//                String pubkey = generator.addressGen(keyBytes);
+//                recordLogger.info(prikey + ", " + pubkey);
+//                Map<String, String> keyAddr = new HashMap<>();
+//                keyAddr.put("privatekey", prikey);
+//                keyAddr.put("publickey", pubkey);
+//                KeyCache.keyQueue.offer(keyAddr);
+//            }
+//        }
+//        catch (Exception e)
+//        {
+//            error.error("KeyGeneratorRunner private key generator keyGen error", e);
+//        }
         synchronized (KeyCache.lock)
         {
             KeyCache.lock.notifyAll();

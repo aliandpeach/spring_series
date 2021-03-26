@@ -18,6 +18,10 @@ public class BlockchainProperties
     
     private boolean secure = false;
     
+    private String minKey = "1";
+    
+    private String maxKey = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+    
     public boolean isExecute()
     {
         return execute;
@@ -56,5 +60,25 @@ public class BlockchainProperties
     public void setSecure(boolean secure)
     {
         this.secure = secure;
+    }
+    
+    public String getMinKey()
+    {
+        return minKey;
+    }
+    
+    public void setMinKey(String minKey)
+    {
+        this.minKey = minKey;
+    }
+    
+    public String getMaxKey()
+    {
+        return maxKey;
+    }
+    
+    public void setMaxKey(String maxKey)
+    {
+        this.maxKey = maxKey;
     }
 }

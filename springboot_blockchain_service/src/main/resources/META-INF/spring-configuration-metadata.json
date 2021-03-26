@@ -1,0 +1,48 @@
+{
+  "groups": [
+    {
+      "name": "block.chain",
+      "type": "com.yk.base.config.BlockchainProperties",
+      "sourceType": "com.yk.base.config.BlockchainProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "block.chain.execute",
+      "type": "java.lang.Boolean",
+      "description": "",
+      "sourceType": "com.yk.base.config.BlockchainProperties"
+    },
+    {
+      "name": "block.chain.consume",
+      "type": "java.lang.Integer",
+      "description": "",
+      "sourceType": "com.yk.base.config.BlockchainProperties"
+    },
+    {
+      "name": "block.chain.produce",
+      "type": "java.lang.Integer",
+      "description": "",
+      "sourceType": "com.yk.base.config.BlockchainProperties"
+    },
+    {
+      "name": "block.chain.secure",
+      "type": "java.lang.Boolean",
+      "description": "",
+      "sourceType": "com.yk.base.config.BlockchainProperties"
+    },
+    {
+      "name": "block.chain.min-key",
+      "type": "java.lang.String",
+      "description": "",
+      "sourceType": "com.yk.base.config.BlockchainProperties"
+    },
+    {
+      "name": "block.chain.max-key",
+      "type": "java.lang.String",
+      "description": "",
+      "sourceType": "com.yk.base.config.BlockchainProperties"
+    }
+  ],
+  "hints": []
+}

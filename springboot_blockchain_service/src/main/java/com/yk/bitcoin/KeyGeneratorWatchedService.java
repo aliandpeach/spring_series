@@ -29,31 +29,30 @@ public class KeyGeneratorWatchedService
     @Async("executor")
     public void main()
     {
+        AtomicInteger integer = new AtomicInteger(0);
         logger.info("main running start " + System.currentTimeMillis());
-        ScheduledExecutorService service = Executors.newScheduledThreadPool(10, new ThreadFactory()
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(2, new ThreadFactory()
         {
-            private AtomicInteger integer = new AtomicInteger(1);
-            
             @Override
             public Thread newThread(Runnable r)
             {
                 return new Thread(r, "key-generator-" + integer.getAndIncrement());
             }
         });
-        
-        service.scheduleAtFixedRate(keyGeneratorRunner, 0, 5, TimeUnit.SECONDS);
-        
-        ScheduledExecutorService watched = Executors.newScheduledThreadPool(10, new ThreadFactory()
+        executor.scheduleAtFixedRate(keyGeneratorRunner, 0, 5, TimeUnit.SECONDS);
+        executor.scheduleAtFixedRate(keyGeneratorRunner, 0, 5, TimeUnit.SECONDS);
+    
+        ScheduledExecutorService watched = Executors.newScheduledThreadPool(1, new ThreadFactory()
         {
-            private AtomicInteger integer = new AtomicInteger(1);
-            
+            private AtomicInteger integer = new AtomicInteger(0);
+        
             @Override
             public Thread newThread(Runnable r)
             {
                 return new Thread(r, "key-watched-" + integer.getAndIncrement());
             }
         });
-        
+    
         watched.scheduleAtFixedRate(keyWatchedRunner, 0, 5, TimeUnit.SECONDS);
         logger.info("main running end " + System.currentTimeMillis());
     }

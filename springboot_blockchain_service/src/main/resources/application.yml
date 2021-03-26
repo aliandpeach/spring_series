@@ -38,3 +38,5 @@ block:
     consume: 10
     produce: 10
     secure: false
+    min-key: 0
+    max-key: FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF

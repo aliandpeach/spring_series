@@ -36,17 +36,11 @@ public class BlockchainController
         }*/
         if (null != status && status.equalsIgnoreCase("start"))
         {
-            synchronized (BlockchainController.class)
-            {
-                cache.run = true;
-            }
+            cache.setRun(true);
         }
         else
         {
-            synchronized (BlockchainController.class)
-            {
-                cache.run = false;
-            }
+            cache.setRun(false);
         }
         return new HashMap<>(Collections.singletonMap("status", "OK"));
     }

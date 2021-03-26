@@ -14,9 +14,9 @@ import java.util.Map;
 @Service
 public class KeyWatchedRunner implements Runnable
 {
-    private Logger logger = LoggerFactory.getLogger("watched");
+    private Logger watchedLogger = LoggerFactory.getLogger("watched");
     
-    private Logger status = LoggerFactory.getLogger("generator");
+    private Logger status = LoggerFactory.getLogger("status");
 
     private Logger error = LoggerFactory.getLogger("error");
     
@@ -29,9 +29,9 @@ public class KeyWatchedRunner implements Runnable
     @Override
     public void run()
     {
-        if ((!cache.run || !blockchainProperties.isExecute()) && KeyCache.keyQueue.size() <= 0)
+        if ((!cache.isRun() || !blockchainProperties.isExecute()) && KeyCache.keyQueue.size() <= 0)
         {
-            status.info("KeyWatchedRunner stopped!");
+            status.info("KeyWatchedRunner stopped! " + "current thread = " + Thread.currentThread().getName());
             synchronized (KeyCache.lock)
             {
                 KeyCache.lock.notifyAll();
@@ -44,7 +44,7 @@ public class KeyWatchedRunner implements Runnable
         }
         catch (InterruptedException e)
         {
-            e.printStackTrace();
+            error.error("KeyWatchedRunner sleep error", e);
         }
         try
         {
@@ -58,7 +58,7 @@ public class KeyWatchedRunner implements Runnable
                     }
                     catch (InterruptedException e)
                     {
-                        e.printStackTrace();
+                        error.error("KeyWatchedRunner KeyCache.lock error", e);
                     }
                 }
             }
@@ -92,7 +92,7 @@ public class KeyWatchedRunner implements Runnable
             }
             catch (Exception e)
             {
-                e.printStackTrace();
+                error.error("KeyWatchedRunner HttpClientUtil.get error", e);
             }
 
             if (result == null)
@@ -111,7 +111,7 @@ public class KeyWatchedRunner implements Runnable
                 long balance = values.get("final_balance");
                 if (balance > 0)
                 {
-                    logger.info("Wallet private key = " + temp.get(pub) + ", balance: " + balance);
+                    watchedLogger.info("Wallet private key = " + temp.get(pub) + ", balance: " + balance);
                 }
             }
 
@@ -122,7 +122,7 @@ public class KeyWatchedRunner implements Runnable
         }
         catch (Exception e)
         {
-            e.printStackTrace();
+            error.error("KeyWatchedRunner error", e);
         }
     }
 }

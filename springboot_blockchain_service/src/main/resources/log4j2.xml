@@ -13,6 +13,18 @@
             <PatternLayout pattern="%d %-5p (%F:%L) - %m%n"/>
         </Console>
 
+        <RollingRandomAccessFile name="status"
+                                 fileName="${LOG_HOME}/logs/status_${INFO_LOG_FILE_NAME}.log"
+                                 filePattern="${LOG_HOME}/logs/status_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout
+                    pattern="%d %-5p (%F:%L) - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingRandomAccessFile>
+
         <RollingRandomAccessFile name="watched"
                                  fileName="${LOG_HOME}/logs/watched_${INFO_LOG_FILE_NAME}.log"
                                  filePattern="${LOG_HOME}/logs/watched_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
@@ -24,9 +36,9 @@
             </Policies>
             <DefaultRolloverStrategy max="20"/>
         </RollingRandomAccessFile>
-        <RollingRandomAccessFile name="generator"
-                                 fileName="${LOG_HOME}/logs/generator_${INFO_LOG_FILE_NAME}.log"
-                                 filePattern="${LOG_HOME}/logs/generator_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
+        <RollingRandomAccessFile name="hex_key"
+                                 fileName="${LOG_HOME}/logs/hex_key_${INFO_LOG_FILE_NAME}.log"
+                                 filePattern="${LOG_HOME}/logs/hex_key_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
@@ -36,8 +48,8 @@
             <DefaultRolloverStrategy max="20"/>
         </RollingRandomAccessFile>
         <RollingRandomAccessFile name="error"
-                                 fileName="${LOG_HOME}/logs/error_${INFO_LOG_FILE_NAME}.log"
-                                 filePattern="${LOG_HOME}/logs/error_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
+                                 fileName="${LOG_HOME}/logs/${ERROR_LOG_FILE_NAME}.log"
+                                 filePattern="${LOG_HOME}/logs/${ERROR_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
@@ -94,14 +106,17 @@
         <logger name="watched" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="watched"/>
         </logger>
-        <logger name="generator" level="info" includeLocation="true" additivity="false">
-            <appender-ref ref="generator"/>
+        <logger name="hex_key" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="hex_key"/>
         </logger>
         <logger name="record" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="record"/>
         </logger>
         <logger name="error" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="error"/>
+        </logger>
+        <logger name="status" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="status"/>
         </logger>
 
         <root level="info" includeLocation="true">
