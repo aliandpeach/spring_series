@@ -48,8 +48,8 @@ public class BlockchainController
         {
             cache.setMin(new BigInteger(min, 16));
             cache.setMax(new BigInteger(max, 16));
-            cache.setRun(status.equalsIgnoreCase("start"));
         }
+        cache.setRun(status.equalsIgnoreCase("start"));
         return new HashMap<>(Collections.singletonMap("status", "started"));
     }
 }

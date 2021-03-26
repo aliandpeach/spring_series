@@ -1,6 +1,7 @@
 package com.yk.bitcoin;
 
 import com.yk.base.config.BlockchainProperties;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
@@ -11,20 +12,23 @@ import static com.yk.bitcoin.KeyCache.LOCK;
 @Service
 public class Cache
 {
+    @Autowired
+    private BlockchainProperties blockchainProperties;
+    
     private volatile boolean run = false;
     
     private volatile BigInteger min;
     
     private volatile BigInteger max;
     
-    public Cache(BlockchainProperties blockchainProperties)
+    /*public Cache(BlockchainProperties blockchainProperties)
     {
         synchronized (LOCK)
         {
             min = new BigInteger(blockchainProperties.getMinKey(), 16);
             max = new BigInteger(blockchainProperties.getMaxKey(), 16);
         }
-    }
+    }*/
     
     public synchronized boolean isRun()
     {
@@ -38,7 +42,7 @@ public class Cache
     
     public BigInteger getMin()
     {
-        return min;
+        return null == min ? new BigInteger(blockchainProperties.getMinKey(), 16) : min;
     }
     
     public void setMin(BigInteger min)
@@ -48,7 +52,7 @@ public class Cache
     
     public BigInteger getMax()
     {
-        return max;
+        return null == max ? new BigInteger(blockchainProperties.getMaxKey(), 16) : max;
     }
     
     public void setMax(BigInteger max)
