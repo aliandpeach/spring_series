@@ -99,7 +99,14 @@ public class KeyWatchedRunner implements Runnable
 
             if (result == null)
             {
-                temp.forEach((key, value) -> error.error("error : " + key + ", " + value));
+                temp.forEach((pub, pri) ->
+                {
+                    error.error("error : " + pub + ", " + pri);
+                    Map<String, String> map = new HashMap<>();
+                    map.put("privatekey", pri);
+                    map.put("publickey", pub);
+                    KeyCache.keyQueue.offer(map);
+                });
                 return;
             }
             for (Map.Entry<String, Map<String, Long>> entry : result.entrySet())
