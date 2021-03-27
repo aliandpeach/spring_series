@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import static com.yk.bitcoin.KeyCache.LOCK;
 
@@ -107,14 +108,9 @@ public class KeyWatchedRunner implements Runnable
                     map.put("publickey", pub);
                     KeyCache.keyQueue.offer(map);
                 });
-                return;
             }
-            for (Map.Entry<String, Map<String, Long>> entry : result.entrySet())
+            Optional.ofNullable(result).orElse(new HashMap<>()).entrySet().forEach(entry ->
             {
-                if (null == entry)
-                {
-                    continue;
-                }
                 String pub = entry.getKey();
                 Map<String, Long> values = entry.getValue();
                 long balance = values.get("final_balance");
@@ -122,7 +118,7 @@ public class KeyWatchedRunner implements Runnable
                 {
                     watchedLogger.info("Wallet private key = " + temp.get(pub) + ", balance: " + balance);
                 }
-            }
+            });
 
             synchronized (LOCK)
             {
