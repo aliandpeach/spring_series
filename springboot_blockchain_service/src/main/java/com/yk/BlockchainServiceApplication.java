@@ -7,6 +7,7 @@ import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
@@ -33,7 +34,7 @@ public class BlockchainServiceApplication extends SpringBootServletInitializer
     }
 
     @Bean
-    public ServletWebServerFactory thymeleafContainerInitializer()
+    public ServletWebServerFactory thymeleafContainerInitializer(ServerProperties serverProperties)
     {
         TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory()
         {
@@ -50,17 +51,17 @@ public class BlockchainServiceApplication extends SpringBootServletInitializer
         };
         tomcat.addConnectorCustomizers((TomcatConnectorCustomizer) connector ->
         {
-            connector.setPort(21111);
+            connector.setPort(serverProperties.getPort());
             connector.setSecure(true);
             connector.setScheme("https");
 
             Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
-            protocol.setKeystoreFile("key/website_a.jks");
-            protocol.setKeyPass("Admin@1234");
-            protocol.setKeystorePass("Admin@123");
-            protocol.setKeystoreType("JKS");
-            protocol.setSSLEnabled(true);
-            protocol.setClientAuth("false");
+            protocol.setKeystoreFile(serverProperties.getSsl().getKeyStore());
+            protocol.setKeyPass(serverProperties.getSsl().getKeyPassword());
+            protocol.setKeystorePass(serverProperties.getSsl().getKeyStorePassword());
+            protocol.setKeystoreType(serverProperties.getSsl().getKeyStoreType());
+            protocol.setSSLEnabled(serverProperties.getSsl().isEnabled());
+            protocol.setClientAuth(serverProperties.getSsl().getClientAuth() + "");
         });
         return tomcat;
     }

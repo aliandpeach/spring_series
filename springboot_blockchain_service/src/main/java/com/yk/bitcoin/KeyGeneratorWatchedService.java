@@ -39,8 +39,8 @@ public class KeyGeneratorWatchedService
                 return new Thread(r, "key-generator-" + integer.getAndIncrement());
             }
         });
-        executor.scheduleAtFixedRate(keyGeneratorRunner, 0, 5, TimeUnit.SECONDS);
-        executor.scheduleAtFixedRate(keyGeneratorRunner, 0, 5, TimeUnit.SECONDS);
+        executor.scheduleWithFixedDelay(keyGeneratorRunner, 0, 5, TimeUnit.SECONDS);
+        executor.scheduleWithFixedDelay(keyGeneratorRunner, 0, 5, TimeUnit.SECONDS);
     
         ScheduledExecutorService watched = Executors.newScheduledThreadPool(1, new ThreadFactory()
         {
@@ -53,7 +53,7 @@ public class KeyGeneratorWatchedService
             }
         });
     
-        watched.scheduleAtFixedRate(keyWatchedRunner, 0, 5, TimeUnit.SECONDS);
+        watched.scheduleWithFixedDelay(keyWatchedRunner, 0, 5, TimeUnit.SECONDS);
         logger.info("main running end " + System.currentTimeMillis());
     }
 }

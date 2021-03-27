@@ -23,7 +23,7 @@ spring:
 #  resources:
 #    static-locations: classpath:/thymeleaf/static/, classpath:/thymeleaf/static/, classpath:/public/
 server:
-  port: 9023
+  port: 21111
   servlet:
     context-path: /
   ssl:
@@ -32,11 +32,12 @@ server:
     key-password: Admin@1234
     key-store-type: JKS
     key-store-password: Admin@123
+    client-auth: NONE
 block:
   chain:
     execute: @active@
     consume: 20
-    produce: 500
+    produce: 30
     secure: false
-    min-key: 0
+    min-key: 10000000
     max-key: FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
