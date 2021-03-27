@@ -88,7 +88,7 @@ public class KeyWatchedRunner implements Runnable
             Map<String, Map<String, Long>> result = null;
             try
             {
-                result = HttpClientUtil.get("https://blockchain.info/balance"
+                result = HttpClientUtil.get(blockchainProperties.getApiHost()
                         , headers, params, new TypeReference<Map<String, Map<String, Long>>>()
                         {
                         }, 3);

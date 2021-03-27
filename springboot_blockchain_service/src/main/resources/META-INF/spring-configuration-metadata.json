@@ -42,6 +42,12 @@
       "type": "java.lang.String",
       "description": "",
       "sourceType": "com.yk.base.config.BlockchainProperties"
+    },
+    {
+      "name": "block.chain.api-host",
+      "type": "java.lang.String",
+      "description": "",
+      "sourceType": "com.yk.base.config.BlockchainProperties"
     }
   ],
   "hints": []

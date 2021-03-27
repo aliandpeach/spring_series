@@ -21,6 +21,8 @@ public class BlockchainProperties
     private String minKey = "1";
     
     private String maxKey = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+
+    private String apiHost = "https://blockchain.info/balance";
     
     public boolean isExecute()
     {
@@ -80,5 +82,15 @@ public class BlockchainProperties
     public void setMaxKey(String maxKey)
     {
         this.maxKey = maxKey;
+    }
+
+    public String getApiHost()
+    {
+        return apiHost;
+    }
+
+    public void setApiHost(String apiHost)
+    {
+        this.apiHost = apiHost;
     }
 }
