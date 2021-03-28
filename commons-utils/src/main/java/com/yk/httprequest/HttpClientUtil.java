@@ -19,111 +19,83 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
-import org.apache.http.ssl.TrustStrategy;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
+import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
 import java.util.Map;
 
 public class HttpClientUtil
 {
     private static Logger logger = LoggerFactory.getLogger("request");
-    
+
     //setConnectTimeout：设置连接超时时间，单位毫秒。
     //setConnectionRequestTimeout：设置从connect Manager获取Connection 超时时间，单位毫秒。这个属性是新加的属性，因为目前版本是可以共享连接池的。
     //setSocketTimeout：请求获取数据的超时时间，单位毫秒。 如果访问一个接口，多少时间内无法返回数据，就直接放弃此次调用。
     private static RequestConfig requestConfig = RequestConfig.custom()
             .setConnectTimeout(22000).setConnectionRequestTimeout(12000)
-            .setSocketTimeout(22000).build();
-    
-    private static CloseableHttpClient getClient()
+            .setSocketTimeout(24000).build();
+
+    private static CloseableHttpClient httpClient; // 发送请求的客户端单例
+
+    private static PoolingHttpClientConnectionManager poolingHttpClientConnectionManager; //连接池管理类
+
+    private static CloseableHttpClient getClient() throws GeneralSecurityException
     {
-        
-        SSLConnectionSocketFactory sslConnectionSocketFactory = null;
-        PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = null;//连接池管理类
-        SSLContextBuilder sslContextBuilder = null;//管理Https连接的上下文类
-        try
+        if (null == httpClient)
         {
-            sslContextBuilder = new SSLContextBuilder();
-            sslContextBuilder.loadTrustMaterial(new TrustStrategy()
+            synchronized (HttpClientUtil.class)
             {
-                public boolean isTrusted(X509Certificate[] chain, String authType) throws CertificateException
+                if (null == httpClient)
                 {
-                    return true;
-                }
-            });
-            
-            SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-            sslContext.init(null, null, new SecureRandom());
-            sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, new HostnameVerifier()
-            {
-                public boolean verify(String s, SSLSession sslSession)
-                {
-                    return true;
-                }
-            });
-            Registry<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create()
-                    .register("http", new PlainConnectionSocketFactory())
-                    .register("https", sslConnectionSocketFactory)
-                    .build();
-            poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registryBuilder);
-            poolingHttpClientConnectionManager.setMaxTotal(200);
-            poolingHttpClientConnectionManager.setDefaultMaxPerRoute(50);
-            
-            
-            CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
-                    .setConnectionManager(poolingHttpClientConnectionManager)
-                    .setConnectionManagerShared(true).setDefaultRequestConfig(requestConfig)
-                    .build();
-            Runtime.getRuntime().addShutdownHook(new Thread()
-            {
-                @Override
-                public void run()
-                {
-                    try
+                    SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
+                    sslContextBuilder.loadTrustMaterial((chain, authType) -> true);
+
+                    SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+                    sslContext.init(null, null, new SecureRandom());
+
+                    SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);
+                    Registry<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create()
+                            .register("http", new PlainConnectionSocketFactory())
+                            .register("https", sslConnectionSocketFactory)
+                            .build();
+
+                    poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registryBuilder);
+                    poolingHttpClientConnectionManager.setMaxTotal(200);
+                    poolingHttpClientConnectionManager.setDefaultMaxPerRoute(50);
+
+                    httpClient = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
+                            .setConnectionManager(poolingHttpClientConnectionManager)
+                            .setConnectionManagerShared(true).setDefaultRequestConfig(requestConfig)
+                            .build();
+                    Runtime.getRuntime().addShutdownHook(new Thread(() ->
                     {
-                        logger.info("closing http client");
-                        httpClient.close();
-                        logger.info("http client closed");
-                    }
-                    catch (IOException e)
-                    {
-                        logger.error(e.getMessage(), e);
-                    }
+                        try
+                        {
+                            logger.info("closing http client");
+                            httpClient.close();
+                            logger.info("http client closed");
+                        }
+                        catch (IOException e)
+                        {
+                            logger.error(e.getMessage(), e);
+                        }
+                    }));
+                    return httpClient;
                 }
-            });
-            return httpClient;
-        }
-        catch (NoSuchAlgorithmException e)
-        {
-            e.printStackTrace();
-        }
-        catch (KeyManagementException e)
-        {
-            e.printStackTrace();
-        }
-        catch (KeyStoreException e)
-        {
-            e.printStackTrace();
+            }
         }
         return null;
     }
-    
+
     public static boolean getBytes(String url, Map<String, String> headers, Map<String, String> params, String fileName, String dir, String rootDir)
     {
         CloseableHttpClient client = null;
@@ -150,7 +122,7 @@ public class HttpClientUtil
         }
         finally
         {
-            
+
             try
             {
                 if (null != client)
@@ -162,10 +134,10 @@ public class HttpClientUtil
             {
                 e.printStackTrace();
             }
-            
+
         }
     }
-    
+
     public static <T> T post(String url, Map<String, String> headers, Map<String, String> body, final TypeReference<T> typeReference)
     {
         CloseableHttpClient client = null;
@@ -188,7 +160,7 @@ public class HttpClientUtil
         }
         finally
         {
-            
+
             try
             {
                 if (null != client)
@@ -200,10 +172,10 @@ public class HttpClientUtil
             {
                 e.printStackTrace();
             }
-            
+
         }
     }
-    
+
     public static <T> T get(String url,
                             Map<String, String> headers,
                             Map<String, String> params,
@@ -212,11 +184,16 @@ public class HttpClientUtil
     {
         long start = System.currentTimeMillis();
         CloseableHttpClient client = null;
+        HttpGet httpGet = null;
         try
         {
             client = getClient();
+            if (client == null)
+            {
+                throw new RuntimeException("client is null");
+            }
             url = initUrlParams(url, params);
-            HttpGet httpGet = new HttpGet(url);
+            httpGet = new HttpGet(url);
             httpGet.setConfig(requestConfig);
             initHeader(httpGet, headers);
             T result = client.execute(httpGet, new CurResponseHandler<>(tTypeReference));
@@ -238,22 +215,13 @@ public class HttpClientUtil
         }
         finally
         {
-            
-            try
+            if (null != httpGet)
             {
-                if (null != client)
-                {
-                    client.close();
-                }
+                httpGet.releaseConnection();
             }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-            
         }
     }
-    
+
     public static String getString(String url, Map<String, String> headers, Map<String, String> params)
     {
         CloseableHttpClient client = null;
@@ -281,7 +249,7 @@ public class HttpClientUtil
         }
         finally
         {
-            
+
             try
             {
                 if (null != client)
@@ -293,10 +261,10 @@ public class HttpClientUtil
             {
                 e.printStackTrace();
             }
-            
+
         }
     }
-    
+
     private static String initUrlParams(String url, Map<String, String> params)
     {
         if (params == null)
@@ -317,7 +285,7 @@ public class HttpClientUtil
         }
         return url;
     }
-    
+
     private static void initHeader(HttpRequestBase httpRequestBase, Map<String, String> headers)
     {
         if (httpRequestBase == null)
@@ -334,17 +302,17 @@ public class HttpClientUtil
             httpRequestBase.addHeader(entry.getKey(), entry.getValue());
         });
     }
-    
+
     static class CurResponseHandler<T> implements ResponseHandler<T>
     {
-        
+
         private TypeReference<T> typeReference;
-        
+
         public CurResponseHandler(TypeReference<T> typeReference)
         {
             this.typeReference = typeReference;
         }
-        
+
         @Override
         public T handleResponse(HttpResponse response) throws ClientProtocolException, IOException
         {
@@ -361,10 +329,10 @@ public class HttpClientUtil
             return JSONUtil.fromJson(EntityUtils.toString(httpEntity), typeReference);
         }
     }
-    
+
     static class CurResponseHandlerString implements ResponseHandler<String>
     {
-        
+
         @Override
         public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException
         {
@@ -381,14 +349,14 @@ public class HttpClientUtil
             return null;
         }
     }
-    
+
     static class CurResponseHandlerBytes implements ResponseHandler<Boolean>
     {
         private String fileName;
         private String dir;
-        
+
         private String targetDir;
-        
+
         public CurResponseHandlerBytes(String fileName, String dir, String rootDir)
         {
             this.fileName = fileName;
@@ -399,8 +367,8 @@ public class HttpClientUtil
                 new File(targetDir).mkdirs();
             }
         }
-        
-        
+
+
         @Override
         public Boolean handleResponse(HttpResponse response) throws ClientProtocolException, IOException
         {
