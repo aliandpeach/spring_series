@@ -2,6 +2,7 @@ package com.yk.demo;
 
 import com.yk.base.config.BlockchainProperties;
 import com.yk.bitcoin.Cache;
+import com.yk.bitcoin.KeyCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Controller;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.math.BigInteger;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,5 +53,20 @@ public class BlockchainController
         }
         cache.setRun(status.equalsIgnoreCase("start"));
         return new HashMap<>(Collections.singletonMap("status", "started"));
+    }
+
+    @RequestMapping(value = "/the/min", method = RequestMethod.GET)
+    @ResponseBody
+    public Map<String, Object> theMin()
+    {
+        Map<String, Object> result = new HashMap<>();
+        synchronized (LOCK)
+        {
+            String min = cache.getMin().toString(16).toUpperCase();
+            int size = KeyCache.keyQueue.size();
+            result.put("min", min);
+            result.put("size", size);
+        }
+        return result;
     }
 }

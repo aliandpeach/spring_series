@@ -42,5 +42,5 @@ block:
     min-key: 10000000
     max-key: FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
     api-host: https://blockchain.info/balance
-    producer: 1
-    consumer: 1
+    producer: 2
+    consumer: 2
