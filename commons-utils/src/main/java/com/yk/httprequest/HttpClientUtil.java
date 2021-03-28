@@ -93,7 +93,7 @@ public class HttpClientUtil
                 }
             }
         }
-        return null;
+        return httpClient;
     }
 
     public static boolean getBytes(String url, Map<String, String> headers, Map<String, String> params, String fileName, String dir, String rootDir)
