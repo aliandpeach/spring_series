@@ -98,10 +98,8 @@ public class HttpClientUtil
 
     public static boolean getBytes(String url, Map<String, String> headers, Map<String, String> params, String fileName, String dir, String rootDir)
     {
-        CloseableHttpClient client = null;
-        try
+        try (CloseableHttpClient client = getClient())
         {
-            client = getClient();
             url = initUrlParams(url, params);
             HttpGet httpGet = new HttpGet(url);
             httpGet.setConfig(requestConfig);
@@ -120,30 +118,12 @@ public class HttpClientUtil
         {
             throw new RuntimeException("getBytes error", e);
         }
-        finally
-        {
-
-            try
-            {
-                if (null != client)
-                {
-                    client.close();
-                }
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-        }
     }
 
     public static <T> T post(String url, Map<String, String> headers, Map<String, String> body, final TypeReference<T> typeReference)
     {
-        CloseableHttpClient client = null;
-        try
+        try (CloseableHttpClient client = getClient())
         {
-            client = getClient();
             HttpPost httpPost = new HttpPost(url);
             httpPost.setConfig(requestConfig);
             initHeader(httpPost, headers);
@@ -158,22 +138,6 @@ public class HttpClientUtil
         {
             throw new RuntimeException("T post error", e);
         }
-        finally
-        {
-
-            try
-            {
-                if (null != client)
-                {
-                    client.close();
-                }
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
-        }
     }
 
     public static <T> T get(String url,
@@ -183,11 +147,10 @@ public class HttpClientUtil
                             int times)
     {
         long start = System.currentTimeMillis();
-        CloseableHttpClient client = null;
         HttpGet httpGet = null;
         try
         {
-            client = getClient();
+            CloseableHttpClient client = getClient();
             if (client == null)
             {
                 throw new RuntimeException("client is null");
@@ -224,10 +187,8 @@ public class HttpClientUtil
 
     public static String getString(String url, Map<String, String> headers, Map<String, String> params)
     {
-        CloseableHttpClient client = null;
-        try
+        try (CloseableHttpClient client = getClient())
         {
-            client = getClient();
             url = initUrlParams(url, params);
             HttpGet httpGet = new HttpGet(url);
             httpGet.setConfig(requestConfig);
@@ -246,22 +207,6 @@ public class HttpClientUtil
         catch (Exception e)
         {
             throw new RuntimeException("getString Exception error", e);
-        }
-        finally
-        {
-
-            try
-            {
-                if (null != client)
-                {
-                    client.close();
-                }
-            }
-            catch (IOException e)
-            {
-                e.printStackTrace();
-            }
-
         }
     }
 
