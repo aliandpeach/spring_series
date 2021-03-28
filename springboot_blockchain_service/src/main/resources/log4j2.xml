@@ -118,6 +118,12 @@
         <logger name="status" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="status"/>
         </logger>
+        <logger name="com.yk.httprequest" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="error"/>
+        </logger>
+        <logger name="com.yk.crypto" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="error"/>
+        </logger>
 
         <root level="info" includeLocation="true">
             <appender-ref ref="Console"/>

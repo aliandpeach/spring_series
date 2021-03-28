@@ -1,8 +1,6 @@
 package com.yk.crypto;
 
 import org.apache.commons.codec.binary.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -36,8 +34,6 @@ public class RSA2048Util
     public static final String ALIAS = "crazy";
     
     public static final String RSA_ALGORITHM = "RSA";
-    
-    private static Logger logger = LoggerFactory.getLogger(RSA_ALGORITHM);
     
     private static final String TYPE = "JKS";
     
