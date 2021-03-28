@@ -1,5 +1,6 @@
 package com.yk.bitcoin;
 
+import com.yk.base.config.BlockchainProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +25,17 @@ public class KeyGeneratorWatchedService
     
     @Autowired
     private KeyWatchedRunner keyWatchedRunner;
-    
+
+    @Autowired
+    private BlockchainProperties blockchainProperties;
+
     
     @Async("executor")
     public void main()
     {
         AtomicInteger integer = new AtomicInteger(0);
         logger.info("main running start " + System.currentTimeMillis());
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(2, new ThreadFactory()
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(blockchainProperties.getProducer(), new ThreadFactory()
         {
             @Override
             public Thread newThread(Runnable r)
@@ -39,10 +43,13 @@ public class KeyGeneratorWatchedService
                 return new Thread(r, "key-generator-" + integer.getAndIncrement());
             }
         });
-        executor.scheduleWithFixedDelay(keyGeneratorRunner, 0, 5, TimeUnit.SECONDS);
-        executor.scheduleWithFixedDelay(keyGeneratorRunner, 0, 5, TimeUnit.SECONDS);
-    
-        ScheduledExecutorService watched = Executors.newScheduledThreadPool(1, new ThreadFactory()
+
+        for (int i = 0; i < blockchainProperties.getProducer(); i++)
+        {
+            executor.scheduleWithFixedDelay(keyGeneratorRunner, 0, 5, TimeUnit.SECONDS);
+        }
+
+        ScheduledExecutorService watched = Executors.newScheduledThreadPool(blockchainProperties.getConsumer(), new ThreadFactory()
         {
             private AtomicInteger integer = new AtomicInteger(0);
         
@@ -52,8 +59,11 @@ public class KeyGeneratorWatchedService
                 return new Thread(r, "key-watched-" + integer.getAndIncrement());
             }
         });
-    
-        watched.scheduleWithFixedDelay(keyWatchedRunner, 0, 5, TimeUnit.SECONDS);
+
+        for (int i = 0; i < blockchainProperties.getConsumer(); i++)
+        {
+            watched.scheduleWithFixedDelay(keyWatchedRunner, 0, 5, TimeUnit.SECONDS);
+        }
         logger.info("main running end " + System.currentTimeMillis());
     }
 }

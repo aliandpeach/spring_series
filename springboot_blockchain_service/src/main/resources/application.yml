@@ -41,3 +41,6 @@ block:
     secure: false
     min-key: 10000000
     max-key: FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+    api-host: https://blockchain.info/balance
+    producer: 1
+    consumer: 1

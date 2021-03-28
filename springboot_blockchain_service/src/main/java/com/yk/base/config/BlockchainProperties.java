@@ -23,6 +23,10 @@ public class BlockchainProperties
     private String maxKey = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
 
     private String apiHost = "https://blockchain.info/balance";
+
+    private int producer = 1;
+
+    private int consumer = 1;
     
     public boolean isExecute()
     {
@@ -92,5 +96,25 @@ public class BlockchainProperties
     public void setApiHost(String apiHost)
     {
         this.apiHost = apiHost;
+    }
+
+    public int getProducer()
+    {
+        return producer;
+    }
+
+    public void setProducer(int producer)
+    {
+        this.producer = producer;
+    }
+
+    public int getConsumer()
+    {
+        return consumer;
+    }
+
+    public void setConsumer(int consumer)
+    {
+        this.consumer = consumer;
     }
 }

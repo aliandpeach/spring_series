@@ -48,6 +48,18 @@
       "type": "java.lang.String",
       "description": "",
       "sourceType": "com.yk.base.config.BlockchainProperties"
+    },
+    {
+      "name": "block.chain.producer",
+      "type": "java.lang.Integer",
+      "description": "",
+      "sourceType": "com.yk.base.config.BlockchainProperties"
+    },
+    {
+      "name": "block.chain.consumer",
+      "type": "java.lang.Integer",
+      "description": "",
+      "sourceType": "com.yk.base.config.BlockchainProperties"
     }
   ],
   "hints": []
