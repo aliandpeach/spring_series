@@ -16,37 +16,39 @@
         <span id="_status" class="bold" th:text="${status}"></span>
     </div>
     <div>
-        <input style="width: 570px" th:disabled="${run}" id="minKey" th:value="${minKey}"/>
-        <input style="width: 570px" th:disabled="${run}" id="maxKey" th:value="${maxKey}"/>
+        开始值：<input style="width: 570px" th:disabled="${run}" id="minKey" th:value="${minKey}"/>
+        结束值：<input style="width: 570px" th:disabled="${run}" id="maxKey" th:value="${maxKey}"/>
     </div>
     <div>
-        <a th:href="@{/logs/record_info.log}" target="_blank">地址</a>
+        <a th:href="@{/logs/record_info.log}" target="_blank">私钥地址</a>
     </div>
     <div>
         <a th:href="@{/logs/hex_key_info.log}" target="_blank">16进制地址</a>
     </div>
     <div>
-        <a th:href="@{/logs/watched_info.log}" target="_blank">结果</a>
+        <a th:href="@{/logs/watched_info.log}" target="_blank">执行结果</a>
     </div>
     <div>
-        <a th:href="@{/logs/status_info.log}" target="_blank">状态</a>
+        <a th:href="@{/logs/status_info.log}" target="_blank">程序状态</a>
     </div>
     <div>
         <a th:href="@{/logs/error.log}" target="_blank">错误</a>
     </div>
     <div>
-        <a th:href="@{/block/chain/the/min}" target="_blank">运行</a>
+        <button id="current_status">当前状态</button>
+        <span id="current_min" class="bold"></span>
+        <span id="current_size" class="bold"></span>
     </div>
     <!--<div>
         <a th:href="@{/block/chain/the/range}" target="_blank">已运行数量</a>
     </div>-->
     <div>
-        <button id="calc">数量计算</button>
+        <button id="calc">范围计算</button>
         <span id="_calc_result" class="bold"></span>
     </div>
     <div>
-        <input style="width: 570px" id="range_start" />
-        <input style="width: 570px" id="range_end" />
+        开始值：<input style="width: 570px" id="range_start" />
+        结束值：<input style="width: 570px" id="range_end" />
     </div>
 </body>
 <script th:inline="javascript">
@@ -60,6 +62,9 @@
         });
         $("#calc").unbind("click").bind("click", function () {
             calc();
+        });
+        $("#current_status").unbind("click").bind("click", function () {
+            current();
         });
     });
 
@@ -87,6 +92,22 @@
             success: function (result) {
                 var _range = result.range;
                 $("#_calc_result").html(_range);
+            }
+        });
+    }
+
+    function current() {
+        $.ajax({
+            type: "get",
+            contentType: "application/x-www-form-urlencoded",
+            url: "/block/chain/the/min",
+            data: '',
+            async: true,
+            success: function (result) {
+                var current_min = result.min;
+                var current_size = result.size;
+                $("#current_min").html("当前生成的最小地址：" + current_min);
+                $("#current_size").html("正在计算的地址数量：" + current_size);
             }
         });
     }
