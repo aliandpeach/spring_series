@@ -16,8 +16,8 @@
         <span id="_status" class="bold" th:text="${status}"></span>
     </div>
     <div>
-        <input th:disabled="${run}" id="minKey" th:value="${minKey}"/>
-        <input th:disabled="${run}" id="maxKey" th:value="${maxKey}"/>
+        <input style="width: 570px" th:disabled="${run}" id="minKey" th:value="${minKey}"/>
+        <input style="width: 570px" th:disabled="${run}" id="maxKey" th:value="${maxKey}"/>
     </div>
     <div>
         <a th:href="@{/logs/record_info.log}" target="_blank">地址</a>
@@ -37,6 +37,17 @@
     <div>
         <a th:href="@{/block/chain/the/min}" target="_blank">运行</a>
     </div>
+    <!--<div>
+        <a th:href="@{/block/chain/the/range}" target="_blank">已运行数量</a>
+    </div>-->
+    <div>
+        <button id="calc">数量计算</button>
+        <span id="_calc_result" class="bold"></span>
+    </div>
+    <div>
+        <input style="width: 570px" id="range_start" />
+        <input style="width: 570px" id="range_end" />
+    </div>
 </body>
 <script th:inline="javascript">
 
@@ -46,6 +57,9 @@
         });
         $("#stop").click(function () {
             todo(this.id);
+        });
+        $("#calc").unbind("click").bind("click", function () {
+            calc();
         });
     });
 
@@ -62,6 +76,39 @@
                 window.location.href = "/";
             }
         });
+    }
+    function calc() {
+        $.ajax({
+            type: "get",
+            contentType: "application/x-www-form-urlencoded",
+            url: "/block/chain/the/calc",
+            data: 'start=' + $("#range_start").val() + '&end=' + $("#range_end").val(),
+            async: true,
+            success: function (result) {
+                var _range = result.range;
+                $("#_calc_result").html(_range);
+            }
+        });
+    }
+
+    function ajax(url, type) {
+        var xhr = new XMLHttpRequest();
+        var result;
+
+        var p = new Promise(function (resolve, reject) {
+            xhr.open(type, url, true);
+            xhr.onload = function (e) {
+                if (this.status === 200) {
+                    result = JSON.parse(this.responseText);
+                    resolve(result);
+                }
+            };
+            xhr.onerror = function (e) {
+                reject(e);
+            };
+            xhr.send();
+        });
+        return p;
     }
 </script>
 </html>

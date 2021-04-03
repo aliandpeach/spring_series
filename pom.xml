@@ -18,5 +18,6 @@
         <module>spring_annotation_website</module>
         <module>springboot_jsp_website</module>
         <module>springboot_thymeleaf_service</module>
+        <module>springboot_blockchain_service</module>
     </modules>
 </project>
