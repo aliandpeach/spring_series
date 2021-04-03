@@ -121,7 +121,7 @@ public class BlockchainController
         BigInteger max = new BigInteger(param.get("end"), 16);
 
         BigInteger range = max.subtract(min);
-        result.put("range", range.longValue());
+        result.put("range", range.toString(10));
         return result;
     }
 }
