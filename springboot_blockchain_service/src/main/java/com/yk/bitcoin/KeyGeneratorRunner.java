@@ -3,6 +3,7 @@ package com.yk.bitcoin;
 import cn.hutool.core.util.HexUtil;
 import com.yk.base.config.BlockchainProperties;
 import com.yk.crypto.BinHexSHAUtil;
+import com.yk.crypto.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,8 +90,16 @@ public class KeyGeneratorRunner implements Runnable
                 {
                     break;
                 }
-                barray = cache.getMin().toByteArray();
-                
+                try
+                {
+                    barray = Utils.bigIntegerToBytes(cache.getMin(), 32);
+                }
+                catch (RuntimeException e)
+                {
+                    error.error("Utils.bigIntegerToBytes error : " + cache.getMin().toString(16), e);
+                    break;
+                }
+
                 String hex = HexUtil.encodeHexStr(barray);
                 // 多线程同步打印
                 hex_key.info(Thread.currentThread().getName() + "-current hex = " + hex + ", binary string = " + BinHexSHAUtil.bytes2BinaryString(barray));
