@@ -88,4 +88,16 @@ public class EnDecryptUtilTest
     {
         new FileUtil().copy("C:\\Users\\xxxx\\Desktop\\test", "C:\\Users\\xxxx\\Desktop\\test");
     }
+    
+    @Test
+    public void copyByChannel() throws IOException
+    {
+        new FileUtil().copyByChannel("C:\\Users\\xxxx\\Desktop\\test", "C:\\Users\\xxxx\\Desktop\\test");
+    }
+    
+    @Test
+    public void copyCommon() throws IOException
+    {
+        new FileUtil().copyCommon("C:\\Users\\xxxx\\Desktop\\test", "C:\\Users\\xxxx\\Desktop\\test");
+    }
 }
