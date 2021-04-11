@@ -3,6 +3,8 @@ package com.yk.bitcoin;
 import cn.hutool.core.util.HexUtil;
 import com.yk.crypto.Base58;
 import com.yk.crypto.BinHexSHAUtil;
+import com.yk.crypto.Utils;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigInteger;
@@ -15,6 +17,12 @@ import java.util.Random;
 
 public class GenKeyTest
 {
+    @Before
+    public void before()
+    {
+        System.setProperty("log.home", System.getProperty("user.dir"));
+    }
+
     @Test
     public void genKey()
     {
@@ -63,6 +71,22 @@ public class GenKeyTest
         // 5JsqvMN5CjwpM36wo8RbR2rM1GommssZubfb5KSJf815uLqG511
         System.out.println(pri);
         System.out.println(pri2);
+    }
+
+    @Test
+    public void genKey3() throws Exception
+    {
+        byte[] bytes = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF".getBytes();
+        String hex_ = BinHexSHAUtil.byteArrayToHex(bytes);
+        hex_ = "0";
+        byte[] privateKey = Utils.bigIntegerToBytes(new BigInteger(hex_, 16), 32);
+        String binaryString = BinHexSHAUtil.bytes2BinaryString(privateKey);
+        // System.out.println(binaryString); 1FYMZEHnszCHKTBdFZ2DLrUuk3dGwYKQxh|1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH
+        KeyGenerator keyGenerator = new KeyGenerator();
+        String pri = keyGenerator.keyGen(privateKey, true);
+        System.out.println(pri);
+        String pub = keyGenerator.addressGen(privateKey);
+        System.out.println(pub);
     }
 
     @Test
