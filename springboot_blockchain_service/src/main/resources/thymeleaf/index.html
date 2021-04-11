@@ -19,7 +19,7 @@
         开始值：<input style="width: 570px" th:disabled="${run}" id="minKey" th:value="${minKey}"/>
         结束值：<input style="width: 570px" th:disabled="${run}" id="maxKey" th:value="${maxKey}"/>
     </div>
-    <div>
+    <div style="margin-top: 10px">
         <a th:href="@{/logs/record_info.log}" target="_blank">私钥地址</a>
     </div>
     <div>
@@ -34,7 +34,7 @@
     <div>
         <a th:href="@{/logs/error.log}" target="_blank">错误</a>
     </div>
-    <div>
+    <div style="margin-top: 10px">
         <button id="current_status">当前状态</button>
         <span id="current_min" class="bold"></span>
         <span id="current_size" class="bold"></span>
@@ -42,13 +42,28 @@
     <!--<div>
         <a th:href="@{/block/chain/the/range}" target="_blank">已运行数量</a>
     </div>-->
-    <div>
+    <div style="margin-top: 10px">
         <button id="calc">范围计算</button>
         <span id="_calc_result" class="bold"></span>
     </div>
     <div>
         开始值：<input style="width: 570px" id="range_start" />
         结束值：<input style="width: 570px" id="range_end" />
+    </div>
+    <div style="margin-top: 10px">
+        <button id="_query_addr">地址查询</button>
+        <span id="_query_addr_result" class="bold"></span>
+    </div>
+    <div>
+        地址：<input style="width: 570px" id="addr" />
+    </div>
+
+    <div style="margin-top: 10px">
+        <button id="_cus_insert_key">自定义查询</button>
+        <span id="_cus_insert_key_result" class="bold"></span>
+    </div>
+    <div>
+        私钥：<input style="width: 570px" id="key" />
     </div>
 </body>
 <script th:inline="javascript">
@@ -65,6 +80,12 @@
         });
         $("#current_status").unbind("click").bind("click", function () {
             current();
+        });
+        $("#_query_addr").unbind("click").bind("click", function () {
+            query();
+        });
+        $("#_cus_insert_key").unbind("click").bind("click", function () {
+            insert();
         });
     });
 
@@ -108,6 +129,30 @@
                 var current_size = result.size;
                 $("#current_min").html("当前生成的最小地址：" + current_min);
                 $("#current_size").html("正在计算的地址数量：" + current_size);
+            }
+        });
+    }
+    function query() {
+        $.ajax({
+            type: "get",
+            contentType: "application/x-www-form-urlencoded",
+            url: "/block/chain/the/query",
+            data: 'addr=' + $("#addr").val(),
+            async: true,
+            success: function (result) {
+                $("#_query_addr_result").html(JSON.stringify(result));
+            }
+        });
+    }
+    function insert() {
+        $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            url: "/block/chain/the/insert",
+            data: '{"key": "' + $("#key").val() + '"}',
+            async: true,
+            success: function (result) {
+                $("#_cus_insert_key_result").html(JSON.stringify(result));
             }
         });
     }

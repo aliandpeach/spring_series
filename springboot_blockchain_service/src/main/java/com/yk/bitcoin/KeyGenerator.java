@@ -1,7 +1,9 @@
 package com.yk.bitcoin;
 
 import com.yk.crypto.Base58;
+import com.yk.crypto.BinHexSHAUtil;
 import com.yk.crypto.Sha256Hash;
+import com.yk.crypto.Utils;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
@@ -16,8 +18,13 @@ public class KeyGenerator
 {
     private ECNamedCurveParameterSpec spec = ECNamedCurveTable.getParameterSpec("secp256k1");
 
-    public String keyGen(byte[] privateKey, boolean compressed) throws Exception
+    public String keyGen(byte[] privateKey, boolean compressed)
     {
+        if (null == privateKey || privateKey.length != 32)
+        {
+            throw new IllegalArgumentException("privateKey not correct");
+        }
+
         byte[] temp = new byte[privateKey.length + 1 + (compressed ? 1 : 0)];
 
         // 私钥前增加0x80
@@ -97,5 +104,45 @@ public class KeyGenerator
         System.arraycopy(dataF, 0, result, 0, dataF.length);
         System.arraycopy(dataS, 0, result, dataF.length, dataS.length);
         return result;
+    }
+
+    public byte[] convertKeyByBase58Key(String base58Key)
+    {
+        byte[] keyWtihChecksumBytes = Base58.decode(base58Key);
+        if (keyWtihChecksumBytes.length < 37 || keyWtihChecksumBytes.length > 38)
+        {
+            return null;
+        }
+
+        boolean compressed = keyWtihChecksumBytes.length == 38;
+        byte[] newkey = new byte[keyWtihChecksumBytes.length - 4];
+        ByteBuffer byteBuffer = ByteBuffer.allocate(keyWtihChecksumBytes.length);
+        byteBuffer.put(keyWtihChecksumBytes);
+        byteBuffer.flip();
+        byteBuffer.get(newkey, 0, newkey.length);
+
+        byte[] key = new byte[32];
+        System.arraycopy(newkey, 1, key, 0, key.length);
+        return key;
+    }
+
+    public boolean isPubKeyCompressed(String base58Addr)
+    {
+        byte[] addrBytes = Base58.decode(base58Addr);
+        boolean isPubKeyCompressed = isPubKeyCompressed(addrBytes);
+        return isPubKeyCompressed;
+    }
+
+    /**
+     * Returns true if the given pubkey is in its compressed form.
+     */
+    public boolean isPubKeyCompressed(byte[] encoded)
+    {
+        if (encoded.length == 33 && (encoded[0] == 0x02 || encoded[0] == 0x03))
+            return true;
+        else if (encoded.length == 65 && encoded[0] == 0x04)
+            return false;
+        else
+            throw new IllegalArgumentException(Utils.HEX.encode(encoded));
     }
 }

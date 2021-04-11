@@ -1,9 +1,14 @@
 package com.yk.demo;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.yk.base.config.BlockchainProperties;
 import com.yk.bitcoin.Cache;
 import com.yk.bitcoin.KeyCache;
+import com.yk.bitcoin.KeyGenerator;
+import com.yk.httprequest.HttpClientUtil;
 import com.yk.util.ConvertUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Controller;
@@ -16,7 +21,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.math.BigInteger;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,11 +31,16 @@ import static com.yk.bitcoin.KeyCache.LOCK;
 @EnableConfigurationProperties(BlockchainProperties.class)
 public class BlockchainController
 {
+    private static final Logger logger = LoggerFactory.getLogger("demo");
+
     @Autowired
     private Cache cache;
 
     @Autowired
     private BlockchainProperties blockchainProperties;
+
+    @Autowired
+    private KeyGenerator keyGenerator;
 
     @RequestMapping(value = "/{status}", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
@@ -124,4 +133,81 @@ public class BlockchainController
         result.put("range", range.toString(10));
         return result;
     }
+
+    @RequestMapping(value = "/the/insert", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String, Object> insert(@RequestBody Map<String, String> param)
+    {
+        Map<String, Object> result = new HashMap<>();
+        String key = param.get("key");
+        if (null == key || key.trim().length() == 0)
+        {
+            result.put("error", "key is null");
+            return result;
+        }
+
+        try
+        {
+            byte[] biKey = keyGenerator.convertKeyByBase58Key(key);
+            BigInteger zero = new BigInteger("0", 16);
+            BigInteger max = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140", 16);
+            if (null == biKey
+                    || new BigInteger(1, biKey).compareTo(zero) < 0
+                    || new BigInteger(1, biKey).compareTo(max) > 0)
+            {
+                result.put("error", "key is incorrect");
+                return result;
+            }
+            String addr = keyGenerator.addressGen(biKey);
+            String keystring = keyGenerator.keyGen(biKey, true);
+            Map<String, String> key2Addr = new HashMap<>();
+            key2Addr.put("privatekey", keystring);
+            key2Addr.put("publickey", addr);
+            KeyCache.keyQueue.offer(key2Addr);
+            synchronized (LOCK)
+            {
+                LOCK.notifyAll();
+            }
+            result.put("success", "success");
+            return result;
+        }
+        catch (IllegalArgumentException e)
+        {
+            logger.error("the-insert error", e);
+            result.put("error", "key is null");
+            return result;
+        }
+    }
+
+    @RequestMapping(value = "/the/query", method = RequestMethod.GET)
+    @ResponseBody
+    public Map<String, Map<String, Long>> query(@RequestParam("addr") String addr)
+    {
+        Map<String, Map<String, Long>> result = new HashMap<>();
+        if (null == addr || addr.trim().length() == 0)
+        {
+            return result;
+        }
+
+
+        Map<String, String> params = new HashMap<>();
+        params.put("active", addr);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Connection", "keep-alive");
+        try
+        {
+            result = HttpClientUtil.get(blockchainProperties.getApiHost()
+                    , headers, params, new TypeReference<Map<String, Map<String, Long>>>()
+                    {
+                    }, 3);
+        }
+        catch (Exception e)
+        {
+            logger.error("the-query error", e);
+        }
+        return result;
+    }
+
+
 }

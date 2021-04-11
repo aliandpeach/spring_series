@@ -1,10 +1,13 @@
 package com.yk.bitcoin;
 
 import cn.hutool.core.util.HexUtil;
+import com.yk.crypto.Base58;
 import com.yk.crypto.BinHexSHAUtil;
 import org.junit.Test;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
+import java.util.Random;
 
 /**
  * GenKeyTest
@@ -15,6 +18,7 @@ public class GenKeyTest
     @Test
     public void genKey()
     {
+        KeyGenerator keyGenerator = new KeyGenerator();
         StringBuilder max256BinaryString = new StringBuilder();
         for (int i = 0; i < 256; i++)
         {
@@ -23,7 +27,7 @@ public class GenKeyTest
         byte[] max32bytes = BinHexSHAUtil.binaryString2bytes(max256BinaryString.toString());
         // ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
         String maxHex = HexUtil.encodeHexStr(max32bytes);
-        
+
         BigInteger zero = new BigInteger("0", 16);
         BigInteger one = new BigInteger("1", 16);
         BigInteger max = new BigInteger(maxHex, 16);
@@ -34,7 +38,6 @@ public class GenKeyTest
             byte[] key = new byte[32];
             byte[] f = barray;
             System.arraycopy(f, 0, key, key.length - f.length, f.length);
-            KeyGenerator keyGenerator = new KeyGenerator();
             System.out.println(BinHexSHAUtil.bytes2BinaryString(key));
             try
             {
@@ -47,5 +50,58 @@ public class GenKeyTest
                 e.printStackTrace();
             }
         }
+    }
+
+    @Test
+    public void genKey2() throws Exception
+    {
+        KeyGenerator keyGenerator = new KeyGenerator();
+        byte[] bytes = new byte[32];
+        new Random().nextBytes(bytes);
+        String pri = keyGenerator.keyGen(bytes, false);
+        String pri2 = keyGenerator.keyGen(bytes, true);
+        // 5JsqvMN5CjwpM36wo8RbR2rM1GommssZubfb5KSJf815uLqG511
+        System.out.println(pri);
+        System.out.println(pri2);
+    }
+
+    @Test
+    public void convertByBase58Key()
+    {
+        // KykVjGz5fK1yUWZneEfvtwkvPvAywWT7kGfay6bE1GeGbcz6NCG3
+        String keyString = "KykVjGz5fK1yUWZneEfvtwkvPvAywWT7kGfay6bE1GeGbcz6NCG3";
+        byte[] keyWtihChecksumBytes = Base58.decode(keyString);
+        byte[] compressedKey = new byte[keyWtihChecksumBytes.length - 4];
+        ByteBuffer byteBuffer = ByteBuffer.allocate(keyWtihChecksumBytes.length);
+        byteBuffer.put(keyWtihChecksumBytes);
+        byteBuffer.flip();
+        byteBuffer.get(compressedKey, 0, compressedKey.length);
+
+        byte[] key = new byte[compressedKey.length == 34 ? compressedKey.length - 2 : compressedKey.length - 1];
+        System.arraycopy(compressedKey, 1, key, 0, key.length);
+        byte[] single0x80 = new byte[]{(byte) 0x80};
+        byte[] single0x01 = new byte[]{(byte) 0x01};
+        String binaryStringKey = BinHexSHAUtil.bytes2BinaryString(key);
+        System.out.println(binaryStringKey);
+        String u = new BigInteger(binaryStringKey, 2).toString(16).toUpperCase();
+        System.out.println(u);
+        u = new BigInteger(1, key).toString(16).toUpperCase();
+        System.out.println(u);
+    }
+
+    @Test
+    public void convertByBinaryString() throws Exception
+    {
+        KeyGenerator generator = new KeyGenerator();
+        // 0100101110000011000010111011010101001001011011110110111101110001001010010000100100010111110101000110010101100001111011001011000101010100010000000001101111001101101000100001110111011000000100100101110111000101000101111111001100111001000110101010100100100000
+        String binaryString = "0100101110000011000010111011010101001001011011110110111101110001001010010000100100010111110101000110010101100001111011001011000101010100010000000001101111001101101000100001110111011000000100100101110111000101000101111111001100111001000110101010100100100000";
+        byte[] key = BinHexSHAUtil.binaryString2bytes(binaryString);
+        String compressed = generator.keyGen(key, true);
+        String uncompressed = generator.keyGen(key, false);
+        System.out.println(compressed);
+        System.out.println(uncompressed);
+
+        String addr = generator.addressGen(key);
+        System.out.println(addr);
     }
 }
