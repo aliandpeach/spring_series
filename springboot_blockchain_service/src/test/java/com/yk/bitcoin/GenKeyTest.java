@@ -76,6 +76,16 @@ public class GenKeyTest
     @Test
     public void genKey3() throws Exception
     {
+        Random random = new Random();
+        for (int i = 0; i < 1; i++)
+        {
+            byte[] bytes = new byte[32];
+            random.nextBytes(bytes);
+            String binaryString = BinHexSHAUtil.bytes2BinaryString(bytes);
+            String hex = HexUtil.encodeHexStr(bytes);
+            System.out.println(hex);
+        }
+
         byte[] bytes = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF".getBytes();
         String hex_ = BinHexSHAUtil.byteArrayToHex(bytes);
         hex_ = "0";
