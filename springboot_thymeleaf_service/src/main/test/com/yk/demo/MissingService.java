@@ -6,33 +6,45 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * MissingService
  */
 @Configuration
 public class MissingService
 {
-    @Bean("servicex")
+    
+    @Bean("mapperSrv")
+    public Map mmmmmmm()
+    {
+        System.out.println("mapperSrv");
+        return new HashMap();
+    }
+    
+    
+    @Bean
     @ConditionalOnClass(MyService.class) // 存在 MyService.class , 就创建servicey
-    public MyService servicex()
+    public MyService serviceOne()
     {
-        System.out.println("servicex");
+        System.out.println("serviceOne");
         return new MyService();
     }
     
     @Bean
-    @ConditionalOnBean(name = "servicex") // 已经存在 name为servicex 的bean, 就创建servicey
-    public MyService servicey()
+    @ConditionalOnBean(name = "mapperSrv") // 已经存在 name为 mapperSrv 的bean, 就创建 serviceTwo
+    public MyService serviceTwo()
     {
-        System.out.println("servicey");
+        System.out.println("serviceTwo");
         return new MyService();
     }
     
     @Bean
-    @ConditionalOnMissingBean // 已经存在 MyService类型的bean, 就不再创建 servicez
-    public MyService servicez()
+    @ConditionalOnMissingBean // 已经存在 MyService 类型的bean, 就不再创建 serviceThree
+    public MyService serviceThree()
     {
-        System.out.println("servicez");
+        System.out.println("serviceThree");
         return new MyService();
     }
 }
