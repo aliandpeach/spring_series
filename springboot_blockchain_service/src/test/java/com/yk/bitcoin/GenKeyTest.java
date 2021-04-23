@@ -3,6 +3,7 @@ package com.yk.bitcoin;
 import cn.hutool.core.util.HexUtil;
 import com.yk.crypto.Base58;
 import com.yk.crypto.BinHexSHAUtil;
+import com.yk.crypto.Sha256Hash;
 import com.yk.crypto.Utils;
 import org.junit.Before;
 import org.junit.Test;
@@ -86,9 +87,11 @@ public class GenKeyTest
             System.out.println(hex);
         }
 
-        byte[] bytes = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF".getBytes();
+        byte[] bytes = "".getBytes();
+        bytes = Sha256Hash.hash(bytes);
         String hex_ = BinHexSHAUtil.byteArrayToHex(bytes);
-        hex_ = "0";
+        System.out.println("hex=" + hex_);
+//        hex_ = "14159265357939788292";
         byte[] privateKey = Utils.bigIntegerToBytes(new BigInteger(hex_, 16), 32);
         String binaryString = BinHexSHAUtil.bytes2BinaryString(privateKey);
         // System.out.println(binaryString); 1FYMZEHnszCHKTBdFZ2DLrUuk3dGwYKQxh|1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH
@@ -98,12 +101,56 @@ public class GenKeyTest
         String pub = keyGenerator.addressGen(privateKey);
         System.out.println(pub);
     }
-
+    
+    public static byte[] getBytes(float data)
+    {
+        int intBits = Float.floatToIntBits(data);
+        return getBytes(intBits);
+    }
+    
+    public static byte[] getBytes(int data)
+    {
+        byte[] bytes = new byte[4];
+        bytes[0] = (byte) (data & 0xff);
+        bytes[1] = (byte) ((data & 0xff00) >> 8);
+        bytes[2] = (byte) ((data & 0xff0000) >> 16);
+        bytes[3] = (byte) ((data & 0xff000000) >> 24);
+        return bytes;
+    }
+    
+    public static byte[] float2byte(float f)
+    {
+        // 把float转换为byte[]
+        int fbit = Float.floatToIntBits(f);
+        
+        byte[] b = new byte[4];
+        for (int i = 0; i < 4; i++)
+        {
+            b[i] = (byte) (fbit >> (24 - i * 8));
+        }
+        // 翻转数组
+        int len = b.length;
+        // 建立一个与源数组元素类型相同的数组
+        byte[] dest = new byte[len];
+        // 为了防止修改源数组，将源数组拷贝一份副本
+        System.arraycopy(b, 0, dest, 0, len);
+        byte temp;
+        // 将顺位第i个与倒数第i个交换
+        for (int i = 0; i < len / 2; ++i)
+        {
+            temp = dest[i];
+            dest[i] = dest[len - i - 1];
+            dest[len - i - 1] = temp;
+        }
+        return dest;
+    }
+    
     @Test
     public void convertByBase58Key()
     {
         // KykVjGz5fK1yUWZneEfvtwkvPvAywWT7kGfay6bE1GeGbcz6NCG3
-        String keyString = "KykVjGz5fK1yUWZneEfvtwkvPvAywWT7kGfay6bE1GeGbcz6NCG3";
+        // L17HQpQ3VHmjJ7bkGv1LGp2CyrD3EtBiH7JbujMBhWpKe75Dz1q5
+        String keyString = "L2mXzNnQGeZV1eed1N9UkAziUU6RKy27qGG28CSq6uCyLBRVUED6";
         byte[] keyWtihChecksumBytes = Base58.decode(keyString);
         byte[] compressedKey = new byte[keyWtihChecksumBytes.length - 4];
         ByteBuffer byteBuffer = ByteBuffer.allocate(keyWtihChecksumBytes.length);

@@ -23,10 +23,9 @@
 
     <!--<context:component-scan/>标签是告诉Spring 来扫描指定包下的类，
     并注册被@Component，@Controller，@Service，@Repository等注解标记的组件。
-    而<mvc:annotation-driven/>是告知Spring，我们启用注解驱动。
+    而<context:annotation-config/>是告知Spring，我们启用注解驱动。
     然后Spring会自动为我们注册上面说到的几个Bean到工厂中，来处理我们的请求。-->
     <context:component-scan base-package="com.yk"/>
-    <aop:config proxy-target-class="true"/>
 
     <!--使用<context:annotation- config/>隐式地向 Spring容器注册
     AutowiredAnnotationBeanPostProcessor、RequiredAnnotationBeanPostProcessor、
@@ -107,12 +106,18 @@
         <property name="basePackage" value="com.yk.demo.dao"/>
     </bean>
 
+    <!-- 注解和切面事务 二选一即可 -->
+    <!-- ↓配置注解事务↓ -->
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
         <property name="dataSource" ref="dataSource"/>
     </bean>
-    <!-- 对@Transacational 注解的Bean进行讲过处理，以织入事务管理切面 -->
+    <!-- 对@Transactional 注解的Bean进行讲过处理，以织入事务管理切面 相当于 @EnableTransactionManagement(proxyTargetClass = true) -->
     <tx:annotation-driven transaction-manager="transactionManager" proxy-target-class="true"/>
+    <!-- ↑配置注解事务↑ -->
 
+
+    <!-- ↓配置切面事务↓ -->
+    <!--Spring 定义的POJO切面 没有配置注解事务的时候 该切面可以自动为符合的expression的方法或者类增加事务管理 -->
     <aop:config proxy-target-class="true">
         <aop:pointcut id="serviceMethod" expression="(execution(* com.yk..service..*(..)))
         and (@annotation(org.springframework.transaction.annotation.Transactional))"/>
@@ -122,11 +127,16 @@
     <tx:advice id="txAdvice" transaction-manager="transactionManager">
         <tx:attributes>
             <tx:method name="*"/>
+            <!--<tx:method name="query*" propagation="SUPPORTS" read-only="true" />
+            <tx:method name="get*" propagation="SUPPORTS" read-only="true" />
+            <tx:method name="select*" propagation="SUPPORTS" read-only="true" />
+            <tx:method name="*" propagation="REQUIRED" rollback-for="Exception" />-->
         </tx:attributes>
     </tx:advice>
+    <!-- ↑配置切面事务↑ -->
 
 
-    <!--开启切面编程自动代理-->
+    <!-- 通知Spring 开启扫描 @Aspect 切面编程自动代理 相当于 @EnableAspectJAutoProxy(proxyTargetClass = true) -->
     <aop:aspectj-autoproxy proxy-target-class="true"/>
 
     <!--开启注解扫描 -->

@@ -20,10 +20,10 @@ import java.util.Map;
  *
  * DefaultErrorViewResolver默认会返回 /error/4xx.jsp /error/5xx.jsp （页面就需要放入views目录下面的error目录）
  *
- * 用户自定的ErrorController 默认情形,
- * 如果没有自定义, 会去执行 BasicErrorController, 再通过 DefaultErrorViewResolver 寻找有没有配置 /error/4xx.jsp /error/5xx.jsp页面, 没有就直接返回error.jsp
+ * 用户实现 ErrorController 覆盖掉了 ErrorMvcAutoConfiguration 的 basicErrorController,
+ * 如果没有自定义, 会去执行 BasicErrorController, 其内部通过注入的 DefaultErrorViewResolver 寻找有没有配置 /error/4xx.jsp /error/5xx.jsp页面, 没有就直接返回error.jsp
  *
- * Error > DefaultErrorViewResolver > BasicErrorController
+ * Error -> BasicErrorController -> DefaultErrorViewResolver
  */
 @Controller
 public class Error implements ErrorController

@@ -48,6 +48,7 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
      *
      * 这里之所以可以配置为 /* 是因为 SpringMvcConfig 中配置了 DefaultServletHandlerConfigurer, 这样spring的拦截就又交给tomcat了
      *
+     * SpringBoot中配置为spring.mvc.servlet.path = /* ; DispatcherServletAutoConfiguration 自动装配，不配置也行，有默认值 /*
      */
     protected String[] getServletMappings()
     {
