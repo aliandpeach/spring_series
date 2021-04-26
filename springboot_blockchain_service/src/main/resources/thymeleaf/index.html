@@ -172,7 +172,7 @@
             type: "POST",
             contentType: "application/json",
             url: "/block/chain/the/brain",
-            data: '' + $('#_phrase').val(),
+            data: '{"phrase" : "' + $('#_phrase').val() + '"}',
             async: true,
             success: function (result) {
                 $("#_brain_key_result").html(JSON.stringify(result));
@@ -187,7 +187,7 @@
         function _ajax (url, type, data){
             var xhr = new XMLHttpRequest();
             var _promise = new Promise(function (resolve, reject) {
-                xhr.open(type, url, true);
+                xhr.open(type, url, true); // true -> async
                 xhr.onreadystatechange = (e) => {
                     if (xhr.readyState === 4) {
                         // console.log("request ready, response ready");
