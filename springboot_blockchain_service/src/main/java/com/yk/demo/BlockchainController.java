@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.validation.Valid;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.HashMap;
@@ -219,8 +218,7 @@ public class BlockchainController
      */
     @RequestMapping(value = "/the/brain", method = RequestMethod.POST)
     @ResponseBody
-    @Validated(GroupInterface.ITheBrain.class)
-    public Map<String, String> brain(@RequestBody @Valid BlockchainModel blockchainModel)
+    public Map<String, String> brain(@RequestBody @Validated(GroupInterface.ITheBrain.class) BlockchainModel blockchainModel)
     {
         Map<String, String> result = new HashMap<>();
         byte[] bytes = blockchainModel.getPhrase().getBytes();
@@ -238,9 +236,10 @@ public class BlockchainController
      */
     @RequestMapping(value = "/the/detail", method = RequestMethod.POST)
     @ResponseBody
-    @Validated(GroupInterface.ITheDetail.class)
-    public Map<String, String> detail(@RequestBody @Valid BlockchainModel blockchainModel)
+    public Map<String, String> detail(@RequestBody @Validated(GroupInterface.ITheDetail.class) BlockchainModel blockchainModel)
     {
+        String key = blockchainModel.getKey();
+        logger.info(key);
         Map<String, String> result = new HashMap<>();
         return result;
     }

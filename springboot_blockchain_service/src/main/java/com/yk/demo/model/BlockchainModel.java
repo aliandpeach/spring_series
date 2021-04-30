@@ -11,9 +11,9 @@ import javax.validation.constraints.NotNull;
 @Data
 public class BlockchainModel
 {
-    @NotNull(groups = GroupInterface.ITheBrain.class)
+    @NotNull(message = "phrase不能为空", groups = {GroupInterface.ITheBrain.class})
     private String phrase;
     
-    @NotNull(groups = GroupInterface.ITheDetail.class)
+    @NotNull(message = "key不能为空", groups = {GroupInterface.ITheDetail.class})
     private String key;
 }

@@ -38,6 +38,12 @@ spring:
       connectionTestQuery: SELECT 1
       poolName: DatebookHikariCP
       autoCommit: true
+
+  servlet:
+    multipart:
+      max-file-size: -1
+      max-request-size: -1
+      resolve-lazily: true
   redis:
     host: 127.0.0.1
     port: 6379
@@ -67,6 +73,7 @@ server:
     key-store-type: JKS
     key-store-password: Admin@123
     client-auth: NONE
+  #address: 0.0.0.0
 block:
   chain:
     execute: @active@

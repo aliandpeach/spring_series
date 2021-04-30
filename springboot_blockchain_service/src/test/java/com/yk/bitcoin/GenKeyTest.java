@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.security.SecureRandom;
 import java.util.Random;
 
 /**
@@ -23,7 +24,59 @@ public class GenKeyTest
     {
         System.setProperty("log.home", System.getProperty("user.dir"));
     }
-
+    
+    @Test
+    public void main() throws InterruptedException
+    {
+        byte[] bytes = new byte[12];
+        new SecureRandom().nextBytes(bytes);
+        String id1 = HexUtil.encodeHexStr(bytes);
+        
+        new SecureRandom().nextBytes(bytes);
+        String id2 = HexUtil.encodeHexStr(bytes);
+        
+        Thread th1 = new Thread(() ->
+        {
+            synchronized (id1)
+            {
+                try
+                {
+                    id1.wait();
+                    System.out.println("id1 notified");
+                }
+                catch (InterruptedException e)
+                {
+                }
+            }
+        });
+        Thread th2 = new Thread(() ->
+        {
+            synchronized (id2)
+            {
+                try
+                {
+                    id2.wait();
+                    System.out.println("id2 notified");
+                }
+                catch (InterruptedException e)
+                {
+                }
+            }
+        });
+        
+        th1.start();
+        
+        th2.start();
+        
+        Thread.sleep(2000);
+        synchronized (id2)
+        {
+            id2.notifyAll();
+        }
+        th2.join();
+        th1.join();
+    }
+    
     @Test
     public void genKey()
     {
@@ -36,7 +89,7 @@ public class GenKeyTest
         byte[] max32bytes = BinHexSHAUtil.binaryString2bytes(max256BinaryString.toString());
         // ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
         String maxHex = HexUtil.encodeHexStr(max32bytes);
-
+        
         BigInteger zero = new BigInteger("0", 16);
         BigInteger one = new BigInteger("1", 16);
         BigInteger max = new BigInteger(maxHex, 16);
@@ -60,7 +113,7 @@ public class GenKeyTest
             }
         }
     }
-
+    
     @Test
     public void genKey2() throws Exception
     {
@@ -73,7 +126,7 @@ public class GenKeyTest
         System.out.println(pri);
         System.out.println(pri2);
     }
-
+    
     @Test
     public void genKey3() throws Exception
     {
@@ -86,12 +139,12 @@ public class GenKeyTest
             String hex = HexUtil.encodeHexStr(bytes);
             System.out.println(hex);
         }
-
-        byte[] bytes = "".getBytes();
+        
+        byte[] bytes = "nothing".getBytes();
         bytes = Sha256Hash.hash(bytes);
         String hex_ = BinHexSHAUtil.byteArrayToHex(bytes);
         System.out.println("hex=" + hex_);
-//        hex_ = "14159265357939788292";
+        hex_ = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140";
         byte[] privateKey = Utils.bigIntegerToBytes(new BigInteger(hex_, 16), 32);
         String binaryString = BinHexSHAUtil.bytes2BinaryString(privateKey);
         // System.out.println(binaryString); 1FYMZEHnszCHKTBdFZ2DLrUuk3dGwYKQxh|1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH
@@ -157,7 +210,7 @@ public class GenKeyTest
         byteBuffer.put(keyWtihChecksumBytes);
         byteBuffer.flip();
         byteBuffer.get(compressedKey, 0, compressedKey.length);
-
+        
         byte[] key = new byte[compressedKey.length == 34 ? compressedKey.length - 2 : compressedKey.length - 1];
         System.arraycopy(compressedKey, 1, key, 0, key.length);
         byte[] single0x80 = new byte[]{(byte) 0x80};
@@ -169,7 +222,7 @@ public class GenKeyTest
         u = new BigInteger(1, key).toString(16).toUpperCase();
         System.out.println(u);
     }
-
+    
     @Test
     public void convertByBinaryString() throws Exception
     {
@@ -181,7 +234,7 @@ public class GenKeyTest
         String uncompressed = generator.keyGen(key, false);
         System.out.println(compressed);
         System.out.println(uncompressed);
-
+        
         String addr = generator.addressGen(key);
         System.out.println(addr);
     }

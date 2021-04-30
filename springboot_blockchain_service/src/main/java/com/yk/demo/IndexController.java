@@ -36,4 +36,12 @@ public class IndexController
         model.addObject("status", _status);
         return model;
     }
+    
+    @RequestMapping(value = "/page/upload", method = RequestMethod.GET)
+    public ModelAndView upload()
+    {
+        ModelAndView model = new ModelAndView("upload");
+        
+        return model;
+    }
 }

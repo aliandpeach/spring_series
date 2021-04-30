@@ -11,6 +11,7 @@ import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
@@ -23,6 +24,7 @@ import java.util.Collection;
 @EnableAsync
 @EnableScheduling
 //@EnableAspectJAutoProxy(proxyTargetClass = true)
+@ServletComponentScan
 public class BlockchainServiceApplication extends SpringBootServletInitializer
 {
     public static void main(String[] args)
