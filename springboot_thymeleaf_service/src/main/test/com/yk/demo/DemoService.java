@@ -1,12 +1,14 @@
 package com.yk.demo;
 
 import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -22,7 +24,7 @@ public class DemoService
     }
     
     private MyService ms;
-    
+
     /**
      * DemoService
      *
@@ -32,6 +34,14 @@ public class DemoService
     {
         this.ms = ms.orderedStream().findFirst().orElse(null);
     }
+
+    /**
+     * 多个MyService bean会被放入list
+     */
+    /*public DemoService(List<MyService> ms)
+    {
+        System.out.println(ms);
+    }*/
     
     @Bean
     public Map<String, String> waiting()

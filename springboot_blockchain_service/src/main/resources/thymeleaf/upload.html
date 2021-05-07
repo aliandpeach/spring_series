@@ -38,11 +38,11 @@
     <!--</form>-->
 
     <form method="post" action="/import/upload/multiple/json" enctype="multipart/form-data" target="_upload_resp_iframe" style="margin-top: 10px">
-        选择要上传的文件：<input id="_upload_input" accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" multiple="multiple" type="file" name="files"><br>
+        选择要上传的文件：<input id="_upload_input1" accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" multiple="multiple" type="file" name="_upload_input1"><br>
         <hr>
         <input type="hidden" name="upload.name" value="aaa.zip">
     </form>
-    <button id="submit">上传</button>
+    <button id="submitBtn">上传</button>
 
     <span id="returnMsg" style="margin-left:20px;font-size:15px;"></span>
     <iframe style="display: none" onload="uploadOnload()" name="_upload_resp_iframe" id="_upload_resp_iframe"></iframe>
@@ -50,30 +50,37 @@
 <script th:inline="javascript">
 
     $(function () {
-       $("#submit").bind("click", function(){
+       $("#submitBtn").bind("click", function(){
            sendForm();
        })
     });
 
     function sendForm() {
+        debugger
         var formData = new FormData();
-        formData.append("files1", $("#_upload_input")[0].files[0]);
-        formData.append("files2", $("#_upload_input")[0].files[1]);
-        var params = JSON.stringify({
-            "id": new Date().getTime() + "",
-            "fileName": "name1"
-        })
-        formData.append('params', new Blob([params],{type: "application/json"}));
+		
+		var _files = $("#_upload_input1")[0].files;
+		var params = [];
+		for(var i = 0; i< _files.length; i++ ){
+			var id = new Date().getTime() + i + "";
+			formData.append(id, _files[i]);
+			params.push({"id": id, "fileName": _files[i].name});
+		}
+		var _params = JSON.stringify(params);
+		debugger
+        formData.append('params', new Blob([_params],{type: "application/json"}));
 
         $.ajax({
-            url: "/import/upload/multiple/json",
+            url: "/SIMP_DBS_S/event/upload/file/form",
             type: "POST",
             contentType: false,
             processData: false,
             dataType: "json",
             data: formData,
+			async: true,
             success: function (res) {
-                
+				debugger
+                $("#returnMsg").html(JSON.stringify(res));
             }
         });
     }

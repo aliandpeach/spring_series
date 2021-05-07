@@ -2,8 +2,10 @@ package com.yk.base.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
@@ -13,11 +15,13 @@ import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 /**
  * 该配置类继承 WebMvcConfigurationSupport 和@EnableWebMvc作用一致
  * (@EnableWebMvc相当于继承WebMvcConfigurationSupport后没有任何方法覆盖)
+ * 无论是使用@EnableWebMvc还是 继承WebMvcConfigurationSupport，都会禁止Spring Boot的自动装配@EnableAutoConfiguration中的设置
  * <p>
  * <p>
  * 默认的静态文件配置路径："classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/"
@@ -25,6 +29,11 @@ import java.util.List;
  * <p>
  * 继承WebMvcConfigurationSupport 某些配置失效问题
  * https://blog.csdn.net/weixin_43606226/article/details/105047572
+ *
+ *
+ * 根据 WebMvcAutoConfiguration的配置，只要 用户自定义了 HttpMessageConverters bean
+ * 最终都会被自动配置的 ObjectProvider<HttpMessageConverters> 拿到多个bean 然后遍历 存入 converters
+ * 因此不管是 @Bean new HttpMessageConverters(MappingJackson2HttpMessageConverter) 还是 实现configureMessageConverters方法都可以加入到转换器集合中
  */
 @Configuration
 public class BaseWebMvcConfiguration implements WebMvcConfigurer
@@ -127,6 +136,8 @@ public class BaseWebMvcConfiguration implements WebMvcConfigurer
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters)
     {
-        converters.add(new StringHttpMessageConverter(Charset.forName("UTF-8")));
+        converters.add(new StringHttpMessageConverter(StandardCharsets.UTF_8));
+        converters.add(new ByteArrayHttpMessageConverter());
+        converters.add(new MappingJackson2HttpMessageConverter());
     }
 }

@@ -23,7 +23,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
  * 3. 如果WebMvcConfigurer接口没有更多公开的的高级配置，那么就需要继承 WebMvcConfigurationSupport, 注意不要添加 @EnableWebMvc
  *
  *    WebMvcAutoConfiguration 这个配置类的注解@ConditionalOnMissingBean({WebMvcConfigurationSupport.class})
- *    会判断容器是否存在WebMvcConfigurationSupport类，如果存在，则当前配置类不生效
+ *    会判断容器是否存在WebMvcConfigurationSupport bean，如果存在，则当前配置类不生效
  *
  *    所以以上3种方式都会使得Spring默认配置失效。
  *

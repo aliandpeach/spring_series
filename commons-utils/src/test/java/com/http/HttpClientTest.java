@@ -1,5 +1,7 @@
 package com.http;
 
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import com.yk.httprequest.JSONUtil;
 import org.junit.Test;
 
@@ -78,7 +80,7 @@ public class HttpClientTest
     
             //写结尾的分隔符--${boundary}--,然后回车换行
             String endStr = BOUNDARY_PREFIX + boundary + BOUNDARY_SUFFIX + LINE_END;
-            out.write(endStr.getBytes("UTF-8"));
+            out.write(endStr.getBytes(StandardCharsets.UTF_8));
         }
         catch (Exception e)
         {
@@ -130,7 +132,7 @@ public class HttpClientTest
             }
         }}, new java.security.SecureRandom());
         HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
-        URL url = new URL(urlStr);
+        URL url = new URL(null, urlStr, new sun.net.www.protocol.https.Handler());
         HttpsURLConnection conn = null;
         if (proxyBoolean)
         {
@@ -275,23 +277,24 @@ public class HttpClientTest
     @Test
     public void sendFormData() throws Exception
     {
-        String url = "https://127.0.0.1:21112/import/upload/multiple/json";
-        
-        Map<String, Object> keyValues = new HashMap<>();
-        keyValues.put("task_description", "task_description语文");
+        String url = "https://192.190.10.122:4433/SIMP_DBS_S/event/upload/file/form";
+//        url = "https://192.190.10.122:21112/import/upload/multiple/json";
+
+        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("id", "1111");
+        jsonObject.put("fileName", "2.txt");
+        jsonArray.add(jsonObject);
         
         Map<String, String> filePathMap = new HashMap<>();
-        String paramName = "files1";
-        String filePath = "D:\\opt\\up\\中文.txt";
-        String paramName1 = "files2";
-        String filePath1 = "D:\\opt\\up\\2.txt";
-        filePathMap.put(paramName1, filePath);
-        filePathMap.put(paramName, filePath1);
+        String paramName = "1111";
+        String filePath = "D:\\opt\\up\\2.txt";
+        filePathMap.put(paramName, filePath);
         
         String boundary = "WebKitFormBoundary2ikDa4yTuM4d47aa";
         Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpResponse response = postFormData(url, filePathMap, JSONUtil.toJson(keyValues), headers, true);
+        HttpResponse response = postFormData(url, filePathMap, jsonArray.toJSONString(0), headers, false);
         System.out.println(response);
         
     }

@@ -6,6 +6,7 @@ import com.yk.demo.model.BlockchainModel;
 import com.yk.demo.model.DemoModel;
 import com.yk.demo.model.GroupInterface;
 import com.yk.demo.service.DemoService;
+import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -88,6 +89,14 @@ public class DemoController
         {
             id.wait(30 * 1000);
         }
+        return result;
+    }
+
+    @RequestMapping(value = "/valid/list", method = RequestMethod.POST)
+    @ResponseBody
+    public Map<String, String> detailApi(@RequestBody List<DemoModel> demoModelList)
+    {
+        Map<String, String> result = new HashMap<>();
         return result;
     }
 }
