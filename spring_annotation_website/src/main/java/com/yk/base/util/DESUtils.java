@@ -64,7 +64,7 @@ public class DESUtils {
             
             
             Cipher cipher = Cipher.getInstance("DES");
-            // 这里无论使用secretKey 还key 结果都一样
+            // 这里无论使用 secretKey 还是 "private static Key key" 结果都一样
             cipher.init(Cipher.ENCRYPT_MODE, secretKey); // DES/CBC/PKCS5Padding mode需要用到IvParameterSpec
             byte[] encryteStrBytes = cipher.doFinal(pwdBytes);
             return Base64.getEncoder().encodeToString(encryteStrBytes);

@@ -125,10 +125,23 @@
             <version>1.3.1</version>
         </dependency>
 
+        <!-- jedis 如果使用jedis-pool需要排除 spring-boot-starter-data-redis 的 io.lettuce  -->
+        <!--<dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.9.3</version>
+        </dependency>-->
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>1.1.23</version>
         </dependency>
     </dependencies>
     <build>
@@ -196,13 +209,13 @@
         <profile>
             <id>dev</id>
             <properties>
-                <active>false</active>
+                <_active>false</_active>
             </properties>
         </profile>
         <profile>
             <id>prod</id>
             <properties>
-                <active>true</active>
+                <_active>true</_active>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>

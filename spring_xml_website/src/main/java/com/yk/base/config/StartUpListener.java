@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -123,9 +124,14 @@ public class StartUpListener implements ServletContextListener {
 
         ServletContextResource contextResource = new ServletContextResource(sce.getServletContext(), "/WEB-INF/classes/spring/bean.xml");
         String abPath = WebUtils.getTempDir(sce.getServletContext()).getAbsolutePath();
-        try (InputStream in = contextResource.getInputStream(); InputStreamReader reader = new InputStreamReader(in, "UTF-8"); StringWriter stringWriter = new StringWriter()) {
+        try (InputStream in = contextResource.getInputStream();
+             InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
+             StringWriter stringWriter = new StringWriter())
+        {
             copy(stringWriter, reader);
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
 
@@ -143,9 +149,14 @@ public class StartUpListener implements ServletContextListener {
             e.printStackTrace();
         }
 
-        try (InputStream in = Thread.currentThread().getContextClassLoader().getResource("spring/bean.xml").openStream(); InputStreamReader reader = new InputStreamReader(in, "UTF-8"); StringWriter stringWriter = new StringWriter();) {
+        try (InputStream in = Thread.currentThread().getContextClassLoader().getResource("spring/bean.xml").openStream();
+             InputStreamReader reader = new InputStreamReader(in, StandardCharsets.UTF_8);
+             StringWriter stringWriter = new StringWriter();)
+        {
             copy(stringWriter, reader);
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
 
@@ -201,11 +212,11 @@ public class StartUpListener implements ServletContextListener {
     }
 
     private void copy(StringWriter writer, InputStreamReader reader) throws IOException {
-        int byteCount = 0;
         char[] buffer = new char[4069];
-        int bytesRead = -1;
-        while ((bytesRead = reader.read(buffer)) != -1) {
-            writer.write(buffer, 0, bytesRead);
+        int len;
+        while ((len = reader.read(buffer)) != -1)
+        {
+            writer.write(buffer, 0, len);
         }
         writer.flush();
         String content = writer.toString();

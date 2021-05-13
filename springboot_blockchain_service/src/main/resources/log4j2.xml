@@ -94,6 +94,17 @@
             </Policies>
             <DefaultRolloverStrategy max="20"/>
         </RollingRandomAccessFile>
+        <RollingRandomAccessFile name="performance"
+                                 fileName="${LOG_HOME}/logs/performance.log"
+                                 filePattern="${LOG_HOME}/logs/performance/performance.log.%d{yyyy-MM-dd}-%i.gz">
+            <PatternLayout
+                    pattern="%d %-5p (%F:%L) - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingRandomAccessFile>
     </Appenders>
 
     <Loggers>
@@ -117,6 +128,9 @@
         </logger>
         <logger name="status" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="status"/>
+        </logger>
+        <logger name="performance" level="debug" includeLocation="true" additivity="false">
+            <appender-ref ref="performance"/>
         </logger>
         <logger name="com.yk.httprequest" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="error"/>

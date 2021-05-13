@@ -12,13 +12,19 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -140,21 +146,16 @@ public class UploadController
         });
         return result;
     }
-    
-    
-    @PostMapping(value = "/upload/multiple/xml", consumes = "application/xml")
-    @ResponseBody
-    public Map<String, String> uploadXml(@RequestBody XmlParams xmlParams) throws
-            IOException
-    {
-        return null;
-    }
-    
-    
+
     /**
      * var xhr = new XMLHttpRequest();
      * xhr.open("POST", '/import/upload/multiple/bytes', true);
-     * xhr.onload = function (oEvent) {
+     * xhr.onload = function (e) {
+     * if (xhr.status === 200) {
+     *        debugger
+     *        var result = JSON.parse(this.responseText);
+     *        console.log(result);
+     *    }
      * };
      * var blob = new Blob(['abc123'], {type: 'text/plain'});
      * xhr.send(blob);
@@ -168,7 +169,24 @@ public class UploadController
     public Map<String, String> bytes(@RequestBody byte[] bytes) throws
             IOException
     {
-        return null;
+        String string = new String(bytes, StandardCharsets.ISO_8859_1);
+        String string2 = new String(bytes, StandardCharsets.UTF_8);
+        try (ByteArrayInputStream bai = new ByteArrayInputStream(bytes);
+             BufferedInputStream buffered = new BufferedInputStream(bai);
+             InputStreamReader reader = new InputStreamReader(buffered, StandardCharsets.UTF_8);
+             StringWriter sw = new StringWriter())
+        {
+            int len = 0;
+            char[] buffer = new char[8092];
+            while ((len = reader.read(buffer)) != -1)
+            {
+                sw.write(buffer, 0, len);
+            }
+            sw.flush();
+            String content = sw.toString();
+            System.out.println(content);
+        }
+        return new HashMap<>(Collections.singletonMap("SUCCESS", "OK"));
     }
     
     @PostMapping("/download")
@@ -176,10 +194,10 @@ public class UploadController
     public void download(HttpServletRequest request, HttpServletResponse response)
     {
         String downloadName = request.getParameter("download.name");
-        try (InputStream input = new FileInputStream("D:\\opt\\1619576061723_Foxmail_PCDownload1100112353.exe");
+        try (InputStream input = new FileInputStream(downloadName);
              BufferedOutputStream bufferedOut = new BufferedOutputStream(response.getOutputStream()))
         {
-            String filename = new String((System.currentTimeMillis() + "_下载的文件_Foxmail_PCDownload1100112353.exe").getBytes(), "ISO8859-1");
+            String filename = new String((System.currentTimeMillis() + downloadName).getBytes(), "ISO8859-1");
             response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
             response.setContentType("application/octet-stream");
             int len;
@@ -197,24 +215,24 @@ public class UploadController
     
     @PostMapping(value = "/downloadBlob", produces = "application/octet-stream")
     @ResponseBody
-    public byte[] downloadBlob(HttpServletRequest request, HttpServletResponse response)
+    public byte[] downloadBlob(@RequestBody Map<String, String> params)
     {
-        try (InputStream input = new FileInputStream("D:\\opt\\1619576061723_Foxmail_PCDownload1100112353.exe");
-             ByteArrayOutputStream baout = new ByteArrayOutputStream())
+        String filePath = params.get("down.name");
+        try (InputStream input = new FileInputStream(filePath);
+             ByteArrayOutputStream baos = new ByteArrayOutputStream())
         {
             int len;
             byte[] buf = new byte[8192];
             while ((len = input.read(buf)) != -1)
             {
-                baout.write(buf, 0, len);
+                baos.write(buf, 0, len);
             }
-            byte[] result = baout.toByteArray();
-            response.getOutputStream().write(result);
+            return baos.toByteArray();
         }
         catch (IOException e)
         {
-        
+
         }
-        return null;
+        return new byte[0];
     }
 }

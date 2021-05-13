@@ -5,6 +5,7 @@
     <style>
     </style>
     <script type="text/javascript" th:src="@{/jquery/jquery-1.8.0.min.js}"></script>
+    <script type="text/javascript" th:src="@{/resource/common.js}" ></script>
     <script th:inline="javascript">
         function uploadOnload() {
             // var body = $(window.frames['_upload_resp_iframe'].window.document.body);
@@ -56,7 +57,6 @@
     });
 
     function sendForm() {
-        debugger
         var formData = new FormData();
 		
 		var _files = $("#_upload_input1")[0].files;
@@ -67,7 +67,6 @@
 			params.push({"id": id, "fileName": _files[i].name});
 		}
 		var _params = JSON.stringify(params);
-		debugger
         formData.append('params', new Blob([_params],{type: "application/json"}));
 
         $.ajax({
@@ -79,38 +78,29 @@
             data: formData,
 			async: true,
             success: function (res) {
-				debugger
                 $("#returnMsg").html(JSON.stringify(res));
             }
         });
     }
 
-    function download(url, params) {
-        params = params || {};
-        var iframeId = "iframe_id" + new Date().getTime();
-        var iframeEl = document.getElementById(iframeId);
-        if (!iframeEl) {
-            var _iframe = document.createElement("iframe");
-            _iframe.setAttribute("id", iframeId);
-            _iframe.setAttribute("name", iframeId);
-            _iframe.setAttribute("style", "width:  0px; height: 0px; display: none; ");
-            _iframe.setAttribute("src", "about: blank");
-            top.document.getElementsByTagName("body")[0].appendChild(_iframe);
-            iframeEl = document.getElementById(iframeId);
-        }
-        var iframeDoc = iframeEl.contentDocument;
-        iframeDoc.open();
-        iframeDoc.write('<form method="post" action="' + url + '" >');
-        iframeDoc.close();
-        var formEl = iframeDoc.getElementsByTagName("form");
+    function downloadBlob(name) {
+        common._http.ajax("/import/downloadBlob", "POST", "{\"down.name\":\"D:\\1.txt\"}", 1).then(function(blob){
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(new Blob([blob], {type: "application/octet-stream"}));
+            link.download = name;
+            link.click();
+            window.URL.revokeObjectURL(link.href);
 
-        for (var _key in params) {
-            var _input = document.createElement("input");
-            _input.setAttribute("name", _key);
-            _input.setAttribute("value", params[_key]);
-            formEl[0].appendChild(_input);
-        }
-        formEl[0].submit();
+            // var reader = new FileReader();
+            // reader.readAsArrayBuffer(new Blob([blob], {type: "application/octet-stream"}));
+            // reader.onloadend = function (e) {
+            //     var a = document.createElement('a');
+            //     a.download = 'abc.exe';
+            //     a.href = e.target.result;
+            //     $("body").append(a);
+            //     a.click();
+            // }
+        });
     }
 </script>
 </html>

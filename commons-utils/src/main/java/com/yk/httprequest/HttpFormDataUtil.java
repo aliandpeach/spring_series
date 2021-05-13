@@ -1,32 +1,25 @@
-package com.http;
-
-import cn.hutool.json.JSONArray;
-import cn.hutool.json.JSONObject;
-import com.yk.httprequest.JSONUtil;
-import org.junit.Test;
+package com.yk.httprequest;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -34,14 +27,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * HttpClientTest
+ * HttpFormDataUtil
  *
  * @author yangk
  * @version 1.0
  * @since 2021/4/28 16:50
  */
 
-public class HttpClientTest
+public class HttpFormDataUtil
 {
     /**
      * multipart/form-data 格式发送数据时各个部分分隔符的前缀,必须为 --
@@ -52,23 +45,27 @@ public class HttpClientTest
      * 回车换行,用于一行的结尾
      */
     private static final String LINE_END = "\r\n";
-    
-    public static HttpResponse postFormData(String urlStr, Map<String, String> filePathMap, String json, Map<String, Object> headers, boolean proxy) throws
+
+    public static HttpResponse postFormData(String urlStr,
+                                            Map<String, String> filePathMap,
+                                            String content,
+                                            Map<String, Object> headers,
+                                            boolean proxy,
+                                            String boundary,
+                                            String contentType) throws
             Exception
     {
         HttpResponse response;
         HttpsURLConnection conn = getHttpsURLConnection(urlStr, headers, proxy);
-        
-        String boundary = "WebKitFormBoundary2ikDa4yTuM4d47aa";
-        
+
         //发送参数数据
         try (BufferedOutputStream out = new BufferedOutputStream(conn.getOutputStream()))
         {
-            if (null != json)
+            if (null != content)
             {
-                writeSimpleFormField(boundary, out, json);
+                writeSimpleFormField(boundary, out, content, contentType);
             }
-            
+
             //发送文件类型参数
             if (filePathMap != null && !filePathMap.isEmpty())
             {
@@ -77,20 +74,20 @@ public class HttpClientTest
                     writeFile(filePath.getKey(), filePath.getValue(), boundary, out);
                 }
             }
-    
+
             //写结尾的分隔符--${boundary}--,然后回车换行
             String endStr = BOUNDARY_PREFIX + boundary + BOUNDARY_SUFFIX + LINE_END;
             out.write(endStr.getBytes(StandardCharsets.UTF_8));
         }
         catch (Exception e)
         {
-            response = new HttpResponse(500, e.getMessage());
+            response = new HttpResponse(400, e.getMessage());
             return response;
         }
-        
+
         return getHttpResponse(conn);
     }
-    
+
     /**
      * 获得连接对象
      *
@@ -116,15 +113,15 @@ public class HttpClientTest
             @Override
             public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException
             {
-            
+
             }
-            
+
             @Override
             public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException
             {
-            
+
             }
-            
+
             @Override
             public X509Certificate[] getAcceptedIssuers()
             {
@@ -144,7 +141,7 @@ public class HttpClientTest
         {
             conn = (HttpsURLConnection) url.openConnection();
         }
-        
+
         //设置超时时间
         conn.setConnectTimeout(50000);
         conn.setReadTimeout(50000);
@@ -160,7 +157,7 @@ public class HttpClientTest
         conn.setRequestProperty("Charset", "UTF-8");
         //设置为长连接
         conn.setRequestProperty("connection", "keep-alive");
-        
+
         //设置其他自定义 headers
         if (headers != null && !headers.isEmpty())
         {
@@ -169,14 +166,14 @@ public class HttpClientTest
                 conn.setRequestProperty(header.getKey(), header.getValue().toString());
             }
         }
-        
+
         return conn;
     }
-    
+
     private static HttpResponse getHttpResponse(HttpURLConnection conn)
     {
         HttpResponse response;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8")))
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)))
         {
             int responseCode = conn.getResponseCode();
             StringBuilder responseContent = new StringBuilder();
@@ -189,11 +186,11 @@ public class HttpClientTest
         }
         catch (Exception e)
         {
-            response = new HttpResponse(500, e.getMessage());
+            response = new HttpResponse(400, e.getMessage());
         }
         return response;
     }
-    
+
     /**
      * 写文件类型的表单参数
      *
@@ -217,9 +214,9 @@ public class HttpClientTest
             String fileName = new File(filePath).getName();
             sb.append(String.format("Content-Disposition: form-data; name=\"%s\"; filename=\"%s\"", paramName, fileName)).append(LINE_END);
             sb.append("Content-Type: application/octet-stream" + LINE_END + LINE_END);
-            
+
             out.write(sb.toString().getBytes("UTF-8"));
-            
+
             int bufSize = 8 * 1024;
             byte[] buffer = new byte[bufSize];
             int len;
@@ -233,7 +230,7 @@ public class HttpClientTest
         {
         }
     }
-    
+
     /**
      * 写普通的表单参数
      *
@@ -241,137 +238,90 @@ public class HttpClientTest
      * @param out
      * @throws IOException
      */
-    private static void writeSimpleFormField(String boundary, BufferedOutputStream out, String json) throws
+    private static void writeSimpleFormField(String boundary, BufferedOutputStream out, String content, String contentType) throws
             IOException
     {
         StringBuilder sb = new StringBuilder();
         sb.append(BOUNDARY_PREFIX).append(boundary).append(LINE_END);
         sb.append(String.format("Content-Disposition: form-data; name=\"%s\"", "params")).append(LINE_END);
-        sb.append("Content-Type: application/json");
+        sb.append(contentType);
         sb.append(LINE_END);
         sb.append(LINE_END);
-        sb.append(json).append(LINE_END);
-        out.write(sb.toString().getBytes("UTF-8"));
+        sb.append(content).append(LINE_END);
+        out.write(sb.toString().getBytes(StandardCharsets.UTF_8));
     }
-    
-    /**
-     * Content-Type: multipart/form-data; boundary=----WebKitFormBoundarykHWy2Qaa9Q8z5JJi
-     * <p>
-     * ------WebKitFormBoundarykHWy2Qaa9Q8z5JJi
-     * Content-Disposition: form-data; name="files1"; filename="1.txt"
-     * Content-Type: text/plain
-     * <p>
-     * 111111
-     * ------WebKitFormBoundarykHWy2Qaa9Q8z5JJi
-     * Content-Disposition: form-data; name="files2"; filename="2.txt"
-     * Content-Type: text/plain
-     * <p>
-     * 222222
-     * ------WebKitFormBoundarykHWy2Qaa9Q8z5JJi
-     * Content-Disposition: form-data; name="params"; filename="blob"
-     * Content-Type: application/json
-     * <p>
-     * {"id":"1619604419314","fileName":"name1"}
-     * ------WebKitFormBoundarykHWy2Qaa9Q8z5JJi--
-     */
-    @Test
-    public void sendFormData() throws Exception
-    {
-        String url = "https://192.190.10.122:4433/SIMP_DBS_S/event/upload/file/form";
-//        url = "https://192.190.10.122:21112/import/upload/multiple/json";
 
-        JSONArray jsonArray = new JSONArray();
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("id", "1111");
-        jsonObject.put("fileName", "2.txt");
-        jsonArray.add(jsonObject);
-        
-        Map<String, String> filePathMap = new HashMap<>();
-        String paramName = "1111";
-        String filePath = "D:\\opt\\up\\2.txt";
-        filePathMap.put(paramName, filePath);
-        
-        String boundary = "WebKitFormBoundary2ikDa4yTuM4d47aa";
-        Map<String, Object> headers = new HashMap<>();
-        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpResponse response = postFormData(url, filePathMap, jsonArray.toJSONString(0), headers, false);
-        System.out.println(response);
-        
-    }
-    
     /**
-     * 发送文本内容
+     * 发送文本内容 发送 byte[] 到controller，controller参数为 @RequestBody byte[] bytes
      *
      * @param urlStr
-     * @param filePath
+     * @param content
      * @return
      * @throws IOException
      */
-    public static HttpResponse postText(String urlStr, String filePath) throws IOException
+    public static HttpResponse postText(String urlStr, String content) throws Exception
     {
-        HttpResponse response = null;
-        URL url = new URL(urlStr);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        HttpsURLConnection conn = getHttpsURLConnection(urlStr, new HashMap<>(), true);
         conn.setRequestMethod("POST");
         conn.setRequestProperty("Content-Type", "text/plain");
         conn.setDoOutput(true);
-        conn.setConnectTimeout(5000);
-        conn.setReadTimeout(5000);
-        
+        conn.setConnectTimeout(30 * 1000);
+        conn.setReadTimeout(30 * 1000);
+
         try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
-             BufferedReader fileReader = new BufferedReader(new InputStreamReader(new FileInputStream(filePath), StandardCharsets.UTF_8.name())))
+             StringReader reader = new StringReader(content))
         {
-            String line;
-            while ((line = fileReader.readLine()) != null)
+            char[] buffer = new char[4096];
+            int len;
+            while ((len = reader.read(buffer)) != -1)
             {
-                writer.write(line);
+                writer.write(buffer, 0, len);
             }
-            
         }
         catch (Exception e)
         {
-            return response;
+            return new HttpResponse(400, e.getMessage());
         }
-        
+
         return getHttpResponse(conn);
     }
-    
+
     public static class HttpResponse
     {
         private int code;
-        
+
         private String content;
-        
+
         public HttpResponse(int status, String content)
         {
             this.code = status;
             this.content = content;
         }
-        
+
         public int getCode()
         {
             return code;
         }
-        
+
         public void setCode(int code)
         {
             this.code = code;
         }
-        
+
         public String getContent()
         {
             return content;
         }
-        
+
         public void setContent(String content)
         {
             this.content = content;
         }
-        
+
         public String toString()
         {
-            return new StringBuilder("[ code = ").append(code)
-                    .append(" , content = ").append(content).append(" ]").toString();
+            return "[ code = " + code +
+                    " , content = " + content + " ]";
         }
     }
 }

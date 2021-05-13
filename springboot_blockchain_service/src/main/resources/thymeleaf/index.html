@@ -8,6 +8,7 @@
         }
     </style>
     <script type="text/javascript" th:src="@{/jquery/jquery-1.8.0.min.js}" ></script>
+    <script type="text/javascript" th:src="@{/resource/common.js}" ></script>
 </head>
 <body>
     <div>
@@ -177,91 +178,6 @@
             success: function (result) {
                 $("#_brain_key_result").html(JSON.stringify(result));
             }
-        });
-    }
-
-    /**
-     * jianshu.com/p/918c63045bc3/
-     */
-    const _http = (function () {
-        function _ajax (url, type, data, download){
-            var xhr = new XMLHttpRequest();
-            var _promise = new Promise(function (resolve, reject) {
-                xhr.open(type, url, true); // true -> async
-                xhr.onreadystatechange = () => {
-                    if (xhr.readyState === 4) {
-                        // console.log("request ready, response ready");
-                    }
-                };
-                xhr.onload = function () {
-                    if (this.status === 200) {
-                        if (download) {
-                            var blob = this.response;
-                            resolve(blob);
-                            return;
-                        }
-                        var result = JSON.parse(this.responseText);
-                        resolve(result);
-                    }
-                };
-                xhr.onerror = function (e) {
-                    reject(e);
-                };
-                xhr.timeout = 0; // 设置超时时间, 0表示永不超时
-                xhr.responseType = !download ? 'json' : 'blob'; // 'json' 'text' 'document'
-                // xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded;");
-                type && type.toUpperCase() === 'GET' ? xhr.send() : xhr.send(data); // null || new FormData || 'a=1&b=2' || 'json'
-            });
-            return _promise
-        };
-        return {ajax : _ajax}; // _http.ajax('', '', '').then(console.log, console.error);
-    })();
-
-    const _request = {
-        ajax : function _ajax (url, type, data){
-            var xhr = new XMLHttpRequest();
-            var _promise = new Promise(function (resolve, reject) {
-                xhr.open(type, url, true);
-                xhr.onreadystatechange = (e) => {
-                    if (xhr.readyState === 4) {
-                        // console.log("request ready, response ready");
-                    }
-                };
-                xhr.onload = function (e) {
-                    if (this.status === 200) {
-                        var result = JSON.parse(this.responseText);
-                        resolve(result);
-                    }
-                };
-                xhr.onerror = function (e) {
-                    reject(e);
-                };
-                xhr.timeout = 0; // 设置超时时间, 0表示永不超时
-                // xhr.responseType = ''; // 'json' 'text' 'document'
-                // xhr.setRequestHeader("Content-Type","application/x-www-form-urlencoded;");
-                type && type.toUpperCase() === 'GET' ? xhr.send() : xhr.send(data); // null || new FormData || 'a=1&b=2' || 'json'
-            });
-            return _promise
-        }
-    }
-
-    function downloadBlob(name) {
-        _http.ajax("/import/downloadBlob", "POST", "{\"down.name\":\"abc.zip\"}", 1).then(function(blob){
-            var link = document.createElement('a');
-            link.href = window.URL.createObjectURL(new Blob([blob], {type: "application/octet-stream"}));
-            link.download = name;
-            link.click();
-            window.URL.revokeObjectURL(link.href);
-
-            // var reader = new FileReader();
-            // reader.readAsArrayBuffer(new Blob([blob], {type: "application/octet-stream"}));
-            // reader.onloadend = function (e) {
-            //     var a = document.createElement('a');
-            //     a.download = 'abc.exe';
-            //     a.href = e.target.result;
-            //     $("body").append(a);
-            //     a.click();
-            // }
         });
     }
 </script>

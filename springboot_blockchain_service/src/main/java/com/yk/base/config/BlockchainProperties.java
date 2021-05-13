@@ -1,5 +1,7 @@
 package com.yk.base.config;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -27,6 +29,14 @@ public class BlockchainProperties
     private int producer = 1;
 
     private int consumer = 1;
+
+    @Getter
+    @Setter
+    private String path = "";
+
+    @Getter
+    @Setter
+    private String url = "";
     
     public boolean isExecute()
     {

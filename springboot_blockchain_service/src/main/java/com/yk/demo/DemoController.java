@@ -6,10 +6,12 @@ import com.yk.demo.model.BlockchainModel;
 import com.yk.demo.model.DemoModel;
 import com.yk.demo.model.GroupInterface;
 import com.yk.demo.service.DemoService;
-import org.hibernate.validator.constraints.Length;
+import com.yk.performance.FileInfos;
+import com.yk.util.ValidationTool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -92,11 +94,25 @@ public class DemoController
         return result;
     }
 
+    /**
+     * 框架无法校验 List<DemoModel> 集合中的对象  只能通过 ValidationTool.validate(demoModelList); 进行校验
+     */
     @RequestMapping(value = "/valid/list", method = RequestMethod.POST)
     @ResponseBody
     public Map<String, String> detailApi(@RequestBody List<DemoModel> demoModelList)
     {
+        ValidationTool.validate(demoModelList);
         Map<String, String> result = new HashMap<>();
         return result;
+    }
+
+    /**
+     * 注解 @Validated 配合 FileInfos内部 属性 @Valid List<FileInfoParam>  可以校验 List<FileInfoParam>集合内部的对象的属性
+     */
+    @PostMapping(value = "/upload/multiple/xml", consumes = "application/xml", produces = "application/xml")
+    @ResponseBody
+    public FileInfos uploadXml(@RequestBody @Validated FileInfos fileInfos)
+    {
+        return fileInfos;
     }
 }
