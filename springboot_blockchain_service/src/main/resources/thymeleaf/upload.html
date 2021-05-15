@@ -38,15 +38,22 @@
         <!--<input type="submit" value="提交">-->
     <!--</form>-->
 
-    <form method="post" action="/import/upload/multiple/json" enctype="multipart/form-data" target="_upload_resp_iframe" style="margin-top: 10px">
-        选择要上传的文件：<input id="_upload_input1" accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" multiple="multiple" type="file" name="_upload_input1"><br>
-        <hr>
-        <input type="hidden" name="upload.name" value="aaa.zip">
-    </form>
-    <button id="submitBtn">上传</button>
+    <div style="margin-top: 10px">
+        <form method="post" action="/import/upload/multiple/json" enctype="multipart/form-data" target="_upload_resp_iframe" style="margin-top: 10px">
+            选择要上传的文件：<input id="_upload_input1" accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" multiple="multiple" type="file" name="_upload_input1"><br>
+            <hr>
+            <input type="hidden" name="upload.name" value="aaa.zip">
+        </form>
+        <button id="submitBtn">上传</button>
+    </div>
 
     <span id="returnMsg" style="margin-left:20px;font-size:15px;"></span>
     <iframe style="display: none" onload="uploadOnload()" name="_upload_resp_iframe" id="_upload_resp_iframe"></iframe>
+
+    <div style="margin-top: 10px">
+        <button id="downloadBtn">下载</button>
+        <input id="download_name" name="download.name" value="" placeholder="路径">
+    </div>
 </body>
 <script th:inline="javascript">
 
@@ -54,23 +61,26 @@
        $("#submitBtn").bind("click", function(){
            sendForm();
        })
+       $("#downloadBtn").bind("click", function(){
+           downloadBlob("download.name", $("#download_name").val());
+       })
     });
 
     function sendForm() {
         var formData = new FormData();
 		
 		var _files = $("#_upload_input1")[0].files;
-		var params = [];
+		var params = {};
 		for(var i = 0; i< _files.length; i++ ){
 			var id = new Date().getTime() + i + "";
 			formData.append(id, _files[i]);
-			params.push({"id": id, "fileName": _files[i].name});
+			params[id] = _files[i].name;
 		}
 		var _params = JSON.stringify(params);
         formData.append('params', new Blob([_params],{type: "application/json"}));
 
         $.ajax({
-            url: "/SIMP_DBS_S/event/upload/file/form",
+            url: "/import/upload/multiple/json",
             type: "POST",
             contentType: false,
             processData: false,
@@ -83,11 +93,13 @@
         });
     }
 
-    function downloadBlob(name) {
-        common._http.ajax("/import/downloadBlob", "POST", "{\"down.name\":\"D:\\1.txt\"}", 1).then(function(blob){
+    function downloadBlob(_key, _name) {
+        var _params = {};
+        _params[_key] = _name;
+        common._http.ajax("/import/downloadBlob", "POST", JSON.stringify(_params), 1).then(function(blob){
             var link = document.createElement('a');
             link.href = window.URL.createObjectURL(new Blob([blob], {type: "application/octet-stream"}));
-            link.download = name;
+            link.download = _name;
             link.click();
             window.URL.revokeObjectURL(link.href);
 

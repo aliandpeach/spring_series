@@ -56,21 +56,17 @@ public class HttpFormDataTest
     {
         String url = "https://192.190.10.122:21112/import/upload/multiple/json";
 
-        JSONArray jsonArray = new JSONArray();
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("id", "1111");
-        jsonObject.put("fileName", "2.txt");
-        jsonArray.add(jsonObject);
+        String fileId = UUID.randomUUID().toString().replace("-", "");
+        jsonObject.put(fileId, "2.txt");
 
         Map<String, String> filePathMap = new HashMap<>();
-        String paramName = "1111";
-        String filePath = "D:\\opt\\up\\2.txt";
-        filePathMap.put(paramName, filePath);
+        filePathMap.put(fileId, "D:\\opt\\up\\2.txt");
 
         String boundary = "WebKitFormBoundary2ikDa4yTuM4d47aa";
         Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormData(url, filePathMap, jsonArray.toJSONString(0), headers, false, boundary, "Content-Type: application/json");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormData(url, filePathMap, jsonObject.toJSONString(0), headers, false, boundary, "Content-Type: application/json");
         System.out.println(response);
 
     }

@@ -27,12 +27,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.IntStream;
 
 @RestController
@@ -53,8 +57,11 @@ public class PerformanceController implements InitializingBean
     @ResponseBody
     public List<HttpFormDataUtil.HttpResponse> performance(@RequestParam Map<String, String> params)
     {
+        AtomicInteger counter = new AtomicInteger(0);
+
         int _semaphore = null != params.get("sema") && NumberUtil.isNumber(params.get("sema")) ? Integer.parseInt(params.get("sema")) : 20;
         Semaphore semaphore = new Semaphore(_semaphore);
+
         if (null == params.get("count") || !NumberUtil.isNumber(params.get("count")))
         {
             return new ArrayList<>(Collections.singletonList(new HttpFormDataUtil.HttpResponse(400, "请加入请求数量 count")));
@@ -64,7 +71,8 @@ public class PerformanceController implements InitializingBean
         long start = System.currentTimeMillis();
 
         List<CompletableFuture<HttpFormDataUtil.HttpResponse>> futures = new ArrayList<>();
-        ExecutorService service = Executors.newFixedThreadPool(_count);
+        ExecutorService service = Executors.newFixedThreadPool(_semaphore * 2);
+
         IntStream.range(0, _count).forEach(t ->
         {
             CompletableFuture<HttpFormDataUtil.HttpResponse> future = CompletableFuture.supplyAsync(() ->
@@ -74,7 +82,8 @@ public class PerformanceController implements InitializingBean
                     final List<String> data = new ArrayList<>(_files);
                     IntStream.range(0, _files).forEach(f -> data.add(FILES.get(random.nextInt(FILES.size()))));
                     semaphore.acquire();
-                    return sendFormData(data);
+                    HttpFormDataUtil.HttpResponse r = sendTest(data, counter);
+                    return r;
                 }
                 catch (Exception e)
                 {
@@ -104,11 +113,106 @@ public class PerformanceController implements InitializingBean
             }
         });
         long end = System.currentTimeMillis();
-        logger.debug("总数" + _count + " 个请求, 同时异步执行" + _semaphore + "个, 完成时间  = {}", end - start);
+        logger.debug("总数" + _count + " 个请求, 同一时刻允许请求" + _semaphore + "个, 完成时间  = {}", end - start);
         return result;
     }
 
-    public HttpFormDataUtil.HttpResponse sendFormData(List<String> filePaths) throws Exception
+    @GetMapping("/test2")
+    @ResponseBody
+    public List<HttpFormDataUtil.HttpResponse> performance2(@RequestParam Map<String, String> params)
+    {
+        AtomicInteger counter = new AtomicInteger(0);
+
+        int _reqCount = null != params.get("sema") && NumberUtil.isNumber(params.get("sema")) ? Integer.parseInt(params.get("sema")) : 20;
+
+        if (null == params.get("count") || !NumberUtil.isNumber(params.get("count")))
+        {
+            return new ArrayList<>(Collections.singletonList(new HttpFormDataUtil.HttpResponse(400, "请加入请求数量 count")));
+        }
+        int _total = Integer.parseInt(params.get("count"));
+        int _files = null != params.get("files") && NumberUtil.isNumber(params.get("files")) ? Integer.parseInt(params.get("files")) : 1;
+        long globalStart = System.currentTimeMillis();
+
+        ExecutorService service = Executors.newFixedThreadPool(_reqCount * 2);
+
+        List<HttpFormDataUtil.HttpResponse> result = new ArrayList<>();
+
+        int groupSize = _total % _reqCount == 0 ? _total / _reqCount : _total / _reqCount + 1;
+        IntStream.range(0, groupSize).forEach(t ->
+        {
+            List<CompletableFuture<HttpFormDataUtil.HttpResponse>> futures = new ArrayList<>();
+            AtomicLong start = new AtomicLong(System.currentTimeMillis());
+            for (int i = 0; i < _reqCount; i++)
+            {
+                Executor executor = new Executor();
+                executor.setCounter(counter);
+                executor.setFileCount(_files);
+                futures.add(CompletableFuture.supplyAsync(executor::call, service));
+            }
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            futures.forEach(f ->
+            {
+                try
+                {
+                    result.add(f.get());
+                }
+                catch (InterruptedException | ExecutionException e)
+                {
+                    e.printStackTrace();
+                }
+            });
+            long end = System.currentTimeMillis();
+            logger.debug("分批执行请求，已经完成总数= " + counter.get() + ", 此次使用时间= " + (end - start.get()));
+        });
+        long globalEnd = System.currentTimeMillis();
+        logger.debug("总数" + _total + " 个请求, 分批异步执行, 完成时间  = {}", globalEnd - globalStart);
+        return result;
+    }
+
+    private class Executor implements Callable<HttpFormDataUtil.HttpResponse>
+    {
+        private AtomicInteger counter;
+        private int fileCount;
+
+        public void setFileCount(int fileCount)
+        {
+            this.fileCount = fileCount;
+        }
+
+        public void setCounter(AtomicInteger counter)
+        {
+            this.counter = counter;
+        }
+
+        @Override
+        public HttpFormDataUtil.HttpResponse call()
+        {
+            try
+            {
+                final List<String> data = new ArrayList<>(fileCount);
+                IntStream.range(0, fileCount).forEach(f -> data.add(FILES.get(random.nextInt(FILES.size()))));
+                HttpFormDataUtil.HttpResponse r = sendTest(data, counter);
+                return r;
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                return new HttpFormDataUtil.HttpResponse(400, "error");
+            }
+        }
+    }
+
+    public HttpFormDataUtil.HttpResponse sendTest(List<String> filePaths, AtomicInteger counter) throws Exception
+    {
+        if (blockchainProperties.isDev())
+        {
+            TimeUnit.SECONDS.sleep(3);
+            return new HttpFormDataUtil.HttpResponse(200, "SUCCESS " + counter.incrementAndGet());
+        }
+        return sendFormData(filePaths, counter);
+    }
+
+    public HttpFormDataUtil.HttpResponse sendFormData(List<String> filePaths, AtomicInteger counter) throws Exception
     {
         String url = blockchainProperties.getUrl();
         JAXBContext context = JAXBContext.newInstance(FileInfos.class);
@@ -117,7 +221,8 @@ public class PerformanceController implements InitializingBean
         FileInfos fileInfos = new FileInfos();
         Map<String, String> filePathMap = new HashMap<>();
 
-        for (String filePath : filePaths){
+        for (String filePath : filePaths)
+        {
             File file = new File(filePath);
 
             List<FileInfoParam> flist = new ArrayList<>();
@@ -144,6 +249,7 @@ public class PerformanceController implements InitializingBean
         Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
         HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormData(url, filePathMap, str, headers, false, boundary, "Content-Type: application/xml");
+        response.setNumber(counter.incrementAndGet());
         return response;
     }
 

@@ -37,7 +37,11 @@ public class BlockchainProperties
     @Getter
     @Setter
     private String url = "";
-    
+
+    @Getter
+    @Setter
+    private boolean dev;
+
     public boolean isExecute()
     {
         return execute;

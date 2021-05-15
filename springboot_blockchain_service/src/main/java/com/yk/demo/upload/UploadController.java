@@ -132,7 +132,7 @@ public class UploadController
         Map<String, MultipartFile> map = request.getFileMap();
         result.putIfAbsent("failed1", new ArrayList<>());
         result.putIfAbsent("success1", new ArrayList<>());
-        map.entrySet().forEach(t ->
+        map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
         {
             try
             {
@@ -217,7 +217,7 @@ public class UploadController
     @ResponseBody
     public byte[] downloadBlob(@RequestBody Map<String, String> params)
     {
-        String filePath = params.get("down.name");
+        String filePath = params.get("download.name");
         try (InputStream input = new FileInputStream(filePath);
              ByteArrayOutputStream baos = new ByteArrayOutputStream())
         {

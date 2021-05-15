@@ -292,6 +292,18 @@ public class HttpFormDataUtil
 
         private String content;
 
+        private int number;
+
+        public int getNumber()
+        {
+            return number;
+        }
+
+        public void setNumber(int number)
+        {
+            this.number = number;
+        }
+
         public HttpResponse(int status, String content)
         {
             this.code = status;
