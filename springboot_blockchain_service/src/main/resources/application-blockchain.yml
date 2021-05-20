@@ -1,0 +1,93 @@
+spring:
+  application:
+    name: springboot_blockchain_service
+  #mvc:
+  #  view:
+  #    prefix: /views/
+  #    suffix: .jsp
+
+  thymeleaf:
+    cache: false
+    enabled: true
+    prefix: classpath:/thymeleaf/
+    suffix: .html
+    mode: HTML
+    template-resolver-order: 1
+    encoding: UTF-8
+#  don't need config static-path-pattern and static-locations
+#  SpringBoot default-mapping /** to classpath:[/META-INF/resources/, /resources/, /static/, /public/].
+#                                and "classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/"
+#  mvc:
+#    static-path-pattern: /resource/**
+#  resources:
+#    static-locations: classpath:/thymeleaf/static/, classpath:/thymeleaf/static/, classpath:/public/
+
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3307/demo?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true
+    username: root
+    password: root
+    hikari:
+      maximumPoolSize: 15
+      minimumIdle: 5
+      idleTimeout: 30000
+      connectionTimeout: 30000
+      maxLifetime: 1800000
+      connectionTestQuery: SELECT 1
+      poolName: DatebookHikariCP
+      autoCommit: true
+
+  servlet:
+    multipart:
+      max-file-size: -1
+      max-request-size: -1
+      resolve-lazily: true
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password:
+    database: 0
+    timeout: 5000
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+    # jedis not use
+    jedis:
+      pool:
+        max-active: 8
+        max-idle: 8
+        min-idle: 0
+        max-wait: -1
+server:
+  port: 21112
+  servlet:
+    context-path: /
+  ssl:
+    enabled: true
+    key-store: classpath:key/website_a.jks
+    key-password: Admin@1234
+    key-store-type: JKS
+    key-store-password: Admin@123
+    client-auth: NONE
+  #address: 0.0.0.0
+block:
+  chain:
+    execute: @_active@
+    consume: 20
+    produce: 30
+    secure: false
+    min-key: 10000000
+    max-key: FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+    api-host: https://blockchain.info/balance
+    producer: 2
+    consumer: 2
+    path: D:\workspace\SIMP_DBS_D_\Web\trunk # /opt/dbs10/hadoopdata/20201014/123
+    url: https://192.190.116.205:443/SIMP_DBS_S/event/analyze/upload/xml
+    dev: true
+mybatis:
+  mapper-locations: classpath*:mappers/**/*.xml
+  type-aliases-package: com.yk.demo,com.yk.base

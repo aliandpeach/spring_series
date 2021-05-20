@@ -1,6 +1,8 @@
 package com.yk.httprequest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -31,6 +33,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -38,6 +42,8 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Map;
 
 public class HttpClientUtil
@@ -53,7 +59,7 @@ public class HttpClientUtil
     
     private static CloseableHttpClient httpClient; // 发送请求的客户端单例
     
-    private static CloseableHttpClient getClient(boolean proxy) throws GeneralSecurityException
+    public static CloseableHttpClient getClient(ProxyInfo proxyInfo) throws GeneralSecurityException
     {
         if (null == httpClient)
         {
@@ -65,7 +71,7 @@ public class HttpClientUtil
                     sslContextBuilder.loadTrustMaterial((chain, authType) -> true);
 
                     SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-                    sslContext.init(null, null, new SecureRandom());
+                    sslContext.init(null, new TrustManager[]{new NullX509TrustManager()}, new SecureRandom());
 
                     SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);
                     Registry<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create()
@@ -75,21 +81,24 @@ public class HttpClientUtil
     
                     //连接池管理类
                     PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registryBuilder);
-                    poolingHttpClientConnectionManager.setMaxTotal(200);
-                    poolingHttpClientConnectionManager.setDefaultMaxPerRoute(50);
+                    poolingHttpClientConnectionManager.setMaxTotal(3000);
+                    poolingHttpClientConnectionManager.setDefaultMaxPerRoute(3000);
     
                     HttpClientBuilder httpClientBuilder = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
                             .setConnectionManager(poolingHttpClientConnectionManager)
                             .setConnectionManagerShared(true).setDefaultRequestConfig(requestConfig);
-    
-                    if (proxy)
+
+                    if (null != proxyInfo && proxyInfo.isProxy() && null != proxyInfo.getUsername() && null != proxyInfo.getPasswd())
                     {
                         // 需要用户名密码的代理
-                        HttpHost httpHost = new HttpHost("openproxy.xxx.com", 8080, "http");
+                        HttpHost httpHost = new HttpHost(proxyInfo.getHostname(), proxyInfo.getPort(), "http");
                         CredentialsProvider provider = new BasicCredentialsProvider();
-                        provider.setCredentials(new AuthScope(httpHost), new UsernamePasswordCredentials("username", "password"));
+                        provider.setCredentials(new AuthScope(httpHost), new UsernamePasswordCredentials(proxyInfo.getUsername(), proxyInfo.getPasswd()));
                         httpClientBuilder.setDefaultCredentialsProvider(provider);
-    
+                    }
+                    else if (null != proxyInfo && proxyInfo.isProxy())
+                    {
+                        HttpHost httpHost = new HttpHost(proxyInfo.getHostname(), proxyInfo.getPort(), "http");
                         // 不需要用户名密码的代理
                         DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(httpHost);
                         // setProxy  setRoutePlanner最终都是为了生成 DefaultProxyRoutePlanner, 二者使用一个即可
@@ -119,7 +128,7 @@ public class HttpClientUtil
 
     public static boolean getBytes(String url, Map<String, String> headers, Map<String, String> params, String fileName, String dir, String rootDir)
     {
-        try (CloseableHttpClient client = getClient(false))
+        try (CloseableHttpClient client = getClient(new ProxyInfo(false, null, 0, null, null, null)))
         {
             url = initUrlParams(url, params);
             HttpGet httpGet = new HttpGet(url);
@@ -143,7 +152,7 @@ public class HttpClientUtil
 
     public static <T> T post(String url, Map<String, String> headers, Map<String, String> body, final TypeReference<T> typeReference)
     {
-        try (CloseableHttpClient client = getClient(false))
+        try (CloseableHttpClient client = getClient(new ProxyInfo(false, null, 0, null, null, null)))
         {
             HttpPost httpPost = new HttpPost(url);
             httpPost.setConfig(requestConfig);
@@ -171,7 +180,7 @@ public class HttpClientUtil
         HttpGet httpGet = null;
         try
         {
-            CloseableHttpClient client = getClient(false);
+            CloseableHttpClient client = getClient(new ProxyInfo(false, null, 0, null, null, null));
             if (client == null)
             {
                 throw new RuntimeException("client is null");
@@ -208,7 +217,7 @@ public class HttpClientUtil
 
     public static String getString(String url, Map<String, String> headers, Map<String, String> params)
     {
-        try (CloseableHttpClient client = getClient(false))
+        try (CloseableHttpClient client = getClient(new ProxyInfo(false, null, 0, null, null, null)))
         {
             url = initUrlParams(url, params);
             HttpGet httpGet = new HttpGet(url);
@@ -386,5 +395,41 @@ public class HttpClientUtil
             }
             return false;
         }
+    }
+
+    private static class NullX509TrustManager implements X509TrustManager
+    {
+        @Override
+        public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException
+        {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException
+        {
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers()
+        {
+            return new X509Certificate[0];
+        }
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class ProxyInfo
+    {
+        private boolean proxy;
+
+        private String hostname;
+
+        private int port;
+
+        private String username;
+
+        private String passwd;
+
+        private String scheme = "http";
     }
 }

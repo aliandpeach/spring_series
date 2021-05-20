@@ -1,0 +1,47 @@
+spring:
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration
+      - com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
+  application:
+    name: performance-service
+  thymeleaf:
+    cache: false
+    enabled: true
+    prefix: classpath:/thymeleaf/
+    suffix: .html
+    mode: HTML
+    template-resolver-order: 1
+    encoding: UTF-8
+  servlet:
+    multipart:
+      max-file-size: -1
+      max-request-size: -1
+      resolve-lazily: true
+server:
+  port: 21112
+  servlet:
+    context-path: /
+  ssl:
+    enabled: true
+    key-store: classpath:key/website_a.jks
+    key-password: Admin@1234
+    key-store-type: JKS
+    key-store-password: Admin@123
+    client-auth: NONE
+block:
+  chain:
+    execute: @_active@
+    consume: 20
+    produce: 30
+    secure: false
+    min-key: 10000000
+    max-key: FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+    api-host: https://blockchain.info/balance
+    producer: 2
+    consumer: 2
+    path: F:\Download\DBS_S
+    url: https://192.190.116.205:443/SIMP_DBS_S/event/analyze/upload/xml
+    dev: false

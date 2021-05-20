@@ -35,7 +35,7 @@ public class DemoController
     @Autowired
     private DemoDAO demoDAO;
     
-    @Autowired
+    @Autowired(required = false)
     private IOtherDAO otherDAO;
     
     @Autowired

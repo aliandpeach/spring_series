@@ -1,11 +1,13 @@
 package com.yk.exception;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
  * BlockchainException
  */
 @Data
+@AllArgsConstructor
 public class BlockchainException extends RuntimeException
 {
     /**

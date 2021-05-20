@@ -1,0 +1,1 @@
+java -Xmx1024m -Xms64m -XX:ThreadStackSize=512 -jar springboot_blockchain_service-1.0-SNAPSHOT.jar --spring.config.location=./*.yml

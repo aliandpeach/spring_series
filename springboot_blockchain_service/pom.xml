@@ -165,8 +165,11 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <includes>
-                    <include>start.bat</include>
+                    <include>start-linux.sh</include>
+                    <include>start-win.bat</include>
                     <include>application.yml</include>
+                    <include>application-blockchain.yml</include>
+                    <include>application-performance.yml</include>
                 </includes>
                 <filtering>true</filtering>
                 <targetPath>${project.basedir}/target</targetPath>

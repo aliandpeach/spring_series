@@ -143,6 +143,7 @@ public class ControllerExceptionHandler
     }
     
     @ExceptionHandler(BlockchainException.class)
+    // @ResponseStatus(HttpStatus.BAD_REQUEST) // http协议返回的status code 就是 @ResponseStatus指定的值, 不指定一律返回 200
     public BaseResponse<?> blockchainException(BlockchainException e)
     {
         BaseResponse<Object> baseResponse = handleBaseException(e);

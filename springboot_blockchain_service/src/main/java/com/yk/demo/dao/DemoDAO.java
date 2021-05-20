@@ -21,14 +21,14 @@ public class DemoDAO
     /**
      * mybatis
      */
-    @Autowired
+    @Autowired(required = false)
     private SqlSessionTemplate sqlSessionTemplate;
     
     
     /**
      * spring-jdbc
      */
-    @Autowired
+    @Autowired(required = false)
     private JdbcTemplate jdbcTemplate;
     
     /**

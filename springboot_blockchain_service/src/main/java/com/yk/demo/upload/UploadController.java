@@ -117,16 +117,19 @@ public class UploadController
     /**
      * 参数中同时包含了文件和application/json格式的数据
      *
-     * @param request
-     * @param params
-     * @return
-     * @throws IOException
+     *
+     * 指定标准的http 响应码：
+     * 1. 使用ResponseEntity   ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new HashMap<>());
+     * 2. HttpServletResponse.setStatus(201)
+     * 3. 方法上加入注解：
+     *    a. @ExceptionHandler(value = ArrayIndexOutOfBoundsException.class)
+     *    b. @ResponseStatus(HttpStatus.BAD_REQUEST)
+     * 4. 全局统一处理 ControllerExceptionHandler
      */
     @PostMapping("/upload/multiple/json")
     @ResponseBody
     public Map<String, List<String>> multipleUpload2(MultipartHttpServletRequest request,
-                                                     @RequestPart(required = false, name = "params") Map<String, String> params) throws
-            IOException
+                                                                     @RequestPart(required = false, name = "params") Map<String, String> params, HttpServletResponse response)
     {
         Map<String, List<String>> result = new HashMap<>();
         Map<String, MultipartFile> map = request.getFileMap();

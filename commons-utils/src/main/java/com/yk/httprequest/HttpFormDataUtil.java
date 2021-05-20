@@ -1,5 +1,23 @@
 package com.yk.httprequest;
 
+import cn.hutool.core.io.IoUtil;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.FormBodyPart;
+import org.apache.http.entity.mime.Header;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MIME;
+import org.apache.http.entity.mime.MinimalField;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.ByteArrayBody;
+import org.apache.http.entity.mime.content.ContentBody;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -9,22 +27,28 @@ import javax.net.ssl.X509TrustManager;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.StringBufferInputStream;
 import java.io.StringReader;
+import java.lang.reflect.Constructor;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * HttpFormDataUtil
@@ -36,6 +60,7 @@ import java.util.Map;
 
 public class HttpFormDataUtil
 {
+    private static final Logger logger = LoggerFactory.getLogger(HttpFormDataUtil.class);
     /**
      * multipart/form-data 格式发送数据时各个部分分隔符的前缀,必须为 --
      */
@@ -86,6 +111,95 @@ public class HttpFormDataUtil
         }
 
         return getHttpResponse(conn);
+    }
+
+    private static RequestConfig REQUEST_CONFIG = RequestConfig.custom()
+            .setConnectTimeout(30 * 1000).setConnectionRequestTimeout(30 * 1000)
+            .setSocketTimeout(650 * 1000).build();
+
+    public static HttpResponse postFormDataByHttpClient(String urlStr,
+                                                        Map<String, String> filePathMap,
+                                                        String content,
+                                                        Map<String, Object> headers,
+                                                        HttpClientUtil.ProxyInfo proxyInfo,
+                                                        String boundary,
+                                                        String contentType)
+    {
+        HttpResponse response;
+        HttpPost post = new HttpPost(urlStr);
+        try
+        {
+            post.setConfig(REQUEST_CONFIG);
+            CloseableHttpClient client = HttpClientUtil.getClient(proxyInfo);
+            MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+            builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+
+//            Content-Disposition: form-data; name="params"; filename=""
+//            这样写可以正常提交到Controller 但是MultipartHttpServletRequest 中总会多出一个params 的文件, 因为报文包含了 filename=""  改为 null 却不能正常提交, 因此使用反射来解决
+//            builder.addBinaryBody("params", content.getBytes(StandardCharsets.UTF_8), ContentType.create(contentType), "");
+
+            Class<?> clazz = Thread.currentThread().getContextClassLoader().loadClass("org.apache.http.entity.mime.FormBodyPart");
+            Constructor<?>[] constructors = clazz.getDeclaredConstructors();
+            Constructor<?> constructor = Arrays.stream(constructors).filter(c -> c.getParameterCount() == 3).findFirst().orElseThrow(() -> new RuntimeException("Constructor<?> null"));
+            constructor.setAccessible(true);
+            Header header = new Header();
+            header.addField(new MinimalField(MIME.CONTENT_DISPOSITION, "form-data; name=\"params\"\r\nContent-Type: " + contentType)); // 重点在这句
+            header.addField(new MinimalField(MIME.CONTENT_TYPE, contentType));
+            header.addField(new MinimalField(MIME.CONTENT_TRANSFER_ENC, "binary"));
+            FormBodyPart bodyPart = (FormBodyPart) constructor.newInstance("params", new ByteArrayBody(content.getBytes(StandardCharsets.UTF_8), ContentType.create(contentType), null), header);
+            builder.addPart(bodyPart);
+
+            if (filePathMap != null && !filePathMap.isEmpty())
+            {
+                for (Map.Entry<String, String> entry : filePathMap.entrySet())
+                {
+                    File f = new File(entry.getValue());
+                    InputStream input = new FileInputStream(f);
+                    builder.addBinaryBody(entry.getKey(), IoUtil.readBytes(input), ContentType.create("application/octet-stream"), f.getName());
+                }
+            }
+            builder.setCharset(StandardCharsets.UTF_8);
+            builder.setContentType(ContentType.MULTIPART_FORM_DATA);
+
+
+            builder.setBoundary(boundary);
+
+            post.setEntity(builder.build());
+            CloseableHttpResponse httpResponse = client.execute(post);
+            int responseCode = httpResponse.getStatusLine().getStatusCode();
+            HttpEntity httpEntity = httpResponse.getEntity();
+            try (InputStream input = httpEntity.getContent();
+                 InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8.name());
+                 BufferedReader bufferedReader = new BufferedReader(reader))
+            {
+                StringBuilder responseContent = new StringBuilder();
+                String line;
+                while ((line = bufferedReader.readLine()) != null)
+                {
+                    responseContent.append(line);
+                }
+                if (responseCode != 200)
+                {
+                    logger.error("response error " + responseCode);
+                    logger.error("response error " + responseContent.toString());
+                }
+                response = new HttpResponse(responseCode, responseContent.toString());
+                return response;
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        catch (Exception e)
+        {
+            response = new HttpResponse(400, e.getMessage());
+            return response;
+        }
+        finally
+        {
+            post.releaseConnection();
+        }
     }
 
     /**
@@ -143,8 +257,8 @@ public class HttpFormDataUtil
         }
 
         //设置超时时间
-        conn.setConnectTimeout(50000);
-        conn.setReadTimeout(50000);
+        conn.setConnectTimeout(50 * 1000);
+        conn.setReadTimeout(50 * 1000);
         //允许输入流
         conn.setDoInput(true);
         //允许输出流

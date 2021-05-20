@@ -35,7 +35,7 @@ public class ValidationTool
 
     /**
      * Gets validator, or create it.
-     * buildDefaultValidatorFactory 内部通过ServiceLoader 加载 org.hibernate.validator.HibernateValidator
+     * Validation.buildDefaultValidatorFactory 内部通过 ServiceLoader 加载 org.hibernate.validator.HibernateValidator
      * @return validator
      */
     @NonNull

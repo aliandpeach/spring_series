@@ -1,9 +1,10 @@
 package com.http;
 
-import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import com.google.common.base.Objects;
+import com.yk.httprequest.HttpClientUtil;
 import com.yk.httprequest.HttpFormDataUtil;
+import com.yk.httprequest.JSONUtil;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBContext;
@@ -13,9 +14,9 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.ByteArrayOutputStream;
-import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,10 +59,10 @@ public class HttpFormDataTest
 
         JSONObject jsonObject = new JSONObject();
         String fileId = UUID.randomUUID().toString().replace("-", "");
-        jsonObject.put(fileId, "2.txt");
+        jsonObject.put(fileId, "5-1.txt");
 
         Map<String, String> filePathMap = new HashMap<>();
-        filePathMap.put(fileId, "D:\\opt\\up\\2.txt");
+        filePathMap.put(fileId, "F:\\test_share_dir\\5\\5-1.txt");
 
         String boundary = "WebKitFormBoundary2ikDa4yTuM4d47aa";
         Map<String, Object> headers = new HashMap<>();
@@ -84,12 +85,12 @@ public class HttpFormDataTest
 
         String fileId = UUID.randomUUID().toString().replace("-", "");
 
-        filePathMap.put(fileId, "D:\\opt\\up\\2.txt");
+        filePathMap.put(fileId, "F:\\test_share_dir\\5\\5-1.txt");
 
         List<FileInfoParam> flist = new ArrayList<>();
         FileInfoParam info = new FileInfoParam();
         info.setId(fileId);
-        info.setName("2.txt");
+        info.setName("5-1.txt");
         flist.add(info);
         fileInfos.setFileInfoParamList(flist);
 
@@ -104,6 +105,63 @@ public class HttpFormDataTest
         Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
         HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormData(url, filePathMap, str, headers, true, boundary, "Content-Type: application/xml");
+        System.out.println(response);
+
+    }
+    @Test
+    public void sendFormDataXMLByHttpClient() throws Exception
+    {
+        String url = "https://192.190.116.205:443/SIMP_DBS_S/event/analyze/upload/xml";
+
+        JAXBContext context = JAXBContext.newInstance(FileInfos.class);
+        Marshaller marshaller = context.createMarshaller();
+
+        FileInfos fileInfos = new FileInfos();
+        Map<String, String> filePathMap = new HashMap<>();
+
+        String fileId = UUID.randomUUID().toString().replace("-", "");
+
+        filePathMap.put(fileId, "F:\\test_share_dir\\5\\5-1.txt");
+
+        List<FileInfoParam> flist = new ArrayList<>();
+        FileInfoParam info = new FileInfoParam();
+        info.setId(fileId);
+        info.setName("5-1.txt");
+        flist.add(info);
+        fileInfos.setFileInfoParamList(flist);
+
+        String str;
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream())
+        {
+            marshaller.marshal(fileInfos, outputStream);
+            str = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
+        }
+
+        String boundary = UUID.randomUUID().toString().replace("-", "");
+        Map<String, Object> headers = new HashMap<>();
+//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, null, null, "http");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "application/xml");
+        System.out.println(response);
+
+    }
+    @Test
+    public void sendFormDataJson() throws Exception
+    {
+        String url = "https://192.190.10.122:21112/import/upload/multiple/json";
+        Map<String, String> filePathMap = new HashMap<>();
+
+        String fileId = UUID.randomUUID().toString().replace("-", "");
+
+        filePathMap.put(fileId, "F:\\test_share_dir\\5\\5-1.txt");
+
+        String str = JSONUtil.toJson(new HashMap<String, String>(Collections.singletonMap(fileId, "5-1.txt")));
+
+        String boundary = UUID.randomUUID().toString().replace("-", "");
+        Map<String, Object> headers = new HashMap<>();
+//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(false, "127.0.0.1", 8080, null, null, "http");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "application/json");
         System.out.println(response);
 
     }
