@@ -1,39 +1,21 @@
 package com.yk.demo.event.demo;
 
-public class MessageForm {
+import lombok.Data;
 
-    private MessageTopic messageTopic = MessageTopic.DATA;
+@Data
+public class MessageForm
+{
 
     private long id;
 
     private Object source;
 
     @Override
-    public String toString() {
-        return "MessageForm{...}";
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public void setId(long id) {
-        this.id = id;
-    }
-
-    public MessageTopic getMessageTopic() {
-        return messageTopic;
-    }
-
-    public void setMessageTopic(MessageTopic messageTopic) {
-        this.messageTopic = messageTopic;
-    }
-
-    public Object getSource() {
-        return source;
-    }
-
-    public void setSource(Object source) {
-        this.source = source;
+    public String toString()
+    {
+        return "MessageForm{" +
+                "id=" + id +
+                ", source=" + source +
+                '}';
     }
 }

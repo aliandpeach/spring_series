@@ -4,16 +4,36 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 @WebListener
-public class MessageCenter implements ServletContextListener {
+public class MessageCenter implements ServletContextListener
+{
 
-    private static DemoEventConsumerProxy proxy = new DemoEventConsumerProxy();
+    private List<String> topics = new CopyOnWriteArrayList<>();
+
+    private static Map<String, EventConsumerProxy> proxyMap = new ConcurrentHashMap<>();
 
     @Override
-    public void contextInitialized(ServletContextEvent sce) {
+    public void contextInitialized(ServletContextEvent sce)
+    {
+        /**
+         * 初始化 EventListener
+         */
+        topics.addAll(Arrays.stream(EventType.values()).map(Enum::name).collect(Collectors.toList()));
+        topics.forEach(topic ->
+        {
+            EventConsumerProxy proxy = new EventConsumerProxy(topic);
+            ApplicationContext.getInstance().addApplicationListener(proxy);
+            proxyMap.put(topic, proxy);
+        });
 
         /**
          * 订阅者的两种订阅方式，
@@ -23,36 +43,29 @@ public class MessageCenter implements ServletContextListener {
          */
         ServiceLoader<MessageTaskManager> loader = ServiceLoader.<MessageTaskManager>load(MessageTaskManager.class);
         Iterator<MessageTaskManager> iterator = loader.iterator();
-        while (iterator.hasNext()) {
-            MessageTaskManager service = iterator.next();
-            if (service.getClass().isInterface() || Modifier.isAbstract(service.getClass().getModifiers())) {
+        while (iterator.hasNext())
+        {
+            MessageTaskManager manager = iterator.next();
+            if (manager.getClass().isInterface() || Modifier.isAbstract(manager.getClass().getModifiers()))
+            {
                 continue;
             }
-            proxy.addSubscribes(service);
+            addSubscribes(manager);
         }
-
-        /*try {
-         *//**
-         * 此处使用Class.forName加载全类限定名，初始化类DemoEventConsumerProxy
-         *
-         * 此方式加载和创建JDBC连接时加载Driver的方式一样
-         *
-         * Class.forName能够加载类到JVM中（即把类后编译后的二进制加载到Class对象中）。且执行类中的static块，ClassLoader不能执行static
-         *//*
-            Class.forName("com.yk.demo.event.demo.DemoEventConsumerProxy");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException("newInstance DemoEventConsumerProxy error", e);
-        }*/
-
-        DemoApplicationContext.getInstance().addApplicationListener(proxy);
     }
 
     @Override
-    public void contextDestroyed(ServletContextEvent sce) {
-
+    public void contextDestroyed(ServletContextEvent sce)
+    {
     }
 
-    public static DemoEventConsumerProxy getProxy() {
-        return proxy;
+    public static void addSubscribes(MessageTaskManager manager)
+    {
+        proxyMap.get(manager.getTopic()).addSubscribes(manager);
+    }
+
+    public static void delSubscribes(MessageTaskManager manager)
+    {
+        proxyMap.get(manager.getTopic()).delSubscribes(manager);
     }
 }

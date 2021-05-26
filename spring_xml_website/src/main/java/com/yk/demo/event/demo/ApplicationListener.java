@@ -5,7 +5,9 @@ import java.util.EventListener;
 /**
  * 这里可以重构为ServiceLoader的方式加载接口实现类
  */
-public interface DemoApplicationListener<T> {
+public interface ApplicationListener extends EventListener
+{
+    void onApplicationEvent(ApplicationEvent e);
 
-    void onApplicationEvent(DemoApplicationEvent e);
+    String getEventType();
 }

@@ -15,15 +15,20 @@ import javax.jms.TopicSubscriber;
 /**
  * 消息消费客户端
  */
-public class MessageConsumerClient extends Client {
+public class MessageConsumerClient<T> extends Client<T>
+{
 
-    private Logger logger = LoggerFactory.getLogger("activemq");
+    private static final Logger logger = LoggerFactory.getLogger("activemq");
 
     @Override
-    public void setListener(MessageListener listener)  {
-        try {
+    public void setListener(MessageListener listener)
+    {
+        try
+        {
             subscriber.setMessageListener(listener);
-        } catch (JMSException e) {
+        }
+        catch (JMSException e)
+        {
             logger.error("activemq Consumer setListener error ", e);
             throw new RuntimeException("activemq Consumer setListener error ", e);
         }

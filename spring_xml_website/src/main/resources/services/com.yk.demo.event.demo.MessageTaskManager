@@ -1,1 +1,2 @@
-com.yk.demo.event.demo.DemoEventSubscriber2
+com.yk.demo.event.demo.DemoEventSubscriberDelete
+com.yk.demo.event.demo.DemoEventSubscriberAdd

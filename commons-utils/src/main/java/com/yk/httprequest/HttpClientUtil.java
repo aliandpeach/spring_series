@@ -12,6 +12,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
@@ -21,6 +22,7 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -40,6 +42,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
@@ -73,6 +76,7 @@ public class HttpClientUtil
                     SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
                     sslContext.init(null, new TrustManager[]{new NullX509TrustManager()}, new SecureRandom());
 
+                    // NoopHostnameVerifier | DefaultHostnameVerifier
                     SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);
                     Registry<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create()
                             .register("http", new PlainConnectionSocketFactory())
@@ -157,6 +161,13 @@ public class HttpClientUtil
             HttpPost httpPost = new HttpPost(url);
             httpPost.setConfig(requestConfig);
             initHeader(httpPost, headers);
+
+            EntityBuilder builder = EntityBuilder.create();
+            builder.setText(cn.hutool.json.JSONUtil.toJsonStr(body));
+            builder.setContentType(ContentType.APPLICATION_JSON);
+            builder.setContentEncoding(StandardCharsets.UTF_8.name());
+            httpPost.setEntity(builder.build());
+
             T result = client.execute(httpPost, new CurResponseHandler<T>(typeReference));
             return result;
         }

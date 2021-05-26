@@ -17,7 +17,8 @@ import javax.jms.TopicSubscriber;
 /**
  * 消息发布客户端
  */
-public abstract class Client {
+public abstract class Client<T>
+{
 
     private Logger logger = LoggerFactory.getLogger("activemq");
 
@@ -33,8 +34,10 @@ public abstract class Client {
 
     protected TopicSubscriber subscriber;
 
-    public void connect(String tcpUrl, String topicName) {
-        try {
+    public void connect(String tcpUrl, String topicName)
+    {
+        try
+        {
             factory = new ActiveMQConnectionFactory(tcpUrl);
             connection = factory.createTopicConnection();
             connection.start();
@@ -45,16 +48,19 @@ public abstract class Client {
             publisher = session.createPublisher(topic);
             //
             subscriber = session.createSubscriber(topic);
-        } catch (JMSException e) {
+        }
+        catch (JMSException e)
+        {
             logger.error(String.format("activemq connect error url=%s", tcpUrl), e);
             throw new RuntimeException(String.format("activemq connect error url=%s", tcpUrl), e);
         }
     }
 
-    public void setListener(MessageListener listener) {
+    protected void setListener(MessageListener listener)
+    {
     }
 
-    public void sendMessage(MessageForm form) {
-
+    protected void sendMessage(MessageForm<T> form)
+    {
     }
 }

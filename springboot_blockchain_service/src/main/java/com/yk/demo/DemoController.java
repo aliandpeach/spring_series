@@ -6,6 +6,7 @@ import com.yk.demo.model.BlockchainModel;
 import com.yk.demo.model.DemoModel;
 import com.yk.demo.model.GroupInterface;
 import com.yk.demo.service.DemoService;
+import com.yk.performance.FileInfoParam;
 import com.yk.performance.FileInfos;
 import com.yk.util.ValidationTool;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,45 @@ public class DemoController
     
     @Autowired
     private DemoService demoService;
-    
+
+    /**
+     *               $.ajax({
+     *                  type: "get",
+     *                  contentType: "application/x-www-form-urlencoded",
+     *                  url: "/demo/fileInfoParam",
+     *                  data: 'id=1&name=2',
+     *                   async: true,
+     *                   success: function (result) {
+     *                       debugger
+     *                   }
+     *               });
+     */
+    @GetMapping("/fileInfoParam")
+    @ResponseBody
+    public FileInfoParam fileInfoParam(@Validated FileInfoParam fileInfoParam)
+    {
+        return fileInfoParam;
+    }
+
+    /**
+     *               $.ajax({
+     *                  type: "get",
+     *                  contentType: "application/x-www-form-urlencoded",
+     *                  url: "/demo/map",
+     *                  data: 'id=1&name=2',
+     *                   async: true,
+     *                   success: function (result) {
+     *                       debugger
+     *                   }
+     *               });
+     */
+    @GetMapping("/map")
+    @ResponseBody
+    public Map<String, String> fileInfoParam(@RequestParam Map<String, String> map)
+    {
+        return map;
+    }
+
     @GetMapping("/query")
     @ResponseBody
     public List<DemoModel> queryByName(@RequestParam String name)

@@ -13,7 +13,7 @@ import java.security.SecureRandom;
 import java.util.Base64;
 
 /**
- * AES 和 DES 默认的模式为AES/ECB/PKCS5Padding 和 DES/ECB/PKCS5Padding
+ * AES 和 DES 默认的模式为AES/ECB/PKCS5Padding 和 DES/ECB/PKCS5Padding  ( ECB mode cannot use IV )
  * Cipher.getInstance时可以简写为AES和DES
  *
  * AES/CBC/PKCS5Padding 和 DES/CBC/PKCS5Padding 需要在Cipher.getInstance时需要加入参数new IvParameterSpec(salt)
@@ -27,7 +27,7 @@ import java.util.Base64;
  *
  * KeyGenerator 生成的AES/DES 的 SecretKey 指定的 passwd 来自于new SecureRandom("MY_KEY".getBytes()).nextBytes(passwd)
  *
- * 补充： JAVA 采用  AES/CBC/PKCS7Padding  和 DES/CBC/PKCS5Padding  模式
+ * 补充： JAVA 采用  AES/CBC/PKCS7Padding  和 DES/CBC/PKCS5Padding  模式  (存疑: PKCS5Padding AES和DES都能使用 PKCS7Padding没试验)
  *
  * C++和java的两个变数：
  * 1）分块的方式。加密是逐块进行的。分块方法有：CBC、ECB、CFB……

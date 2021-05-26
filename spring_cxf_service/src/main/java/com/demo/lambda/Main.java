@@ -1,6 +1,9 @@
 package com.demo.lambda;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -174,5 +177,11 @@ public class Main {
         u = mapk.entrySet().stream()
                 .collect(Collectors.toMap(t -> t.getKey(), t -> t.getValue(), (tz, ty) -> new UserModel(tz.getId(), tz.getName()), () -> new LinkedHashMap<>(mapw)));
         System.out.println();
+
+        Field[] fields = UserModel.class.getDeclaredFields();
+        List<Map<String, Field>> llll = Arrays.stream(fields).map(t -> new HashMap<String, Field>(Collections.singletonMap(t.getAnnotation(Value.class).value(), t))).collect(Collectors.toList());
+        Map<String, Field> fieldValues2 = llll.stream().flatMap(t -> t.entrySet().stream()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (k1, k2) -> k1));
+
+        Map<String, Field> fieldValues = Arrays.stream(fields).collect(Collectors.toMap(t -> t.getAnnotation(Value.class).value(), t -> t, (k1, k2) -> k1));
     }
 }
