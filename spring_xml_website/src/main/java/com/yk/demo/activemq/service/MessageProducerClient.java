@@ -7,6 +7,8 @@ import javax.jms.BytesMessage;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
+import javax.jms.TemporaryTopic;
+import javax.jms.TextMessage;
 import javax.jms.Topic;
 import javax.jms.TopicConnection;
 import javax.jms.TopicConnectionFactory;
@@ -27,8 +29,12 @@ public class MessageProducerClient<T> extends Client<T>
 
     private static final Logger logger = LoggerFactory.getLogger("activemq");
 
+    //    protected TemporaryQueue temporaryQueue;
+    private TemporaryTopic temporaryTopic;
+    private TopicSubscriber replaySubscriber;
+
     @Override
-    public void sendMessage(MessageForm<T> form)
+    public String sendMessage(MessageForm<T> form)
     {
         Optional.ofNullable(form).map(MessageForm::getSource).orElseThrow(() -> new RuntimeException(""));
         try (ByteArrayOutputStream bytesout = new ByteArrayOutputStream();
@@ -38,7 +44,17 @@ public class MessageProducerClient<T> extends Client<T>
             out.writeObject(form);
             BytesMessage bytesMessage = session.createBytesMessage();
             bytesMessage.writeBytes(bytesout.toByteArray());
+            // temporaryQueue = session.createTemporaryQueue();
+            temporaryTopic = session.createTemporaryTopic();
+            replaySubscriber = session.createSubscriber(temporaryTopic);
+            bytesMessage.setJMSReplyTo(temporaryTopic);
             publisher.publish(publisher.getTopic(), bytesMessage);
+            Message message = replaySubscriber.receive();
+            if (null != message && message instanceof TextMessage)
+            {
+                return ((TextMessage)message).getText();
+            }
+            return null;
         }
         catch (JMSException e)
         {

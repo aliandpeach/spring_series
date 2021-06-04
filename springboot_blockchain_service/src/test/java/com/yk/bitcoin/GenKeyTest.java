@@ -33,8 +33,7 @@ public class GenKeyTest
         String id1 = HexUtil.encodeHexStr(bytes);
         
         new SecureRandom().nextBytes(bytes);
-        String id2 = HexUtil.encodeHexStr(bytes);
-        
+
         Thread th1 = new Thread(() ->
         {
             synchronized (id1)
@@ -51,11 +50,13 @@ public class GenKeyTest
         });
         Thread th2 = new Thread(() ->
         {
-            synchronized (id2)
+            String id2 = new String("f3c1a338bcc244e284d3740517a0aaae");
+            final String lock = id2.intern();
+            synchronized (lock)
             {
                 try
                 {
-                    id2.wait();
+                    lock.wait();
                     System.out.println("id2 notified");
                 }
                 catch (InterruptedException e)
@@ -69,12 +70,20 @@ public class GenKeyTest
         th2.start();
         
         Thread.sleep(2000);
-        synchronized (id2)
+
+        Thread th3 = new Thread(() ->
         {
-            id2.notifyAll();
-        }
+            String id2 = new String("f3c1a338bcc244e284d3740517a0aaae");
+            final String lock = id2.intern();
+            synchronized (lock)
+            {
+                lock.notifyAll();
+                System.out.println("id2 notifyAll");
+            }
+        });
+        th3.start();
         th2.join();
-        th1.join();
+//        th1.join();
     }
     
     @Test

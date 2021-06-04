@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.jms.BytesMessage;
+import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
@@ -20,7 +21,7 @@ import javax.jms.TextMessage;
 /**
  * 使用队列 多个消费端分别消费，不会有一条信息被重复消费的情形
  */
-public class QueueConsumer
+public class QueueConsumer2
 {
     private Logger logger = LoggerFactory.getLogger("activemq");
 
@@ -34,7 +35,7 @@ public class QueueConsumer
 
     MessageProducer replay;
 
-    public QueueConsumer()
+    public QueueConsumer2()
     {
         factory = new ActiveMQConnectionFactory("tcp://127.0.0.1:61616");
         try
@@ -58,8 +59,8 @@ public class QueueConsumer
 
                     try
                     {
-                        replay = session.createSender((Queue) message.getJMSReplyTo());
-                        TextMessage textMessage = session.createTextMessage("replay........");
+                        replay = session.createProducer(message.getJMSReplyTo());
+                        TextMessage textMessage = session.createTextMessage("replay2........");
                         replay.send(textMessage);
                     }
                     catch (Exception e)
@@ -69,9 +70,8 @@ public class QueueConsumer
                 }
             });
         }
-        catch (Exception e)
+        catch (JMSException e)
         {
-            e.printStackTrace();
             logger.error("GeneralExample init error", e);
         }
     }

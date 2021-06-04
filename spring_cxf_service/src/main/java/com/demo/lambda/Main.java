@@ -183,5 +183,54 @@ public class Main {
         Map<String, Field> fieldValues2 = llll.stream().flatMap(t -> t.entrySet().stream()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (k1, k2) -> k1));
 
         Map<String, Field> fieldValues = Arrays.stream(fields).collect(Collectors.toMap(t -> t.getAnnotation(Value.class).value(), t -> t, (k1, k2) -> k1));
+
+        Map<String, List<Field>> temp = Arrays.stream(fields).collect(Collectors.groupingBy(t -> t.getAnnotation(Value.class).value()));
+        Map<String, Field> fieldValues3 = temp.entrySet().stream()
+                .flatMap(t -> new HashMap<>(Collections.singletonMap(t.getKey(), t.getValue().get(0))).entrySet().stream()).collect(Collectors.toMap(k -> k.getKey(), v -> v.getValue(), (k1, k2) -> k1));
+
+        // List<Map<String, String>> -> Map<String, List<Map<String, String>> -> Map<String, String>
+        list.add(new UserModel(13, "Zao1", 29.51, "pink1"));
+
+        Map<Integer, List<UserModel>> mmmmmap = list.stream().collect(Collectors.groupingBy(UserModel::getAge));
+
+        List<Map<Integer, String>> lllllx = mmmmmap.entrySet().stream()
+                .map(ma -> new HashMap<>(Collections.singletonMap(ma.getKey(), ma.getValue().stream().map(UserModel::getName).collect(Collectors.joining("\n")))))
+                .collect(Collectors.toList());
+
+        List<String> llllly = mmmmmap.entrySet().stream()
+                .map(ma -> ma.getValue().stream().map(UserModel::getName).collect(Collectors.joining("\n")))
+                .collect(Collectors.toList());
+
+//        Map<Object, Object> lllllz = mmmmmap.entrySet().stream()
+//                .map(ma -> ma.getValue().stream().map(UserModel::getName).collect(Collectors.joining("\n")))
+//                .collect(Collectors.toMap(t -> t, v -> v, (k1, k2) -> k1));
+
+        Map<Integer, String> lllll = mmmmmap.entrySet().stream()
+                .map(ma -> new HashMap<>(Collections.singletonMap(ma.getKey(), ma.getValue().stream().map(UserModel::getName).collect(Collectors.joining("\n")))))
+                .flatMap(t -> t.entrySet().stream()).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (k1, k2) -> k1));
+        System.out.println();
+
+
+        List<Map<String, Object>> listTest = new ArrayList<>();
+        Map<String, Object> mm1 = new HashMap<>();mm1.put("id", "1");mm1.put("content", "c1");
+        Map<String, Object> mm2 = new HashMap<>();mm2.put("id", "2");mm2.put("content", "c2");
+        Map<String, Object> mm3 = new HashMap<>();mm3.put("id", "3");mm3.put("content", "c3");
+        Map<String, Object> mm4 = new HashMap<>();mm4.put("id", "1");mm4.put("content", "c4");
+
+        listTest.add(mm1);
+        listTest.add(mm2);
+        listTest.add(mm3);
+        listTest.add(mm4);
+        Map<String, List<Map<String, Object>>> map2Map = listTest.stream().collect(Collectors.groupingBy(t -> t.get("id").toString()));
+        List<Map<String, String>> ss = map2Map.entrySet().stream()
+                .map(t -> new HashMap<>(Collections.singletonMap(t.getKey(), t.getValue().stream().map(tt -> tt.get("content").toString()).collect(Collectors.joining("\n")))))
+                .collect(Collectors.toList());
+        Map<String, String> ssss = ss.stream().flatMap(t -> t.entrySet().stream()).collect(Collectors.toMap(t -> t.getKey(), t -> t.getValue(), (a, b) -> a));
+        System.out.println(ssss);
+        // flatMap可以理解为多个 Map 也就是 List<Map>的情况下 进行合并，最后合并为一个Map (对于重复的Key 只选择其中一个 toMap具体决定)
+
+        // List<Map<String, Object>>  -> Map<String, Map<String, Object>>
+        Map<String, Map<String, Object>> map2Map2 = listTest.stream().collect(Collectors.toMap(k -> k.get("id").toString(), v -> v, (k1, k2) -> k1));
+        System.out.println(map2Map2);
     }
 }

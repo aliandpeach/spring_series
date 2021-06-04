@@ -2,6 +2,11 @@ package com.yk.demo.activemq.service;
 
 import com.google.common.base.Objects;
 
+import javax.jms.JMSException;
+import javax.jms.Message;
+import javax.jms.MessageProducer;
+import javax.jms.Session;
+import javax.jms.TextMessage;
 import java.util.UUID;
 
 /**
@@ -18,6 +23,17 @@ public abstract class MessageTaskManager<T>
      * @param messageForm messageForm
      */
     protected abstract void onMessageTask(MessageForm<T> messageForm);
+
+    protected void replay(Session session, Message message) throws JMSException
+    {
+        if (null == session)
+        {
+            return;
+        }
+        TextMessage replayText = session.createTextMessage("replay... " + System.currentTimeMillis());
+        MessageProducer replay = session.createProducer(message.getJMSReplyTo());
+        replay.send(replayText);
+    }
 
     /**
      * 业务类需要自定义的主题类型

@@ -3,88 +3,104 @@ package com.demo.lambda;
 import java.util.HashMap;
 import java.util.Map;
 
-public class UserModel {
-
-
+public class UserModel
+{
+    @Value("id")
     private long id;
-
+    @Value("age")
     private int age;
-
+    @Value("name")
     private String name;
-
+    @Value("weight")
     private double weight;
-
+    @Value("hairColor")
     private String hairColor;
 
-
-    public static Map<Integer, String> more(Integer key, String val) {
+    public static Map<Integer, String> more(Integer key, String val)
+    {
         Map<Integer, String> r = new HashMap<>();
         r.put(key, val);
         return r;
     }
 
-    public Map<Integer, String> increment(Integer key, String val) {
+    public Map<Integer, String> increment(Integer key, String val)
+    {
         Map<Integer, String> r = new HashMap<>();
         r.put(key, val);
         return r;
     }
 
-    public UserModel(long id, String name) {
+    public UserModel(long id, String name)
+    {
         this.id = id;
         this.name = name;
     }
-    public UserModel() {
+
+    public UserModel()
+    {
     }
 
-    public UserModel(int age, String name, double weight, String hairColor) {
+    public UserModel(int age, String name, double weight, String hairColor)
+    {
         this.age = age;
         this.name = name;
         this.weight = weight;
         this.hairColor = hairColor;
     }
 
-    public int getAge() {
+    public int getAge()
+    {
         return age;
     }
 
-    public void setAge(int age) {
+    public void setAge(int age)
+    {
         this.age = age;
     }
 
-    public String getName() {
+    public String getName()
+    {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(String name)
+    {
         this.name = name;
     }
 
-    public double getWeight() {
+    public double getWeight()
+    {
         return weight;
     }
 
-    public void setWeight(double weight) {
+    public void setWeight(double weight)
+    {
         this.weight = weight;
     }
 
-    public String getHairColor() {
+    public String getHairColor()
+    {
         return hairColor;
     }
 
-    public void setHairColor(String hairColor) {
+    public void setHairColor(String hairColor)
+    {
         this.hairColor = hairColor;
     }
 
-    public long getId() {
+    public long getId()
+    {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(long id)
+    {
         this.id = id;
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         return "UserModel{" +
                 "age=" + age +
                 ", name='" + name + '\'' +

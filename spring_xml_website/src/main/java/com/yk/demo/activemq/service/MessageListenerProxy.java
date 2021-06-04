@@ -29,9 +29,22 @@ public class MessageListenerProxy<T> implements MessageListener
     private ExecutorService messageProxyExecutor = Executors.newFixedThreadPool(2);
 
     /**
-     * 存储所有的业务类订阅者，订阅者都继承于MessageTaskManager
+     * 存储某个MessageTopic下 所有的业务类订阅者，订阅者都继承于MessageTaskManager
+     *
+     * proxy.size() 始终为 1
      */
     private Map<MessageTopic, BlockingQueue<MessageTaskManager<T>>> proxy = new ConcurrentHashMap<>();
+    /**
+     * 存储Client 用户replay
+     *
+     * client.size() 始终为 1
+     */
+    private Map<MessageTopic, Client<T>> clientMap = new ConcurrentHashMap<>();
+
+    public void setClient(MessageTopic topic, Client<T> client)
+    {
+        clientMap.put(topic, client);
+    }
 
     public synchronized void addSubscribes(MessageTaskManager<T> task)
     {
@@ -96,6 +109,19 @@ public class MessageListenerProxy<T> implements MessageListener
             for (MessageTaskManager<T> task : queue)
             {
                 proxyMessageTo(form, task);
+            }
+
+            // 该主题只需要一次回复即可 (虽然是多个业务客户端,但都是同一个topic)
+            for (MessageTaskManager<T> task : queue)
+            {
+                try
+                {
+                    task.replay(clientMap.get(form.getMessageTopic()).getSession(), message);
+                    break;
+                }
+                catch (JMSException e)
+                {
+                }
             }
         };
         activeMQListenerExecutor.submit(runnable);

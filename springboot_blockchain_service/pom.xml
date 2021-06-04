@@ -27,6 +27,7 @@
         </dependencies>
     </dependencyManagement>
     <dependencies>
+        <!-- 2.3 以后需要手动引入 hibernate-validator (spring-boot-starter-validation)-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>

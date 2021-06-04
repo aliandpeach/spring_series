@@ -1,14 +1,18 @@
 package com.yk.test.activemq.queue;
 
 import com.yk.demo.activemq.demo.queue.QueueConsumer;
+import com.yk.demo.activemq.demo.queue.QueueConsumer2;
 import com.yk.demo.activemq.demo.queue.QueueProducer;
 import com.yk.demo.activemq.demo.topic.TopicConsumer;
 import com.yk.demo.activemq.demo.topic.TopicProducer;
 import org.apache.activemq.broker.BrokerService;
 
-public class ActiveMQQueueMain {
+public class ActiveMQQueueMain
+{
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String args[]) throws Exception
+    {
+        System.setProperty("catalina.home", "D:\\logs\\");
         BrokerService service = new BrokerService();
 
         service.addConnector("tcp://127.0.0.1:61616");
@@ -21,16 +25,18 @@ public class ActiveMQQueueMain {
         service.start();
 
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                new QueueConsumer();
+        new Thread(() ->
+        {
+            try
+            {
+                Thread.sleep(5000);
             }
+            catch (InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+            new QueueConsumer();
+            new QueueConsumer2();
         }).start();
         QueueProducer producer = new QueueProducer();
         while (true)

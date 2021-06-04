@@ -13,15 +13,13 @@ import javax.jms.Session;
 import javax.jms.Topic;
 import javax.jms.TopicConnection;
 import javax.jms.TopicConnectionFactory;
-import javax.jms.TopicPublisher;
 import javax.jms.TopicSession;
 import javax.jms.TopicSubscriber;
-import java.util.Optional;
 
 /**
  * 使用TopicSubscriber 一条信息会被多个消费端同时消费
  */
-public class TopicConsumer
+public class TopicConsumer2
 {
     private Logger logger = LoggerFactory.getLogger("activemq");
 
@@ -33,7 +31,7 @@ public class TopicConsumer
 
     private TopicSubscriber subscriber;
 
-    public TopicConsumer()
+    public TopicConsumer2()
     {
         factory = new ActiveMQConnectionFactory("tcp://127.0.0.1:61616");
         try

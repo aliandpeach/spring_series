@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.LockSupport;
 import java.util.stream.IntStream;
 
 public class WaitNotifyTest
@@ -25,12 +28,13 @@ public class WaitNotifyTest
             new Thread(() ->
             {
                 long start = System.currentTimeMillis();
-                synchronized (l)
+                final String lock = l.intern();
+                synchronized (lock)
                 {
 
                     try
                     {
-                        l.wait(8 * 1000);
+                        lock.wait(8 * 1000);
                     }
                     catch (InterruptedException e)
                     {
@@ -51,7 +55,7 @@ public class WaitNotifyTest
         TimeUnit.SECONDS.sleep(2);
         new Thread(() ->
         {
-            String lock = locks.get(new Random().nextInt(5));
+            String lock = locks.get(new Random().nextInt(5)).intern();
             System.out.println("notify " + lock);
             synchronized (lock)
             {
@@ -60,7 +64,7 @@ public class WaitNotifyTest
         }).start();
         new Thread(() ->
         {
-            String lock = locks.get(new Random().nextInt(5));
+            String lock = locks.get(new Random().nextInt(5)).intern();
             synchronized (lock)
             {
                 lock.notifyAll();
@@ -68,5 +72,26 @@ public class WaitNotifyTest
             System.out.println("notify " + lock);
         }).start();
         Thread.currentThread().join();
+    }
+
+    @Test
+    public void testParkNanos() throws InterruptedException
+    {
+        ExecutorService executorService = Executors.newFixedThreadPool(600);
+        for (int i = 0; i < 600; i++)
+        {
+            executorService.execute(new Runnable()
+            {
+                @Override
+                public void run()
+                {
+                    while (true)
+                    {
+                        LockSupport.parkNanos(1);
+                    }
+                }
+            });
+        }
+        executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
     }
 }

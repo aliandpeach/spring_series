@@ -20,12 +20,12 @@ public class MessageCenter<T>
      */
     private final Map<MessageTopic, Client<T>> producers = new ConcurrentHashMap<>();
     /**
-     * 一个Topic对应初始化一个订阅客户端
+     * 一个Topic对应初始化一个消费客户端
      */
     private final Map<MessageTopic, Client<T>> consumers = new ConcurrentHashMap<>();
 
     /**
-     * 一个Topic对应一个订阅端 （ javax.jms.MessageListener）
+     * 一个Topic对应一个消费客户端路由（ javax.jms.MessageListener）
      */
     private final Map<MessageTopic, MessageListenerProxy<T>> listenerProxys = new ConcurrentHashMap<>();
 
@@ -58,6 +58,7 @@ public class MessageCenter<T>
                 client.connect(TCP_URL, topic.name());
                 client.setListener(proxy);
                 consumers.put(topic, client);
+                proxy.setClient(topic, client);
             }
         }
     }
@@ -127,9 +128,9 @@ public class MessageCenter<T>
      *
      * @param messageForm
      */
-    public synchronized void sendMessage(MessageForm<T> messageForm)
+    public synchronized String sendMessage(MessageForm<T> messageForm)
     {
         Optional.ofNullable(messageForm).map(MessageForm::getMessageTopic).orElseThrow(() -> new RuntimeException("sendMessage error"));
-        producers.get(messageForm.getMessageTopic()).sendMessage(messageForm);
+        return producers.get(messageForm.getMessageTopic()).sendMessage(messageForm);
     }
 }

@@ -60,7 +60,13 @@ public abstract class Client<T>
     {
     }
 
-    protected void sendMessage(MessageForm<T> form)
+    protected String sendMessage(MessageForm<T> form)
     {
+        throw new RuntimeException("send message error");
+    }
+
+    public TopicSession getSession()
+    {
+        return session;
     }
 }

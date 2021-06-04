@@ -16,9 +16,13 @@ import javax.jms.TopicConnectionFactory;
 import javax.jms.TopicPublisher;
 import javax.jms.TopicSession;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
-public class TopicProducer {
+public class TopicProducer
+{
     private Logger logger = LoggerFactory.getLogger("activemq");
+
+    private AtomicInteger integer = new AtomicInteger();
 
     private TopicConnectionFactory factory = null;
 
@@ -30,9 +34,11 @@ public class TopicProducer {
 
     private Topic topic = null;
 
-    public TopicProducer() {
+    public TopicProducer()
+    {
         factory = new ActiveMQConnectionFactory("tcp://127.0.0.1:61616");
-        try {
+        try
+        {
             connection = factory.createTopicConnection();
             connection.start();
             session = connection.createTopicSession(Boolean.FALSE, Session.AUTO_ACKNOWLEDGE);
@@ -40,24 +46,30 @@ public class TopicProducer {
             publisher = session.createPublisher(topic);
 
 
-        } catch (JMSException e) {
+        }
+        catch (JMSException e)
+        {
             logger.error("GeneralExample init error", e);
         }
 
 
     }
 
-    public void publishMessages() {
+    public void publishMessages()
+    {
         BytesMessage message = null;
         int i;
         final int NUMMSGS = 3;
         final String MSG_TEXT = new String("Here is a message");
 
-        try {
+        try
+        {
             message = session.createBytesMessage();
-            message.writeBytes(new String("bytes message").getBytes());
+            message.writeBytes(new String("bytes message" + integer.incrementAndGet()).getBytes());
             publisher.publish(topic, message);
-        } catch (JMSException e) {
+        }
+        catch (JMSException e)
+        {
         }
     }
 }
