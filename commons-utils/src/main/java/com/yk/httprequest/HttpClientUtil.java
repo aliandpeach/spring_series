@@ -1,7 +1,6 @@
 package com.yk.httprequest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -41,6 +40,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
@@ -428,7 +429,6 @@ public class HttpClientUtil
     }
 
     @Data
-    @AllArgsConstructor
     public static class ProxyInfo
     {
         private boolean proxy;
@@ -442,5 +442,30 @@ public class HttpClientUtil
         private String passwd;
 
         private String scheme = "http";
+
+        private Authenticator auth;
+
+        public ProxyInfo(boolean proxy, String hostname, int port, String username, String passwd, String scheme)
+        {
+            this.proxy = proxy;
+            this.hostname = hostname;
+            this.port = port;
+            this.username = username;
+            this.passwd = passwd;
+            this.scheme = scheme;
+            auth = new Authenticator()
+            {
+                public PasswordAuthentication getPasswordAuthentication()
+                {
+                    return new PasswordAuthentication(username, passwd.toCharArray());
+                }
+            };
+//            System.setProperty("http.proxyHost", hostname);
+//            System.setProperty("http.proxyPort", port + "");
+//            System.setProperty("http.proxyUser", username);
+//            System.setProperty("http.proxyPassword", passwd);
+//            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
+//            Authenticator.setDefault(auth);
+        }
     }
 }

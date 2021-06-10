@@ -8,13 +8,17 @@ import javax.jms.BytesMessage;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
+import javax.jms.QueueReceiver;
 import javax.jms.Session;
+import javax.jms.TemporaryQueue;
+import javax.jms.TemporaryTopic;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
 import javax.jms.TopicConnection;
 import javax.jms.TopicConnectionFactory;
 import javax.jms.TopicPublisher;
 import javax.jms.TopicSession;
+import javax.jms.TopicSubscriber;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -34,6 +38,9 @@ public class TopicProducer
 
     private Topic topic = null;
 
+    TemporaryTopic temporaryTopic;
+    TopicSubscriber receiver;
+
     public TopicProducer()
     {
         factory = new ActiveMQConnectionFactory("tcp://127.0.0.1:61616");
@@ -45,7 +52,8 @@ public class TopicProducer
             topic = session.createTopic("Topic.A.topic");
             publisher = session.createPublisher(topic);
 
-
+            temporaryTopic = session.createTemporaryTopic();
+            receiver = session.createSubscriber(temporaryTopic);
         }
         catch (JMSException e)
         {
@@ -66,7 +74,12 @@ public class TopicProducer
         {
             message = session.createBytesMessage();
             message.writeBytes(new String("bytes message" + integer.incrementAndGet()).getBytes());
+
+            message.setJMSReplyTo(temporaryTopic);
             publisher.publish(topic, message);
+
+            Message message1 = receiver.receive();
+            System.out.println(null != message1 ? ((TextMessage) message1).getText() : "no replay");
         }
         catch (JMSException e)
         {

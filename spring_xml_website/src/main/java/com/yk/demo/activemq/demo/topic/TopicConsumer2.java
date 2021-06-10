@@ -9,7 +9,9 @@ import javax.jms.BytesMessage;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
+import javax.jms.MessageProducer;
 import javax.jms.Session;
+import javax.jms.TextMessage;
 import javax.jms.Topic;
 import javax.jms.TopicConnection;
 import javax.jms.TopicConnectionFactory;
@@ -30,6 +32,8 @@ public class TopicConsumer2
     private TopicSession session;
 
     private TopicSubscriber subscriber;
+
+    MessageProducer replay;
 
     public TopicConsumer2()
     {
@@ -52,6 +56,10 @@ public class TopicConsumer2
                     byte[] buffer = new byte[(int) bytesMessage.getBodyLength()];
                     bytesMessage.readBytes(buffer);
                     System.out.println(new String(buffer, 0, (int) bytesMessage.getBodyLength()));
+
+                    replay = session.createProducer(message.getJMSReplyTo());
+                    TextMessage textMessage = session.createTextMessage("replay1...");
+                    replay.send(textMessage);
                 }
             });
         }
