@@ -6,6 +6,13 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.openssl.PKCS8Generator;
+import org.bouncycastle.openssl.jcajce.JcaPKCS8Generator;
+import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8EncryptorBuilder;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.OutputEncryptor;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemWriter;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,8 +32,13 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -242,7 +254,7 @@ public class ConvertTest
     public void testEncryptedRSAPrivateKey() throws Exception
     {
         /**
-         * 这段代码从 es-mvc中获取，暂不知道common_client_key 怎么来的 （ 自己写的PBE不能直接解密 ）
+         * 这段代码的私钥格式为 PKCS8 使用 bouncycastle生成的
          */
         String common_client_key = "MIIE9jAoBgoqhkiG9w0BDAEDMBoEFOE9zggeecmUuT9EyHoxk9giOwmyAgIIAASCBMhdhC3oBUSaX4otUDym+vJYdMvHu17NJNim588AfHWZknJHYSvPqaSRfDclYnQkiKWk4GtTVkAcCmNWahVr9DIIpdXV1VjWTc+Hy7M00h5SP6ybV0YiwoF6vgq/lOaqz4rS9blA3uD00/h7Ffup6ocCwvujTQL8UQ5RCg2tu+cLnwonabz6DcB6Lg3wcJQBgIqRX435mqaDj3gdl6GME1k/1xynxF3LytTycS9f2qCeefv5f6iLp1mW6xNKMwWUUcGItCJYyuQefYNwpznoW0wRNKV8Us41IT7Obcq/3ZdUQaG0E/8/4FUcN0mfoR4iQyfzqCS/Kjdn7h79M3naj5FoRst80AIfObc9JBmAvwdROtnodl5gWIPrIfxOcYezf87eoZZupVYsE5ihv3PYvuWoR73Yy/sOxU8PToin7Ah5EhXZNGWKcE6VC2W51bLSguwBxm994+c6GcYP6y0dtVNFWaiqux9OUf+9Xdbmfe7uyQIXMlZZJ4P+WZ3SJjLPNywGkwk18fjBvbOY3/YlBtBbu7dDrz4DLl3b1A1oCTMF+/eiNCoajtZB1UsBEDh9c/hLLnnyKPX1BhWZmo8yzXHf5YonGAS+ie93ulRnyE7ckTR4esjVTprDI2g4TLAeHH8hXm6afrjuxQTIzzLWuOOo9G/rOzxZCtdrhGb+G3MOz+XdIQMHgUlStqXzvNcrq8Tkj/gQyDg1V+no4KKojo69aTL0fk9Vb/z9UE5djTVwoEyirabLi3Krzbwklcl6im8s5zPUgoE6l0rTom1t9p3yWGMw5EM3CTK8Refq6tJC4HmixEumHfGB9vQNZPyLH+RhfGkyWpB1qMr9BmvYZvr0T6/YWJGsn9rtYwLSeaMzvfoJ0RuvX4f8EIS+CCEqxDTJc2n+qPgU3oCC+jRK6BuALzUeb4SODhTv7wrBPcvi0TjjfrG9upfPkfNjESAp+wcfhraopzZe6hJm//nn5nXqeymscfVp0kDEOVkPAuRxizCDmV81HOtNtW8SxINUROogaQlfIW5rK9TnP4PyWhurSGKBiWbNCgLEijiXU0Ku7ed2B/DLvrGPhKMfHafOSsEntWUuG5gvVbqwPf9gs0qavt2x+rrel786zgINNg4BiOhhP+zPAFcpWqWkxFd7A/JjciEGLbjK7Zz4qfZpKBFUJbGlI42IPxCcJuPFwXi8ybx9VgLHxy32MOituzjRpZmWiXvmafwSHauIDOYyEFp74xXCZGWo1dgx5vE9kxUI48OPO0h+g73elRo+g/e82M9twc0/Ju3G7tbDc5zdVlcR8eYzVG7RliBLqMK317O44D3S1dghCH+4ToNA7rT8ZFxqK9pRgS/FpEXx/4KFXLYVE1IzRBHH8lWDeZ279vIRjknJ71KVBCM30DsKTBOWQiF/eL+VzZ8JIBof/BEDxBwrESOjVXcoGaICgVBL7SeeLfBnoUQMKkMxGpr6ZZXy42Mn6MmglC+qte2AGwU+uQfR8OTSoP1czLeQ1M1/BaQaF0e7aCUFMdeez1hssLjjYJTqKONJn4wQuSkL3TT/2MIiY+4hFqRtOQarfEcxGDhaGkGaJVW2MNN2xaAM0nhD0RNFp6Nb01I+42w58jlQ0bXp776HgkmWHI0=";
         byte[] common_client_key_bytes = Base64.getDecoder().decode(common_client_key);
@@ -287,6 +299,54 @@ public class ConvertTest
             Assert.assertArrayEquals(bytes, key2.getEncoded());
         }
     }
+
+    /**
+     * 使用 bouncycastle生成加密的 PKCS8格式的RSA私钥
+     *
+     * https://stackoverflow.com/questions/14580958/exception-when-constructing-encryptedprivatekeyinfo
+     *
+     * @throws NoSuchAlgorithmException
+     * @throws OperatorCreationException
+     * @throws IOException
+     */
+    @Test
+    public void generatPKCS8_Encrypted() throws NoSuchAlgorithmException, OperatorCreationException, IOException
+    {
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+        generator.initialize(2048);
+        KeyPair keyPair = generator.generateKeyPair();
+
+        final PrivateKey privKey = keyPair.getPrivate();
+        final PublicKey pubKey = keyPair.getPublic();
+
+        JceOpenSSLPKCS8EncryptorBuilder builder =
+                new JceOpenSSLPKCS8EncryptorBuilder(PKCS8Generator.PBE_SHA1_3DES);
+
+        builder.setIterationCount(10000);
+        builder.setPasssword("Hello, World!".toCharArray());
+
+        OutputEncryptor outputEncryptor = builder.build();
+        PKCS8Generator pkcs8Generator =
+                new JcaPKCS8Generator(privKey, outputEncryptor);
+
+        try (PemWriter writer = new PemWriter(new PrintWriter(System.out)))
+        {
+            writer.writeObject(pkcs8Generator);
+        }
+    }
+
+    // Write to pem file
+    private static String format2PemString(String type, byte[] key) throws Exception
+    {
+        PemObject pemObject = new PemObject(type, key);
+        StringWriter stringWriter = new StringWriter();
+        PemWriter pemWriter = new PemWriter(stringWriter);
+        pemWriter.writeObject(pemObject);
+        pemWriter.close();
+        String pemString = stringWriter.toString();
+        return pemString;
+    }
+
 
     /**
      * openssl pkcs12 -nocerts -des -in test.p12 -out test-key.pem
