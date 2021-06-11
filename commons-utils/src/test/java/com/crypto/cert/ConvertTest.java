@@ -308,6 +308,12 @@ public class ConvertTest
      * @throws NoSuchAlgorithmException
      * @throws OperatorCreationException
      * @throws IOException
+     *
+     *
+     * 以后可以不再使用keystore存储私钥
+     *
+     * 1. 使用openssl 生成私钥、证书、签名等, 私钥转换为 pkcs8
+     * 2. 再使用 bouncycastle 对私钥进行加密
      */
     @Test
     public void generatPKCS8_Encrypted() throws NoSuchAlgorithmException, OperatorCreationException, IOException
