@@ -37,6 +37,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,11 +66,17 @@ public class HttpClientUtil
     private static RequestConfig requestConfig = RequestConfig.custom()
             .setConnectTimeout(22000).setConnectionRequestTimeout(12000)
             .setSocketTimeout(24000).build();
+
+    public static final ThreadLocal<Config> CONFIG_THREAD_LOCAL = new ThreadLocal<>();
     
     private static CloseableHttpClient httpClient; // 发送请求的客户端单例
     
-    public static CloseableHttpClient getClient(ProxyInfo proxyInfo) throws GeneralSecurityException, IOException
+    public static CloseableHttpClient getClient(Config config) throws GeneralSecurityException, IOException
     {
+        if (null == config)
+        {
+            throw new RuntimeException("config must not be null");
+        }
         if (null == httpClient)
         {
             synchronized (HttpClientUtil.class)
@@ -81,11 +88,24 @@ public class HttpClientUtil
 
                     SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
 
-                    KeyManagerFactory factory = KeyManagerFactory.getInstance("SunX509");
-                    KeyStore key = KeyStore.getInstance("JKS");
-                    key.load(new FileInputStream("D:\\idea_workspace\\development_tool\\apache-tomcat-9.0.41_https\\conf\\ssl\\broker.ks"), "Spinfo@0123".toCharArray());
-                    factory.init(key, "Spinfo@0123".toCharArray());
-                    sslContext.init(factory.getKeyManagers(), new TrustManager[]{new NullX509TrustManager()}, new SecureRandom());
+                    config.configError();
+                    KeyManagerFactory keyFactory = KeyManagerFactory.getInstance("SunX509");
+                    if (config.isSslKeyManager())
+                    {
+                        KeyStore key = KeyStore.getInstance(config.getType());
+                        key.load(new FileInputStream(config.getKeyStore()), config.getKeyStorePasswd().toCharArray());
+                        keyFactory.init(key, config.getKeyPasswd().toCharArray());
+                    }
+                    TrustManagerFactory trustFactory = TrustManagerFactory.getInstance("SunX509");
+                    if (config.isSslTrustManager())
+                    {
+                        KeyStore trust = KeyStore.getInstance(config.getType());
+                        trust.load(new FileInputStream(config.getTrustStore()), config.getTrustStorePasswd().toCharArray());
+                        trustFactory.init(trust);
+                    }
+                    sslContext.init(config.isSslKeyManager() ? keyFactory.getKeyManagers() : null,
+                            config.isSslTrustManager() ? trustFactory.getTrustManagers() : new TrustManager[]{new NullX509TrustManager()},
+                            new SecureRandom());
 
                     // NoopHostnameVerifier | DefaultHostnameVerifier
                     SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);
@@ -103,21 +123,24 @@ public class HttpClientUtil
                             .setConnectionManager(poolingHttpClientConnectionManager)
                             .setConnectionManagerShared(true).setDefaultRequestConfig(requestConfig);
 
-                    if (null != proxyInfo && proxyInfo.isProxy() && null != proxyInfo.getUsername() && null != proxyInfo.getPasswd())
+                    if (null != config.getProxyInfo())
                     {
-                        // 需要用户名密码的代理
-                        HttpHost httpHost = new HttpHost(proxyInfo.getHostname(), proxyInfo.getPort(), "http");
-                        CredentialsProvider provider = new BasicCredentialsProvider();
-                        provider.setCredentials(new AuthScope(httpHost), new UsernamePasswordCredentials(proxyInfo.getUsername(), proxyInfo.getPasswd()));
-                        httpClientBuilder.setDefaultCredentialsProvider(provider);
-                    }
-                    else if (null != proxyInfo && proxyInfo.isProxy())
-                    {
-                        HttpHost httpHost = new HttpHost(proxyInfo.getHostname(), proxyInfo.getPort(), "http");
-                        // 不需要用户名密码的代理
-                        DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(httpHost);
-                        // setProxy  setRoutePlanner最终都是为了生成 DefaultProxyRoutePlanner, 二者使用一个即可
-                        httpClientBuilder.setRoutePlanner(routePlanner).setProxy(httpHost);
+                        if (null != config.getProxyInfo() && config.getProxyInfo().isProxy() && null != config.getProxyInfo().getUsername() && null != config.getProxyInfo().getPasswd())
+                        {
+                            // 需要用户名密码的代理
+                            HttpHost httpHost = new HttpHost(config.getProxyInfo().getHostname(), config.getProxyInfo().getPort(), "http");
+                            CredentialsProvider provider = new BasicCredentialsProvider();
+                            provider.setCredentials(new AuthScope(httpHost), new UsernamePasswordCredentials(config.getProxyInfo().getUsername(), config.getProxyInfo().getPasswd()));
+                            httpClientBuilder.setDefaultCredentialsProvider(provider);
+                        }
+                        else if (null != config.getProxyInfo() && config.getProxyInfo().isProxy())
+                        {
+                            HttpHost httpHost = new HttpHost(config.getProxyInfo().getHostname(), config.getProxyInfo().getPort(), "http");
+                            // 不需要用户名密码的代理
+                            DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(httpHost);
+                            // setProxy  setRoutePlanner最终都是为了生成 DefaultProxyRoutePlanner, 二者使用一个即可
+                            httpClientBuilder.setRoutePlanner(routePlanner).setProxy(httpHost);
+                        }
                     }
                     httpClient = httpClientBuilder.build();
                     
@@ -143,7 +166,7 @@ public class HttpClientUtil
 
     public static boolean getBytes(String url, Map<String, String> headers, Map<String, String> params, String fileName, String dir, String rootDir)
     {
-        try (CloseableHttpClient client = getClient(new ProxyInfo(false, null, 0, null, null, null)))
+        try (CloseableHttpClient client = getClient(new Config()))
         {
             url = initUrlParams(url, params);
             HttpGet httpGet = new HttpGet(url);
@@ -167,7 +190,7 @@ public class HttpClientUtil
 
     public static <T> T post(String url, Map<String, String> headers, Map<String, String> body, final TypeReference<T> typeReference)
     {
-        try (CloseableHttpClient client = getClient(new ProxyInfo(false, null, 0, null, null, null)))
+        try (CloseableHttpClient client = getClient(new Config()))
         {
             HttpPost httpPost = new HttpPost(url);
             httpPost.setConfig(requestConfig);
@@ -202,7 +225,7 @@ public class HttpClientUtil
         HttpGet httpGet = null;
         try
         {
-            CloseableHttpClient client = getClient(new ProxyInfo(false, null, 0, null, null, null));
+            CloseableHttpClient client = getClient(null == CONFIG_THREAD_LOCAL.get() ? new Config() : CONFIG_THREAD_LOCAL.get());
             if (client == null)
             {
                 throw new RuntimeException("client is null");
@@ -239,7 +262,7 @@ public class HttpClientUtil
 
     public static String getString(String url, Map<String, String> headers, Map<String, String> params)
     {
-        try (CloseableHttpClient client = getClient(new ProxyInfo(false, null, 0, null, null, null)))
+        try (CloseableHttpClient client = getClient(new Config()))
         {
             url = initUrlParams(url, params);
             HttpGet httpGet = new HttpGet(url);
@@ -477,5 +500,45 @@ public class HttpClientUtil
 //            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
 //            Authenticator.setDefault(auth);
         }
+    }
+
+    @Data
+    public static class Config
+    {
+        private String keyStore;
+        private String keyStorePasswd;
+        private String keyPasswd;
+        private String type;
+
+        private String trustStore;
+        private String trustStorePasswd;
+
+        private boolean sslKeyManager;
+        private boolean sslTrustManager;
+
+        private ProxyInfo proxyInfo;
+
+        public Config ofProxy(ProxyInfo proxyInfo)
+        {
+            this.proxyInfo = proxyInfo;
+            return this;
+        }
+
+        public void configError()
+        {
+            if (this.isSslKeyManager() && (isEmpty(keyStore) || isEmpty(keyStorePasswd) || isEmpty(keyPasswd) || isEmpty(type)))
+            {
+                throw new RuntimeException("ssl key store is null");
+            }
+            if (this.isSslTrustManager() && (isEmpty(trustStore) || isEmpty(trustStorePasswd) || isEmpty(type)))
+            {
+                throw new RuntimeException("ssl trust store is null");
+            }
+        }
+    }
+
+    private static boolean isEmpty(String str)
+    {
+        return null == str || str.trim().length() == 0;
     }
 }

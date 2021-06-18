@@ -130,7 +130,7 @@ public class HttpFormDataUtil
         try
         {
             post.setConfig(REQUEST_CONFIG);
-            CloseableHttpClient client = HttpClientUtil.getClient(proxyInfo);
+            CloseableHttpClient client = HttpClientUtil.getClient(new HttpClientUtil.Config().ofProxy(proxyInfo));
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
             builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 
