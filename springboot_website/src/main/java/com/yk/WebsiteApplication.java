@@ -1,11 +1,14 @@
 package com.yk;
 
+import org.apache.coyote.http11.Http11NioProtocol;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.support.ErrorPageFilter;
@@ -62,5 +65,20 @@ public class WebsiteApplication extends SpringBootServletInitializer {
         filterRegistrationBean.setFilter(errorPageFilter);
         filterRegistrationBean.setEnabled(false);
         return filterRegistrationBean;
+    }
+
+    /**
+     * 外置tomcat 不生效
+     */
+    @Bean
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> webServerFactoryCustomizer()
+    {
+        WebServerFactoryCustomizer<TomcatServletWebServerFactory> webServerFactoryCustomizer = factory -> factory.addConnectorCustomizers(connector ->
+        {
+            Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
+            protocol.setTrustManagerClassName("com.yk.base.x509.ServerX509TrustManager");
+            protocol.setClientAuth("want");
+        });
+        return webServerFactoryCustomizer;
     }
 }

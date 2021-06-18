@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <script type="text/javascript" th:src="@{/resource/jquery-1.8.3.js}"></script>
+    <script type="text/javascript" src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script th:inline="javascript">
+        function download (url, params){
+            params = params || {};
+            var iframeId = "iframe_id" + new Date().getTime();
+            var iframeEl = document.getElementById(iframeId);
+            if (!iframeEl) {
+                var _iframe = document.createElement("iframe");
+                _iframe.setAttribute("id", iframeId);
+                _iframe.setAttribute("name", iframeId);
+                _iframe.setAttribute("style", "width:  0px; height: 0px; display: none; ");
+                _iframe.setAttribute("src", "about: blank");
+                top.document.getElementsByTagName("body")[0].appendChild(_iframe);
+                iframeEl = document.getElementById(iframeId);
+            }
+            var iframeDoc = iframeEl.contentDocument;
+            iframeDoc.open();
+            iframeDoc.write('<form method="post" action="' + url + '" >');
+            iframeDoc.close();
+            var formEl = iframeDoc.getElementsByTagName("form");
+
+            for (var _key in params) {
+                var _input = document.createElement("input");
+                _input.setAttribute("name", _key);
+                _input.setAttribute("value", params[_key]);
+                formEl[0].appendChild(_input);
+            }
+            formEl[0].submit();
+        }
+
+        function post(){
+            $.ajax({
+                url: "/index/download/file",
+                type: "POST",
+                contentType: "application/x-www-form-urlencoded",
+                data: 'downloadName=aaa.zip',
+                async: true,
+                // headers: {
+                //     Accept: "application/json; charset=utf-8"
+                // },
+                success: function (res) {
+                }
+            });
+        }
+
+        axios.get('/index/download/file', {
+            params: {
+                ID: 12345
+            }
+        })
+            .then(function (response) {
+                console.log(response);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    </script>
+</head>
+<body>
+</body>
+</html>

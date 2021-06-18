@@ -37,6 +37,8 @@ public class DemoService
 
     /**
      * 多个MyService bean会被放入list
+     *
+     * 参考 DelegatingWebMvcConfiguration - setConfigurers方法， Autowire自动注入的bean 就是接口WebMvcConfigurer 的多个实现类
      */
     /*public DemoService(List<MyService> ms)
     {

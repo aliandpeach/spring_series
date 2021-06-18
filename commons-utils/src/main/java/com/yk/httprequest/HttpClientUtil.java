@@ -33,10 +33,14 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,6 +49,7 @@ import java.net.PasswordAuthentication;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
+import java.security.KeyStore;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -63,7 +68,7 @@ public class HttpClientUtil
     
     private static CloseableHttpClient httpClient; // 发送请求的客户端单例
     
-    public static CloseableHttpClient getClient(ProxyInfo proxyInfo) throws GeneralSecurityException
+    public static CloseableHttpClient getClient(ProxyInfo proxyInfo) throws GeneralSecurityException, IOException
     {
         if (null == httpClient)
         {
@@ -75,7 +80,12 @@ public class HttpClientUtil
                     sslContextBuilder.loadTrustMaterial((chain, authType) -> true);
 
                     SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-                    sslContext.init(null, new TrustManager[]{new NullX509TrustManager()}, new SecureRandom());
+
+                    KeyManagerFactory factory = KeyManagerFactory.getInstance("SunX509");
+                    KeyStore key = KeyStore.getInstance("JKS");
+                    key.load(new FileInputStream("D:\\idea_workspace\\development_tool\\apache-tomcat-9.0.41_https\\conf\\ssl\\broker.ks"), "Spinfo@0123".toCharArray());
+                    factory.init(key, "Spinfo@0123".toCharArray());
+                    sslContext.init(factory.getKeyManagers(), new TrustManager[]{new NullX509TrustManager()}, new SecureRandom());
 
                     // NoopHostnameVerifier | DefaultHostnameVerifier
                     SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);

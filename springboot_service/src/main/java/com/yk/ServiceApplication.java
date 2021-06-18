@@ -71,7 +71,7 @@ public class ServiceApplication {
                 collection.addPattern("/*");
                 constraint.addCollection(collection);
                 context.addConstraint(constraint);
-                
+
                 LoginConfig loginConfig = new LoginConfig();
                 loginConfig.setAuthMethod("CLIENT-CERT");
                 loginConfig.setRealmName("Client Cert Users-only Area");
@@ -118,11 +118,21 @@ public class ServiceApplication {
      * customize方法中的Connector与 servletContainerInitializer-customize的Connector是同一个，
      * 所以该Bean的customize会覆盖上面的customize
      *
-     * @return
+     *
+     * TomcatServletWebServerFactory - getWebServer
+     *     一个 TomcatServletWebServerFactory 对象中只有一个Connector 对象,
+     *     自定义的 WebServerFactoryCustomizer bean会在启动过程中在 WebServerFactoryCustomizerBeanPostProcessor 注入 TomcatServletWebServerFactory bean
+     *     而 TomcatServletWebServerFactory bean 是在 ServletWebServerFactoryConfiguration 自动装配的 ( 在缺失 TomcatServletWebServerFactory bean的时候才装配)
+     *     ( 但是我们自定义了 servletContainerInitializer方法也就自定义了 TomcatServletWebServerFactory bean )
+     *   因此, 这里的 Connector 对象, 和 servletContainerInitializer 的 Connector是同一个 ( TomcatServletWebServerFactory bean 全局就一个, 就是我们自定义的servletContainerInitializer方法生成的)
+     *
+     *
+     * 所以一般来说, 构造一个 WebServerFactoryCustomizer 来对 SpringBoot自动装配的 TomcatServletWebServerFactory 进行修改就够了
+     * 除非我们还需要对 TomcatServletWebServerFactory 内的部分方法进行覆盖, 那就需要去 new 了
      */
     @Bean
-    public WebServerFactoryCustomizer webServerFactoryCustomizer() {
-        WebServerFactoryCustomizer webServerFactoryCustomizernew = new WebServerFactoryCustomizer<TomcatServletWebServerFactory>() {
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> webServerFactoryCustomizer() {
+        WebServerFactoryCustomizer<TomcatServletWebServerFactory> webServerFactoryCustomizernew = new WebServerFactoryCustomizer<TomcatServletWebServerFactory>() {
 
             public void customize(TomcatServletWebServerFactory factory) {
                 Collection<TomcatConnectorCustomizer> list = factory.getTomcatConnectorCustomizers();
