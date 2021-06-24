@@ -45,6 +45,8 @@ public class WebsiteApplication extends SpringBootServletInitializer {
     @ConditionalOnMissingBean(name = "dispatcherServlet1")
     public Servlet dispatcherServlet1() {
         GenericServlet servlet = new GenericServlet() {
+            private static final long serialVersionUID = 8306124055775003076L;
+
             @Override
             public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
                 res.setContentType("text/plain");
@@ -60,8 +62,8 @@ public class WebsiteApplication extends SpringBootServletInitializer {
     }
 
     @Bean
-    public FilterRegistrationBean disableSpringBootErrorFilter(@Qualifier("errorPage") ErrorPageFilter errorPageFilter) {
-        FilterRegistrationBean filterRegistrationBean = new FilterRegistrationBean();
+    public FilterRegistrationBean<ErrorPageFilter> disableSpringBootErrorFilter(@Qualifier("errorPage") ErrorPageFilter errorPageFilter) {
+        FilterRegistrationBean<ErrorPageFilter> filterRegistrationBean = new FilterRegistrationBean<>();
         filterRegistrationBean.setFilter(errorPageFilter);
         filterRegistrationBean.setEnabled(false);
         return filterRegistrationBean;

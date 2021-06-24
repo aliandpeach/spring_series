@@ -4,8 +4,10 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -14,6 +16,19 @@ import java.util.stream.IntStream;
 
 public class WaitNotifyTest
 {
+    @Test
+    public void put() throws InterruptedException
+    {
+        Map<String, String> test = new ConcurrentHashMap<>();
+//        test.put("c", "1");
+//        test.put("a", "1");
+//        test.put("b", "1");
+        String k1 = test.putIfAbsent("a", "a"); // 没有就插入数据, 返回null; 有就不插入, 返回已有数据
+        String k2 = test.computeIfPresent("b", (t, t2) -> "b"); // 有就插入覆盖数据, 返回插入的数据; 没有就不操作, 返回null
+        String k3 = test.computeIfAbsent("c", t -> "c"); // 没有就插入数据, 返回插入的数据; 有就不插入, 返回已有数据
+        System.out.println(test);
+    }
+
     @Test
     public void test() throws InterruptedException
     {

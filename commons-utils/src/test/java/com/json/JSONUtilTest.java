@@ -1,9 +1,14 @@
 package com.json;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.yk.httprequest.JSONUtil;
 import org.junit.Test;
 
+import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,5 +77,75 @@ public class JSONUtilTest
         {
         });
         System.out.println(t2);
+
+
+        String str1 = "{\n" +
+                "    \"errcode\": 0,\n" +
+                "    \"errmsg\": \"ok\",\n" +
+                "    \"department\": [\n" +
+                "        {\n" +
+                "            \"id\": 1,\n" +
+                "            \"name\": \"企业微信测试\",\n" +
+                "            \"parentid\": 0,\n" +
+                "            \"order\": 100000000\n" +
+                "        },\n" +
+                "        {\n" +
+                "            \"id\": 2,\n" +
+                "            \"name\": \"A招生团队\",\n" +
+                "            \"parentid\": 1,\n" +
+                "            \"order\": 100000000\n" +
+                "        },\n" +
+                "        {\n" +
+                "            \"id\": 3,\n" +
+                "            \"name\": \"B招生团队\",\n" +
+                "            \"parentid\": 1,\n" +
+                "            \"order\": 99999000\n" +
+                "        },\n" +
+                "        {\n" +
+                "            \"id\": 2777763842,\n" +
+                "            \"name\": \"G招生团队\",\n" +
+                "            \"parentid\": 1,\n" +
+                "            \"order\": 99998000\n" +
+                "        }\n" +
+                "    ]\n" +
+                "}";
+
+        JSONObject o = JSON.parseObject(str1);
+        String de = o.getString("department");
+        List<Map<String, Object>> depart1 = JSON.parseObject(de, new com.alibaba.fastjson.TypeReference<List<Map<String, Object>>>()
+        {
+        });
+
+        Gson gson = new Gson();
+        List<Map<String, Object>> depart2 = gson.fromJson(de, new MyType<List<Map<String, Object>>>(List.class, new Type[]{Map.class, String.class, Object.class}));
+        List<Map<String, Object>> depart3 = gson.fromJson(de, new TypeToken<List<Map<String, Object>>>(){}.getType());
+    }
+
+    private static class MyType<T> implements ParameterizedType
+    {
+        private final Class<?> clazz;
+
+        private final Type[] types;
+
+        public MyType(Class<?> clazz, Type[] types)
+        {
+            this.clazz = clazz;
+            this.types = types;
+        }
+
+        public Type[] getActualTypeArguments()
+        {
+            return null == types ? new Type[0] : types;
+        }
+
+        public Type getRawType()
+        {
+            return clazz;
+        }
+
+        public Type getOwnerType()
+        {
+            return clazz;
+        }
     }
 }

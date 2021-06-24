@@ -75,7 +75,7 @@ public class HttpFormDataTest
     @Test
     public void sendFormDataXML() throws Exception
     {
-        String url = "https://192.190.116.205:443/SIMP_DBS_S/event/analyze/upload/xml";
+        String url = "https://192.190.116.205:443/SIMP_DBS_S/event/file/analysis/upload/xml";
 
         JAXBContext context = JAXBContext.newInstance(FileInfos.class);
         Marshaller marshaller = context.createMarshaller();
@@ -111,7 +111,7 @@ public class HttpFormDataTest
     @Test
     public void sendFormDataXMLByHttpClient() throws Exception
     {
-        String url = "https://192.190.116.205:443/SIMP_DBS_S/event/analyze/upload/xml";
+        String url = "https://192.190.116.205:443/SIMP_DBS_S/event/file/analysis/upload/xml";
 
         JAXBContext context = JAXBContext.newInstance(FileInfos.class);
         Marshaller marshaller = context.createMarshaller();
