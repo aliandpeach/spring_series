@@ -74,6 +74,14 @@
     <div>
         自定义短语：<input style="width: 570px" id="_phrase" />
     </div>
+
+    <div style="margin-top: 10px">
+        <button id="_detail_key">私钥详情</button>
+        <span id="_detail_key_result" class="bold"></span>
+    </div>
+    <div>
+        自定义短语：<input style="width: 570px" id="_key" />
+    </div>
 </body>
 <script th:inline="javascript">
 
@@ -98,6 +106,9 @@
         });
         $("#_brain_key").unbind("click").bind("click", function () {
             brain();
+        });
+        $("#_detail_key").unbind("click").bind("click", function () {
+            detail();
         });
     });
 
@@ -177,6 +188,18 @@
             async: true,
             success: function (result) {
                 $("#_brain_key_result").html(JSON.stringify(result));
+            }
+        });
+    }
+    function detail() {
+        $.ajax({
+            type: "POST",
+            contentType: "application/json",
+            url: "/block/chain/the/detail",
+            data: '{"key" : "' + $('#_key').val() + '"}',
+            async: true,
+            success: function (result) {
+                $("#_detail_key_result").html(JSON.stringify(result));
             }
         });
     }

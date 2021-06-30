@@ -241,6 +241,13 @@ public class BlockchainController
         String key = blockchainModel.getKey();
         logger.info(key);
         Map<String, String> result = new HashMap<>();
+        byte[] privateKey = keyGenerator.convertKeyByBase58Key(key);
+        if (null == privateKey)
+        {
+            return result;
+        }
+        String pub = keyGenerator.addressGen(privateKey);
+        result.put("publicKey", pub);
         return result;
     }
 }
