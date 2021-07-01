@@ -15,6 +15,8 @@ import java.security.SecureRandom;
 
 /**
  * 对称加密
+ *
+ * new SecureRandom("固定字符串".getBytes()).nextBytes(salt); 只要每次执行都 new SecureRandom对象 则得出的salt 结果都一样
  */
 public class SymmetricEncryption
 {
@@ -218,12 +220,12 @@ public class SymmetricEncryption
         SecureRandom randomSalt = new SecureRandom(symmetricsalt);
         byte[] salt = new byte[16]; // IV length: must be 16 bytes long
         randomSalt.nextBytes(salt);
-        
-        keyGenerator.init(256, sr);
+
+        keyGenerator.init(256, sr);// 生成AES的私钥key
         SecretKey key = keyGenerator.generateKey();
         
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(salt));
+        cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(salt)); // CBC模式必须有 IvParameterSpec
         byte[] enbytes = cipher.doFinal(source);
         return ByteBuffer.wrap(enbytes);
     }
@@ -239,7 +241,7 @@ public class SymmetricEncryption
         SecureRandom randomSalt = new SecureRandom(symmetricsalt);
         byte[] salt = new byte[16]; // IV length: must be 16 bytes long
         randomSalt.nextBytes(salt);
-        
+
         keyGenerator.init(256, sr);
         SecretKey key = keyGenerator.generateKey();
         
@@ -256,14 +258,14 @@ public class SymmetricEncryption
     public ByteBuffer aesEncrypt2(byte[] source) throws Exception
     {
         SecureRandom randomDESKey = new SecureRandom(symmetrickey);
-        byte[] passwd = new byte[32];
-        randomDESKey.nextBytes(passwd);
+        byte[] aesKey = new byte[32];
+        randomDESKey.nextBytes(aesKey);// 生成AES的私钥key
         
         SecureRandom randomSalt = new SecureRandom(symmetricsalt);
         byte[] salt = new byte[16]; // IV length: must be 16 bytes long
         randomSalt.nextBytes(salt);
-        
-        SecretKey key = new SecretKeySpec(passwd, "AES");
+
+        SecretKey key = new SecretKeySpec(aesKey, 0, aesKey.length, "AES");
         
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(salt));
@@ -277,14 +279,14 @@ public class SymmetricEncryption
     public ByteBuffer aesDecrypt2(byte[] source) throws Exception
     {
         SecureRandom randomDESKey = new SecureRandom(symmetrickey);
-        byte[] passwd = new byte[32];
-        randomDESKey.nextBytes(passwd);
+        byte[] aesKey = new byte[32];
+        randomDESKey.nextBytes(aesKey);// 生成AES的私钥key
         
         SecureRandom randomSalt = new SecureRandom(symmetricsalt);
         byte[] salt = new byte[16]; // IV length: must be 16 bytes long
         randomSalt.nextBytes(salt);
         
-        SecretKey key = new SecretKeySpec(passwd, "AES");
+        SecretKey key = new SecretKeySpec(aesKey, "AES");
         
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(salt));

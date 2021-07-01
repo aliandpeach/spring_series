@@ -147,11 +147,13 @@ public class ConvertTest
     {
         // pkcs8_rsa 就是根据openssl_rsa 通过命令转换来的 ( openssl pkcs8 -topk8 -inform PEM -in privkey.pem -outform pem -nocrypt -out pkcs8.pem )
 
+        // 用 BouncyCastle读取openssl生成的没有加密的rsa私钥
         java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(openssl_rsa));
         PrivateKey key1 = KeyFactory.getInstance("RSA").generatePrivate(pkcs8EncodedKeySpec);
         System.out.println("key1=" + key1);
 
+        // 读取 openssl生成的rsa 然后转换的pkcs8格式私钥
         PKCS8EncodedKeySpec pkcs8EncodedKeySpec2 = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(pkcs8_rsa));
         PrivateKey key2 = KeyFactory.getInstance("RSA").generatePrivate(pkcs8EncodedKeySpec2);
         System.out.println("key2=" + key2);
@@ -249,6 +251,9 @@ public class ConvertTest
      *   1. 生成没有加密的RSA 私钥: openssl genrsa -out privkey.pem 2048
      *   2. 转换为没有加密的PKCS8 : openssl pkcs8 -topk8 -inform PEM -in privkey.pem -outform pem -nocrypt -out pkcs8.pem
      *   3. 使用AES-256 加密
+     *   但是这样比较麻烦，且不能使用 java api 直接解密 （EncryptedPrivateKeyInfo）
+     *
+     * 直接使用 bouncycastle生成加密的pkcs8私钥 - 参考方法: generatPKCS8_Encrypted
      */
     @Test
     public void testEncryptedRSAPrivateKey() throws Exception
