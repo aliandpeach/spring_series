@@ -99,6 +99,22 @@ public class Main {
         Function<UserModel, Double> f8 = p -> p.getWeight();
         Function<UserModel, String> f9 = p -> p.getHairColor();
         list.sort(Comparator.comparing(f6).thenComparing(f7).thenComparing(f8).thenComparing(f9).reversed());
+        // Collections.sort(list); // UserModel 需要实现 Comparable
+        Collections.sort(list, Comparator.comparing(UserModel::getAge));
+
+        list = new ArrayList<>();
+        list.add(new UserModel(10, "Li", 23.0, "black"));
+        list.add(new UserModel(17, "Li", 23.0, "black"));
+        list.add(new UserModel(15, "Zao4", 29.5, "pink"));
+        list.add(new UserModel(11, "Zao", 29.5, "pink"));
+        list.add(new UserModel(16, "Zao6", 29.5, "pink"));
+        list.add(new UserModel(1, "John", 20.3, "black"));
+        list.add(new UserModel(14, "Zao3", 29.5, "pink"));
+        list.add(new UserModel(2, "Carl", 22.5, "yellow"));
+        list.add(new UserModel(13, "Zao2", 29.5, "pink"));
+        list.add(new UserModel(3, "Divid", 26.1, "red"));
+        list.add(new UserModel(12, "Zao1", 29.5, "pink"));
+        List<UserModel> list_sorted_test = list.stream().sorted(Comparator.comparing(f6)).collect(Collectors.toList());
 
         Optional.<List<UserModel>>ofNullable(list).map(l -> l.toString()).ifPresent(System.out::println);
 

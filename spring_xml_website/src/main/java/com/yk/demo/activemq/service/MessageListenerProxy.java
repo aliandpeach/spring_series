@@ -43,7 +43,7 @@ public class MessageListenerProxy<T> implements MessageListener
 
     public void setClient(MessageTopic topic, Client<T> client)
     {
-        clientMap.put(topic, client);
+        clientMap.putIfAbsent(topic, client);
     }
 
     public synchronized void addSubscribes(MessageTaskManager<T> task)

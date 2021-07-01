@@ -43,21 +43,17 @@ public class MessageCenter<T>
 
         for (MessageTopic topic : MessageTopic.values())
         {
-
             if (type == 1 || type == 0)
             {
-                Client<T> producer = new MessageProducerClient<T>();
+                Client<T> producer = producers.computeIfAbsent(topic, t -> new MessageProducerClient<T>());
                 producer.connect(TCP_URL, topic.name());
-                producers.put(topic, producer);
             }
             if (type == 2 || type == 0)
             {
-                MessageListenerProxy<T> proxy = new MessageListenerProxy<>();
-                listenerProxys.put(topic, proxy);
-                Client<T> client = new MessageConsumerClient<T>();
+                MessageListenerProxy<T> proxy = listenerProxys.computeIfAbsent(topic, t -> new MessageListenerProxy<>());
+                Client<T> client = consumers.computeIfAbsent(topic, t -> new MessageConsumerClient<T>());
                 client.connect(TCP_URL, topic.name());
                 client.setListener(proxy);
-                consumers.put(topic, client);
                 proxy.setClient(topic, client);
             }
         }

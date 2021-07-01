@@ -34,8 +34,14 @@ public abstract class Client<T>
 
     protected TopicSubscriber subscriber;
 
-    public void connect(String tcpUrl, String topicName)
+    private boolean conn;
+
+    public synchronized void connect(String tcpUrl, String topicName)
     {
+        if (conn)
+        {
+            return;
+        }
         try
         {
             factory = new ActiveMQConnectionFactory(tcpUrl);
@@ -48,6 +54,7 @@ public abstract class Client<T>
             publisher = session.createPublisher(topic);
             //
             subscriber = session.createSubscriber(topic);
+            conn = true;
         }
         catch (JMSException e)
         {
