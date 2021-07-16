@@ -45,11 +45,8 @@ public class ActiveMQMainTopic
         new TopicConsumer();
         new TopicConsumer2();
         TopicProducer producer = new TopicProducer();
-        while (true)
-        {
-            producer.publishMessages();
-            Thread.sleep(1000);
-        }
+        producer.publishMessages();
+        Thread.sleep(1000);
     }
 
     @Test
@@ -66,7 +63,7 @@ public class ActiveMQMainTopic
             }
 
             @Override
-            public void replay(Session session, Message message) throws JMSException
+            public void replay(Session session, Message message, MessageForm<Map<String, String>> form) throws JMSException
             {
                 if (null == session)
                 {
@@ -92,7 +89,7 @@ public class ActiveMQMainTopic
             }
 
             @Override
-            public void replay(Session session, Message message) throws JMSException
+            public void replay(Session session, Message message, MessageForm<Map<String, String>> form) throws JMSException
             {
                 if (null == session)
                 {

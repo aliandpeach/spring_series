@@ -1,11 +1,10 @@
 package com.yk.index.controller;
 
-import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,7 +14,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * DownloadController
@@ -24,7 +22,7 @@ import java.util.concurrent.TimeUnit;
  * @version 1.0
  * @since 2021/06/16 12:07:14
  */
-@Controller
+@RestController
 @RequestMapping("/index/download")
 public class DownloadController
 {

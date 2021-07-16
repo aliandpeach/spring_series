@@ -1,8 +1,8 @@
 package com.yk.index.controller;
 
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 /**
@@ -12,7 +12,7 @@ import org.springframework.web.servlet.ModelAndView;
  * @version 1.0
  * @since 2021/06/16 12:07:14
  */
-@RestController
+@Controller
 @RequestMapping("/")
 public class IndexController
 {

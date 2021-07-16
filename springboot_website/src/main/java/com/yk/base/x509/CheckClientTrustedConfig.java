@@ -39,7 +39,7 @@ public class CheckClientTrustedConfig implements ServletContextInitializer
     @Value("${trust.verify-uri}")
     private String verifyUri;
 
-    @Value("${trust.root.ca.alias}")
+    @Value("${trust.root-ca-alias}")
     private String rootCAAlias;
 
     @Getter

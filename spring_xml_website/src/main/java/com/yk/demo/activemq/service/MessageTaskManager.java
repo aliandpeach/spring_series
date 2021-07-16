@@ -24,7 +24,7 @@ public abstract class MessageTaskManager<T>
      */
     protected abstract void onMessageTask(MessageForm<T> messageForm);
 
-    protected void replay(Session session, Message message) throws JMSException
+    protected void replay(Session session, Message message, MessageForm<T> form) throws JMSException
     {
         if (null == session)
         {

@@ -69,7 +69,7 @@ public class QueueProducer
 
             message.setJMSReplyTo(tempQueue);
             sender.send(queue, message);
-            Message message1 = receiver.receive();
+            Message message1 = receiver.receive(20000);
             System.out.println(null != message1 ? ((TextMessage) message1).getText() : "no replay");
         }
         catch (Exception e)

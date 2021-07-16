@@ -63,9 +63,11 @@ spring:
         min-idle: 0
         max-wait: -1
 server:
-  port: 21112
+  port: 21111
   servlet:
     context-path: /
+    encoding:
+      force: true # HttpEncodingAutoConfiguration
   ssl:
     enabled: true
     key-store: classpath:key/website_a.jks

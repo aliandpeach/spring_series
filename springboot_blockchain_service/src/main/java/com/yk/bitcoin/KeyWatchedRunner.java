@@ -116,7 +116,7 @@ public class KeyWatchedRunner implements Runnable
                 long balance = values.get("final_balance");
                 if (balance > 0)
                 {
-                    watchedLogger.info("Wallet private key = " + temp.get(pub) + ", balance: " + balance);
+                    watchedLogger.info("Wallet private key = " + temp.get(pub) + ", public key=" + pub + ", balance: " + balance);
                 }
             });
 

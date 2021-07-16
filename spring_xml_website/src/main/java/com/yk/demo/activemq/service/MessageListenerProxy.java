@@ -24,9 +24,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class MessageListenerProxy<T> implements MessageListener
 {
 
-    private ExecutorService activeMQListenerExecutor = Executors.newFixedThreadPool(1);
+    private ExecutorService activeMQListenerExecutor = Executors.newFixedThreadPool(10);
 
-    private ExecutorService messageProxyExecutor = Executors.newFixedThreadPool(2);
+    private ExecutorService messageProxyExecutor = Executors.newFixedThreadPool(20);
 
     /**
      * 存储某个MessageTopic下 所有的业务类订阅者，订阅者都继承于MessageTaskManager
@@ -116,7 +116,7 @@ public class MessageListenerProxy<T> implements MessageListener
             {
                 try
                 {
-                    task.replay(clientMap.get(form.getMessageTopic()).getSession(), message);
+                    task.replay(clientMap.get(form.getMessageTopic()).getSession(), message, form);
                     break;
                 }
                 catch (JMSException e)

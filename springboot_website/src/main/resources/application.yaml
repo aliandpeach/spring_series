@@ -3,3 +3,9 @@ spring:
     user:
       name: user
       password: Admin@123
+
+trust:
+  trust-store: ${catalina.base}/conf/ssl/broker.ts
+  trust-store-passwd: Spinfo@1234
+  verify-uri: /xxxxxx/*
+  root-ca-alias: broker

@@ -78,7 +78,7 @@ public class TopicProducer
             message.setJMSReplyTo(temporaryTopic);
             publisher.publish(topic, message);
 
-            Message message1 = receiver.receive();
+            Message message1 = receiver.receive(20000);
             System.out.println(null != message1 ? ((TextMessage) message1).getText() : "no replay");
         }
         catch (JMSException e)

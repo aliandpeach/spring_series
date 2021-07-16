@@ -49,8 +49,8 @@ public class MessageProducerClient<T> extends Client<T>
             replaySubscriber = session.createSubscriber(temporaryTopic);
             bytesMessage.setJMSReplyTo(temporaryTopic);
             publisher.publish(publisher.getTopic(), bytesMessage);
-            Message message = replaySubscriber.receive();
-            if (null != message && message instanceof TextMessage)
+            Message message = replaySubscriber.receive(20000);
+            if (message instanceof TextMessage)
             {
                 return ((TextMessage)message).getText();
             }
