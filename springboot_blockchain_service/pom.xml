@@ -160,7 +160,7 @@
             <version>1.1.23</version>
         </dependency>
 
-        <dependency>
+        <!--<dependency>
             <groupId>com.github.atomashpolskiy</groupId>
             <artifactId>bt-core</artifactId>
             <version>1.9</version>
@@ -278,7 +278,7 @@
                     <artifactId>jetty-server</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
+        </dependency>-->
     </dependencies>
     <build>
         <resources>

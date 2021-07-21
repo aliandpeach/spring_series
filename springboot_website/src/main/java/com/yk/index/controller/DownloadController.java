@@ -1,10 +1,14 @@
 package com.yk.index.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +30,14 @@ import java.util.Map;
 @RequestMapping("/index/download")
 public class DownloadController
 {
+    @RequestMapping(value = "/upload", method = RequestMethod.POST)
+    public ResponseEntity<String> uploadFile(HttpServletResponse response, MultipartHttpServletRequest request) throws IOException
+    {
+        MultiValueMap<String, MultipartFile> multipartFileMultiValueMap = request.getMultiFileMap();
+        Map<String, MultipartFile> multipartFileMap = request.getFileMap();
+        return new ResponseEntity<String>("OK", HttpStatus.OK);
+    }
+
     /**
      * $.ajax({
      *   url: "/index/download/file",

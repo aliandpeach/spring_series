@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -59,16 +60,26 @@ public class DemoDAO
         List<DemoModel> list = new ArrayList<>();
         jdbcTemplate.query("SELECT * FROM  t_demo WHERE name = ?", new Object[]{name}, resultSet ->
         {
-            while (resultSet.next())
-            {
-                long id = resultSet.getLong(1);
-                String nameValue = resultSet.getString(2);
-                DemoModel demoModel = new DemoModel();
-                demoModel.setId(id);
-                demoModel.setName(nameValue);
-                
-                list.add(demoModel);
-            }
+            long id = resultSet.getLong(1);
+            String nameValue = resultSet.getString(2);
+            DemoModel demoModel = new DemoModel();
+            demoModel.setId(id);
+            demoModel.setName(nameValue);
+
+            list.add(demoModel);
+        });
+
+        List<Map<String, Object>> result1 = jdbcTemplate.queryForList("SELECT * FROM  t_demo");
+
+        List<Map<String, Object>> result = new ArrayList<>();
+        jdbcTemplate.query("SELECT * FROM  t_demo", new Object[]{}, resultSet ->
+        {
+            long id = resultSet.getLong(1);
+            String nameValue = resultSet.getString(2);
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", id);
+            m.put("name", nameValue);
+            result.add(m);
         });
         return list;
     }

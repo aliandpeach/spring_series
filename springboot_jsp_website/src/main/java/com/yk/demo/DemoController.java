@@ -29,11 +29,8 @@ public class DemoController
     {
         jdbcTemplate.query("SELECT * FROM t_s_role ", resultSet ->
         {
-            while (resultSet.next())
-            {
-                String string1 = resultSet.getString(1);
-                String string2 = resultSet.getString(2);
-            }
+            String string1 = resultSet.getString(1);
+            String string2 = resultSet.getString(2);
         });
         
         CurParameterizedType type = new CurParameterizedType(Map.class, new Type[]{String.class, Object.class});

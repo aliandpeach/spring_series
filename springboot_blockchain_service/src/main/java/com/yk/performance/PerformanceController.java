@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,7 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.OptionalLong;
 import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
@@ -47,13 +47,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @RestController
 @RequestMapping("/performance")
 @EnableConfigurationProperties(BlockchainProperties.class)
+// 配置 performance.enable为true才会初始化 PerformanceController - bean 没有配置则默认false, 同样不初始化
+@ConditionalOnProperty(name = "performance.enable", havingValue = "true", matchIfMissing = false)
 public class PerformanceController implements InitializingBean
 {
     private static final Logger logger = LoggerFactory.getLogger("performance");
@@ -471,7 +472,7 @@ public class PerformanceController implements InitializingBean
 
     public HttpFormDataUtil.HttpResponse sendTest(List<File> files, AtomicInteger counter, BlockingQueue<Long> ttimes) throws Exception
     {
-        if (blockchainProperties.isDev())
+        if (dev)
         {
             long start = System.currentTimeMillis();
             TimeUnit.SECONDS.sleep(new Random().nextInt(12 - 3 + 1) + 3);
@@ -489,7 +490,6 @@ public class PerformanceController implements InitializingBean
 
     public HttpFormDataUtil.HttpResponse sendFormData(List<File> files, AtomicInteger counter, BlockingQueue<Long> ttimes) throws Exception
     {
-        String url = blockchainProperties.getUrl();
         JAXBContext context = JAXBContext.newInstance(FileInfos.class);
         Marshaller marshaller = context.createMarshaller();
 
@@ -545,23 +545,27 @@ public class PerformanceController implements InitializingBean
     @Override
     public void afterPropertiesSet() throws Exception
     {
-        File dir = new File(blockchainProperties.getPath());
+        if (null == path)
+        {
+            return;
+        }
+        File dir = new File(path);
         if (!dir.exists())
         {
-            logger.error("path {} is not exists!!!", blockchainProperties.getPath());
+            logger.error("path {} is not exists!!!", path);
             return;
         }
         File[] files = dir.listFiles();
         if (null == files)
         {
-            logger.error("path {} is empty!!!", blockchainProperties.getPath());
+            logger.error("path {} is empty!!!", path);
             return;
         }
 
-        logger.info("path {} is starting load files", blockchainProperties.getPath());
+        logger.info("path {} is starting load files", path);
         try
         {
-            List<File> loopFiles = FileUtil.loopFiles(blockchainProperties.getPath());
+            List<File> loopFiles = FileUtil.loopFiles(path);
             FILES.addAll(loopFiles);
         }
         catch (Error r)
@@ -569,6 +573,6 @@ public class PerformanceController implements InitializingBean
             r.printStackTrace();
             logger.info("loopFiles error", r);
         }
-        logger.info("path {} is end load files count= " + FILES.size(), blockchainProperties.getPath());
+        logger.info("path {} is end load files count= " + FILES.size(), path);
     }
 }

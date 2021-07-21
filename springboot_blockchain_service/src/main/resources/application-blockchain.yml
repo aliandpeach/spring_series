@@ -87,9 +87,6 @@ block:
     api-host: https://blockchain.info/balance
     producer: 2
     consumer: 2
-    path: D:\workspace\SIMP_DBS_D_\Web\trunk # /opt/dbs10/hadoopdata/20201014/123
-    url: https://192.190.116.205:443/SIMP_DBS_S/event/analyze/upload/xml
-    dev: true
 mybatis:
   mapper-locations: classpath*:mappers/**/*.xml
   type-aliases-package: com.yk.demo,com.yk.base

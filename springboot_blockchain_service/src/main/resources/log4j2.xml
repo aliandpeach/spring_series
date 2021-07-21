@@ -10,13 +10,13 @@
 
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d %-5p (%F:%L) - %m%n"/>
+            <PatternLayout charset="UTF-8" pattern="%d %-5p (%F:%L) - %m%n"/>
         </Console>
 
         <RollingRandomAccessFile name="status"
                                  fileName="${LOG_HOME}/logs/status_${INFO_LOG_FILE_NAME}.log"
                                  filePattern="${LOG_HOME}/logs/status/status_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}-%i.gz">
-            <PatternLayout
+            <PatternLayout charset="UTF-8"
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
@@ -28,7 +28,7 @@
         <RollingRandomAccessFile name="watched"
                                  fileName="${LOG_HOME}/logs/watched_${INFO_LOG_FILE_NAME}.log"
                                  filePattern="${LOG_HOME}/logs/watched/watched_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}-%i.gz">
-            <PatternLayout
+            <PatternLayout charset="UTF-8"
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
@@ -39,7 +39,7 @@
         <RollingRandomAccessFile name="hex_key"
                                  fileName="${LOG_HOME}/logs/hex_key_${INFO_LOG_FILE_NAME}.log"
                                  filePattern="${LOG_HOME}/logs/hex_key/hex_key_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}-%i.gz">
-            <PatternLayout
+            <PatternLayout charset="UTF-8"
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
@@ -50,7 +50,7 @@
         <RollingRandomAccessFile name="error"
                                  fileName="${LOG_HOME}/logs/${ERROR_LOG_FILE_NAME}.log"
                                  filePattern="${LOG_HOME}/logs/error/${ERROR_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}-%i.gz">
-            <PatternLayout
+            <PatternLayout charset="UTF-8"
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
@@ -61,7 +61,7 @@
         <RollingRandomAccessFile name="record"
                                  fileName="${LOG_HOME}/logs/record_${INFO_LOG_FILE_NAME}.log"
                                  filePattern="${LOG_HOME}/logs/record/record_${INFO_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}-%i.gz">
-            <PatternLayout
+            <PatternLayout charset="UTF-8"
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
@@ -74,7 +74,7 @@
         <RollingRandomAccessFile name="demo"
                                  fileName="${LOG_HOME}/logs/demo.log"
                                  filePattern="${LOG_HOME}/logs/demo/demo.log.%d{yyyy-MM-dd}-%i.gz">
-            <PatternLayout
+            <PatternLayout charset="UTF-8"
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
@@ -86,7 +86,7 @@
         <RollingRandomAccessFile name="base"
                                  fileName="${LOG_HOME}/logs/base.log"
                                  filePattern="${LOG_HOME}/logs/base/base.log.%d{yyyy-MM-dd}-%i.gz">
-            <PatternLayout
+            <PatternLayout charset="UTF-8"
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
@@ -97,7 +97,7 @@
         <RollingRandomAccessFile name="performance"
                                  fileName="${LOG_HOME}/logs/performance.log"
                                  filePattern="${LOG_HOME}/logs/performance/performance.log.%d{yyyy-MM-dd}-%i.gz">
-            <PatternLayout
+            <PatternLayout charset="UTF-8"
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>

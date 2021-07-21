@@ -45,3 +45,5 @@ block:
     path: F:\Download\DBS_S
     url: https://192.190.116.205:443/SIMP_DBS_S/event/analyze/upload/xml
     dev: false
+performance:
+  enable: true

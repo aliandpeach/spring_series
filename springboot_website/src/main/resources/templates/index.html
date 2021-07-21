@@ -6,6 +6,17 @@
     <script type="text/javascript" th:src="@{/resource/jquery-1.8.3.js}"></script>
     <script type="text/javascript" src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script th:inline="javascript">
+        function uploadOnload() {
+            // var body = $(window.frames['_upload_resp_iframe'].window.document.body);
+            var body = $(window.frames['_upload_resp_iframe'].document.body);
+            var retMsg = $("#returnMsg");
+            retMsg.text(body.context.textContent);
+
+            //top.document.getElementById("_upload_resp_iframe").contentWindow.document.body.textContent
+            //top.document.getElementById("_upload_resp_iframe").contentDocument.body.textContent
+        }
+    </script>
+    <script th:inline="javascript">
         function download (url, params){
             params = params || {};
             var iframeId = "iframe_id" + new Date().getTime();
@@ -63,5 +74,12 @@
     </script>
 </head>
 <body>
+<form method="post" action="/index/download/upload" enctype="multipart/form-data" target="_upload_resp_iframe">
+    选择要上传的文件：<input accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" multiple="multiple" type="file" name="_upload_input1"><br>
+    <hr>
+    <input type="submit" value="提交">
+</form>
+<span id="returnMsg" style="margin-left:20px;font-size:15px;"></span>
+<iframe style="display: none" onload="uploadOnload()" name="_upload_resp_iframe" id="_upload_resp_iframe"></iframe>
 </body>
 </html>

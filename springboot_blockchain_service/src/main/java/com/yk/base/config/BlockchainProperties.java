@@ -30,18 +30,6 @@ public class BlockchainProperties
 
     private int consumer = 1;
 
-    @Getter
-    @Setter
-    private String path = "";
-
-    @Getter
-    @Setter
-    private String url = "";
-
-    @Getter
-    @Setter
-    private boolean dev;
-
     public boolean isExecute()
     {
         return execute;
