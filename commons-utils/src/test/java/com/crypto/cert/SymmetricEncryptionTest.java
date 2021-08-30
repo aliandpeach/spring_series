@@ -24,7 +24,9 @@ public class SymmetricEncryptionTest
     @Before
     public void before()
     {
-        symmetricEncryption = SymmetricEncryption.getInstance("AAA".getBytes(), "salt_bbb".getBytes());
+        char [] key = new char[]{'t', 'e', 's', 't', '_', 'd', 'b', 's', '_', 'k', 'e', 'y', '_', 'h', 'h', 'g', 'f', 'd', 'o', 'y', 't', 'y', 't', '#', 'd', 's', 'd', '.', '1', '2', '#', '2', 'u', 'i'};
+        char [] iv = new char[]{'r', 't', 'e', 'c', '$', 'j', 'b', 's', '_', 'k', 'e', 'y', '_', 'h', 'h', 'g', 'f', 'd', 'o', 'y', 't', 'y', 't', '#', 'd', 's', 'd', '.', '1', '2', '#', '2', 'u', 'i'};
+        symmetricEncryption = SymmetricEncryption.getInstance(new String(key).getBytes(), new String(iv).getBytes());
     }
     
     @Test
@@ -36,8 +38,8 @@ public class SymmetricEncryptionTest
         ByteBuffer bufferD = symmetricEncryption.desDecrypt(bufferE.array());
         String ret = new String(bufferD.array(), StandardCharsets.UTF_8);
         Assert.assertEquals(ret, testString);
-        
-        
+
+
         // =========desEncrypt 方法的加密 等同于下面的加密=========
         KeyGenerator keyGenerator = KeyGenerator.getInstance("DES");
         keyGenerator.init(new SecureRandom("AAA".getBytes()));
