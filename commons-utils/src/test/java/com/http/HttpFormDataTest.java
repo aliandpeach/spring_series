@@ -140,7 +140,7 @@ public class HttpFormDataTest
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
 //        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, null, null, "http");
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
         HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "application/xml");
         System.out.println(response);
 
@@ -160,7 +160,7 @@ public class HttpFormDataTest
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
 //        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(false, "127.0.0.1", 8080, null, null, "http");
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(false, "127.0.0.1", 8080, "http");
         HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "application/json");
         System.out.println(response);
 

@@ -2,10 +2,12 @@ package com.yk.httprequest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Data;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
@@ -21,6 +23,7 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -28,23 +31,24 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URISyntaxException;
@@ -123,24 +127,24 @@ public class HttpClientUtil
                             .setConnectionManager(poolingHttpClientConnectionManager)
                             .setConnectionManagerShared(true).setDefaultRequestConfig(requestConfig);
 
-                    if (null != config.getProxyInfo())
+                    // 服务器认证: Basic, Digest and NTLM. 主要用于soap-webservice的登录验证
+                    if (null != config.getCredentials() && null != config.getCredentials().getUsername() && null != config.getCredentials().getPasswd())
                     {
-                        if (null != config.getProxyInfo() && config.getProxyInfo().isProxy() && null != config.getProxyInfo().getUsername() && null != config.getProxyInfo().getPasswd())
-                        {
-                            // 需要用户名密码的代理
-                            HttpHost httpHost = new HttpHost(config.getProxyInfo().getHostname(), config.getProxyInfo().getPort(), "http");
-                            CredentialsProvider provider = new BasicCredentialsProvider();
-                            provider.setCredentials(new AuthScope(httpHost), new UsernamePasswordCredentials(config.getProxyInfo().getUsername(), config.getProxyInfo().getPasswd()));
-                            httpClientBuilder.setDefaultCredentialsProvider(provider);
-                        }
-                        else if (null != config.getProxyInfo() && config.getProxyInfo().isProxy())
-                        {
-                            HttpHost httpHost = new HttpHost(config.getProxyInfo().getHostname(), config.getProxyInfo().getPort(), "http");
-                            // 不需要用户名密码的代理
-                            DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(httpHost);
-                            // setProxy  setRoutePlanner最终都是为了生成 DefaultProxyRoutePlanner, 二者使用一个即可
-                            httpClientBuilder.setRoutePlanner(routePlanner).setProxy(httpHost);
-                        }
+                        CredentialsProvider provider = new BasicCredentialsProvider();
+                        UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials(config.getCredentials().getUsername(), config.getCredentials().getPasswd());
+                        NTCredentials webServiceCredentials = new NTCredentials(config.getCredentials().getUsername(), config.getCredentials().getPasswd(), "", "");
+                        provider.setCredentials(new AuthScope(AuthScope.ANY), webServiceCredentials);
+                        httpClientBuilder.setDefaultCredentialsProvider(provider);
+                    }
+
+                    // 设置代理
+                    if (null != config.getProxyInfo() && config.getProxyInfo().isProxy())
+                    {
+                        HttpHost httpHost = new HttpHost(config.getProxyInfo().getHostname(), config.getProxyInfo().getPort(), config.getProxyInfo().getScheme());
+                        DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(httpHost);
+                        // setProxy  setRoutePlanner最终都是为了生成 DefaultProxyRoutePlanner, 二者使用一个即可
+                        // RequestConfig.Builder 的 setProxy() 也一样最后都是用于生成 DefaultProxyRoutePlanner (RequestConfig的方式可以灵活的使 CloseableHttpClient 发送请求的时候使用或者不使用代理)
+                        httpClientBuilder.setRoutePlanner(routePlanner).setProxy(httpHost);
                     }
                     httpClient = httpClientBuilder.build();
                     
@@ -178,10 +182,6 @@ public class HttpClientUtil
             httpGet.addHeader("User-Agent", "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36");
             return client.execute(httpGet, new CurResponseHandlerBytes(fileName, dir, rootDir));
         }
-        catch (IOException e)
-        {
-            throw new RuntimeException("getBytes error", e);
-        }
         catch (Exception e)
         {
             throw new RuntimeException("getBytes error", e);
@@ -202,12 +202,7 @@ public class HttpClientUtil
             builder.setContentEncoding(StandardCharsets.UTF_8.name());
             httpPost.setEntity(builder.build());
 
-            T result = client.execute(httpPost, new CurResponseHandler<T>(typeReference));
-            return result;
-        }
-        catch (IOException e)
-        {
-            throw new RuntimeException("T post error", e);
+            return client.execute(httpPost, new CurResponseHandler<T>(typeReference));
         }
         catch (Exception e)
         {
@@ -470,35 +465,14 @@ public class HttpClientUtil
 
         private int port;
 
-        private String username;
-
-        private String passwd;
-
         private String scheme = "http";
 
-        private Authenticator auth;
-
-        public ProxyInfo(boolean proxy, String hostname, int port, String username, String passwd, String scheme)
+        public ProxyInfo(boolean proxy, String hostname, int port, String scheme)
         {
             this.proxy = proxy;
             this.hostname = hostname;
             this.port = port;
-            this.username = username;
-            this.passwd = passwd;
             this.scheme = scheme;
-            auth = new Authenticator()
-            {
-                public PasswordAuthentication getPasswordAuthentication()
-                {
-                    return new PasswordAuthentication(username, passwd.toCharArray());
-                }
-            };
-//            System.setProperty("http.proxyHost", hostname);
-//            System.setProperty("http.proxyPort", port + "");
-//            System.setProperty("http.proxyUser", username);
-//            System.setProperty("http.proxyPassword", passwd);
-//            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
-//            Authenticator.setDefault(auth);
         }
     }
 
@@ -518,9 +492,17 @@ public class HttpClientUtil
 
         private ProxyInfo proxyInfo;
 
+        private Credentials credentials;
+
         public Config ofProxy(ProxyInfo proxyInfo)
         {
             this.proxyInfo = proxyInfo;
+            return this;
+        }
+
+        public Config ofCredentials(Credentials credentials)
+        {
+            this.credentials = credentials;
             return this;
         }
 
@@ -537,8 +519,82 @@ public class HttpClientUtil
         }
     }
 
+    @Data
+    public static class Credentials
+    {
+        private String username;
+
+        private String passwd;
+
+        private String scheme = "http";
+
+        private Authenticator auth;
+
+        public Credentials(String username, String passwd, String scheme)
+        {
+            this.username = username;
+            this.passwd = passwd;
+            this.scheme = scheme;
+            auth = new Authenticator()
+            {
+                public PasswordAuthentication getPasswordAuthentication()
+                {
+                    return new PasswordAuthentication(username, passwd.toCharArray());
+                }
+            };
+//            System.setProperty("http.proxyHost", hostname);
+//            System.setProperty("http.proxyPort", port + "");
+//            System.setProperty("http.proxyUser", username);
+//            System.setProperty("http.proxyPassword", passwd);
+//            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
+//            Authenticator.setDefault(auth);
+        }
+    }
+
     private static boolean isEmpty(String str)
     {
         return null == str || str.trim().length() == 0;
+    }
+
+    public static class ByteArrayRequestEntity extends BasicHttpEntity
+    {
+
+        private ByteArrayOutputStream os = null;
+
+        public ByteArrayRequestEntity(OutputStream os)
+        {
+            super();
+            this.os = (ByteArrayOutputStream) os;
+        }
+
+        @Override
+        public long getContentLength()
+        {
+            return os.size();
+        }
+
+        @Override
+        public Header getContentType()
+        {
+            return new BasicHeader("Content-Type", "text/xml; charset=utf-8");
+        }
+
+        @Override
+        public boolean isRepeatable()
+        {
+            return true;// important
+        }
+
+        @Override
+        public void writeTo(OutputStream out) throws IOException
+        {
+            os.writeTo(out);
+        }
+
+        @Override
+        public boolean isStreaming()
+        {
+            return false;
+        }
     }
 }

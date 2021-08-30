@@ -3,6 +3,7 @@ package com.yk.util;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -111,5 +112,49 @@ public class ConvertUtil
             }
         }
         return true;
+    }
+
+    public static <T> List<List<T>> partition(List<T> originalList, int split)
+    {
+        if (null == originalList)
+        {
+            return null;
+        }
+        List<List<T>> result = new ArrayList<>();
+        if (split <= 1)
+        {
+            result.add(originalList);
+            return result;
+        }
+        int splitSize = originalList.size() % split == 0 ? originalList.size() / split : originalList.size() / split + 1;
+        for (int i = 0; i < splitSize; i++)
+        {
+            result.add(new ArrayList<>());
+        }
+        for (int i = 0; i < originalList.size(); i++)
+        {
+            result.get(i / split).add(originalList.get(i));
+        }
+        return result;
+    }
+
+    public static <T> List<List<T>> partition2(List<T> originalList, int split)
+    {
+        if (null == originalList)
+        {
+            return null;
+        }
+        List<List<T>> result = new ArrayList<>();
+        if (split <= 1)
+        {
+            result.add(originalList);
+            return result;
+        }
+        int splitSize = originalList.size() % split == 0 ? originalList.size() / split : originalList.size() / split + 1;
+        for (int i = 0; i < splitSize; i++)
+        {
+            result.add(originalList.subList(i * split, i * split + split));
+        }
+        return result;
     }
 }
