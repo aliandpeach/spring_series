@@ -84,7 +84,7 @@ public class JspApplication extends SpringBootServletInitializer
                 connector.setScheme("https");
                 
                 Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
-                protocol.setKeystoreFile("key/website_a.jks");
+                protocol.setKeystoreFile("key/website.ks");
                 protocol.setKeyPass("Admin@1234");
                 protocol.setKeystorePass("Admin@123");
                 protocol.setKeystoreType("JKS");
@@ -102,7 +102,7 @@ public class JspApplication extends SpringBootServletInitializer
         connectorAdditional.setScheme("https");
         
         Http11NioProtocol http11NioProtocol = (Http11NioProtocol) connectorAdditional.getProtocolHandler();
-        http11NioProtocol.setKeystoreFile("key/website_a.jks");
+        http11NioProtocol.setKeystoreFile("key/website.ks");
         http11NioProtocol.setKeyPass("Admin@1234");
         http11NioProtocol.setKeystorePass("Admin@123");
         http11NioProtocol.setKeystoreType("JKS");
@@ -141,7 +141,7 @@ public class JspApplication extends SpringBootServletInitializer
                         connector.setScheme("https");
                         
                         Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
-                        protocol.setKeystoreFile("key/website_a.jks");
+                        protocol.setKeystoreFile("key/website.ks");
                         protocol.setKeyPass("Admin@1234");
                         protocol.setKeystorePass("Admin@123");
                         protocol.setKeystoreType("JKS");

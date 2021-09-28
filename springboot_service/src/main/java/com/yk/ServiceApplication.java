@@ -85,7 +85,7 @@ public class ServiceApplication {
                 connector.setScheme("https");
 
                 Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
-                protocol.setKeystoreFile("key/website_a.jks");
+                protocol.setKeystoreFile("key/website.ks");
                 protocol.setKeyPass(KEYPASS);
                 protocol.setKeystorePass(KEYSTOREPASS);
                 protocol.setKeystoreType("JKS");
@@ -103,7 +103,7 @@ public class ServiceApplication {
         connectorAdditional.setScheme("https");
 
         Http11NioProtocol http11NioProtocol = (Http11NioProtocol) connectorAdditional.getProtocolHandler();
-        http11NioProtocol.setKeystoreFile("key/website_a.jks");
+        http11NioProtocol.setKeystoreFile("key/website.ks");
         http11NioProtocol.setKeyPass(KEYPASS);
         http11NioProtocol.setKeystorePass(KEYSTOREPASS);
         http11NioProtocol.setKeystoreType("JKS");
@@ -147,8 +147,8 @@ public class ServiceApplication {
                         connector.setScheme("https");
 
                         Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
-                        // pom中不指定resources的话，就需要写成 classpath:key/website_a.jks
-                        protocol.setKeystoreFile("key/website_a.jks");
+                        // pom中不指定resources的话，就需要写成 classpath:key/website.ks
+                        protocol.setKeystoreFile("key/website.ks");
                         protocol.setKeyPass(KEYPASS);      // Admin@1234
                         protocol.setKeystorePass(KEYSTOREPASS); // Admin@123
                         protocol.setKeystoreType("JKS");

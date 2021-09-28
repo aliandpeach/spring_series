@@ -11,7 +11,7 @@ server:
     context-path: /
   ssl:
     enabled: true
-    key-store: classpath:key/website_a.jks
+    key-store: classpath:key/website.ks
     key-password: Admin@1234
     key-store-type: JKS
     key-store-password: Admin@123
