@@ -55,7 +55,7 @@ public class HttpFormDataTest
     @Test
     public void sendFormData() throws Exception
     {
-        String url = "https://192.190.10.122:21112/import/upload/multiple/json";
+        String url = "https://192.190.10.122:21111/import/upload/multiple/json";
 
         JSONObject jsonObject = new JSONObject();
         String fileId = UUID.randomUUID().toString().replace("-", "");
@@ -141,27 +141,125 @@ public class HttpFormDataTest
         Map<String, Object> headers = new HashMap<>();
 //        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
         HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "application/xml");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil
+                .postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "params", "application/xml");
         System.out.println(response);
 
     }
     @Test
     public void sendFormDataJson() throws Exception
     {
-        String url = "https://192.190.10.122:21112/import/upload/multiple/json";
+        String url = "https://192.190.10.122:21111/import/upload/multiple/json";
         Map<String, String> filePathMap = new HashMap<>();
 
         String fileId = UUID.randomUUID().toString().replace("-", "");
 
-        filePathMap.put(fileId, "F:\\test_share_dir\\5\\5-1.txt");
+        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\spinfossl\\sdk_pub.pem");
 
         String str = JSONUtil.toJson(new HashMap<String, String>(Collections.singletonMap(fileId, "5-1.txt")));
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
 //        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(false, "127.0.0.1", 8080, "http");
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "application/json");
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "params", "application/json");
+        System.out.println(response);
+
+    }
+
+    /**
+     * 上传文件接口, 附带json格式的参数
+     */
+    @Test
+    public void sendFormDataJson3() throws Exception
+    {
+        String url = "https://192.190.10.122:21111/import/upload/multiple/json3";
+        Map<String, String> filePathMap = new HashMap<>();
+
+        String fileId = UUID.randomUUID().toString().replace("-", "");
+
+        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\spinfossl\\sdk_pub.pem");
+
+        String str = JSONUtil.toJson(new HashMap<String, String>(Collections.singletonMap(fileId, "5-1.txt")));
+
+        String boundary = UUID.randomUUID().toString().replace("-", "");
+        Map<String, Object> headers = new HashMap<>();
+//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "params", "application/json");
+        System.out.println(response);
+
+    }
+    /**
+     * 上传文件接口, 附带json格式的参数
+     */
+    @Test
+    public void sendFormDataJson4() throws Exception
+    {
+        String url = "https://192.190.10.122:21111/import/upload/multiple/json4";
+        Map<String, String> filePathMap = new HashMap<>();
+
+        String fileId = UUID.randomUUID().toString().replace("-", "");
+
+        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\spinfossl\\sdk_pub.pem");
+
+        String str = JSONUtil.toJson(new HashMap<String, String>(Collections.singletonMap(fileId, "sdk_pub.txt")));
+
+        String boundary = UUID.randomUUID().toString().replace("-", "");
+        Map<String, Object> headers = new HashMap<>();
+//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil
+                .postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "level", "text/plain");
+        System.out.println(response);
+
+    }
+
+    @Test
+    public void sendFormDataJson5() throws Exception
+    {
+        String url = "https://192.190.10.122:21111/import/upload/multiple/json5";
+        Map<String, String> filePathMap = new HashMap<>();
+
+        String fileId = UUID.randomUUID().toString().replace("-", "");
+
+        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\spinfossl\\sdk_pub.pem");
+
+        Map<String, String> map = new HashMap<String, String>(Collections.singletonMap("name", "sdk_pub.txt"));
+        map.put("value", fileId);
+        String str = JSONUtil.toJson(map);
+
+        String boundary = UUID.randomUUID().toString().replace("-", "");
+        Map<String, Object> headers = new HashMap<>();
+//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil
+                .postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "item", "application/json");
+        System.out.println(response);
+
+    }
+    @Test
+    public void sendFormDataJson6() throws Exception
+    {
+        String url = "https://192.190.10.122:21111/import/upload/multiple/json6";
+        Map<String, String> filePathMap = new HashMap<>();
+
+        String fileId = UUID.randomUUID().toString().replace("-", "");
+
+        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\spinfossl\\sdk_pub.pem");
+
+        List<Map<String, String>> list = new ArrayList<>();
+        Map<String, String> map = new HashMap<String, String>(Collections.singletonMap("name", "sdk_pub.txt"));
+        map.put("value", fileId);
+        list.add(map);
+        String str = JSONUtil.toJson(list);
+
+        String boundary = UUID.randomUUID().toString().replace("-", "");
+        Map<String, Object> headers = new HashMap<>();
+//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil
+                .postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "items", "application/json");
         System.out.println(response);
 
     }

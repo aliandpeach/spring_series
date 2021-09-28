@@ -1,6 +1,7 @@
 package com.crypto.util;
 
 import cn.hutool.core.util.HexUtil;
+import com.crypto.cert.KeyUtilTest;
 import com.yk.crypto.BinHexSHAUtil;
 import com.yk.crypto.EnDecryptUtil;
 import com.yk.crypto.RSA2048Util;
@@ -34,7 +35,7 @@ public class RSA2048UtilTest
     @Before
     public void before()
     {
-        this.rsa = RSA2048Util.getInstance("".toCharArray(), "".toCharArray());
+        this.rsa = RSA2048Util.getInstance(KeyUtilTest.rsa_key_keystore_passwd.toCharArray(), KeyUtilTest.rsa_key_passwd.toCharArray(), null, null);
     }
     
     @Test

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -248,5 +249,25 @@ public class Main {
         // List<Map<String, Object>>  -> Map<String, Map<String, Object>>
         Map<String, Map<String, Object>> map2Map2 = listTest.stream().collect(Collectors.toMap(k -> k.get("id").toString(), v -> v, (k1, k2) -> k1));
         System.out.println(map2Map2);
+
+
+        java.util.List<Map<String, String>> list_2_map = new ArrayList<>();
+        Map<String, String> m1_list_2_map = new HashMap<>(); m1_list_2_map.put("jobId", "1");m1_list_2_map.put("name", "name1");
+        list_2_map.add(m1_list_2_map);
+
+        Map<String, String> m2_list_2_map = new HashMap<>(); m2_list_2_map.put("jobId", "2");m2_list_2_map.put("name", "name2");
+        list_2_map.add(m2_list_2_map);
+
+        Map<String, String> m3_list_2_map = new HashMap<>(); m3_list_2_map.put("jobId", "3");m3_list_2_map.put("name", "name3");
+        list_2_map.add(m3_list_2_map);
+
+        Map<String, String> m4_list_2_map = new HashMap<>(); m4_list_2_map.put("jobId", "4");m4_list_2_map.put("name", "name4");
+        list_2_map.add(m4_list_2_map);
+
+
+        Map<String, String> job2Name = Optional.ofNullable(list_2_map).orElseGet(ArrayList::new).stream()
+                .filter(t -> !Objects.isNull(t) && !Objects.isNull(t.get("jobId")) && !Objects.isNull(t.get("name")))
+                .flatMap(t -> new HashMap<>(Collections.singletonMap(t.get("jobId"), t.get("name"))).entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (k1, k2) -> k1));
     }
 }

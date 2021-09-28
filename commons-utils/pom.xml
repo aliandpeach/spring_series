@@ -138,11 +138,6 @@
             <version>1.2.58</version>
         </dependency>
         <dependency>
-            <groupId>com.github.ulisesbocchio</groupId>
-            <artifactId>jasypt-spring-boot-starter</artifactId>
-            <version>1.18</version>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.12.0</version>
@@ -177,7 +172,26 @@
                     <include>**/*.*</include>
                 </includes>
             </resource>
+            <!--<resource>
+                <directory>src/test/java</directory>
+                <includes>
+                    <include>**/*.pem</include>
+                    <include>**/*.key</include>
+                    <include>**/*.pub</include>
+                </includes>
+            </resource>-->
         </resources>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
+        <testResources>
+            <testResource>
+                <directory>src/test/java</directory>
+                <includes>
+                    <include>**/*.pem</include>
+                    <include>**/*.key</include>
+                    <include>**/*.pub</include>
+                </includes>
+            </testResource>
+        </testResources>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -190,10 +204,5 @@
                 </configuration>
             </plugin>
         </plugins>
-        <testResources>
-            <testResource>
-                <directory>src/test/java</directory>
-            </testResource>
-        </testResources>
     </build>
 </project>

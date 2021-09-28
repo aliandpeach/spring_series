@@ -49,9 +49,9 @@ public class EnDecryptUtil
     
     private RSA2048Util rsa;
     
-    public EnDecryptUtil(char[] storepasswd, char[] keypasswd)
+    public EnDecryptUtil(char[] storepasswd, char[] keypasswd, InputStream keystore, String alias)
     {
-        rsa = RSA2048Util.getInstance(storepasswd, keypasswd);
+        rsa = RSA2048Util.getInstance(storepasswd, keypasswd, keystore, alias);
     }
     
     /**

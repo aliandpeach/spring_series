@@ -1,9 +1,14 @@
 package com.yk.demo.upload;
 
+import lombok.Data;
+import org.springframework.context.annotation.Bean;
 import org.springframework.util.MultiValueMap;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.validation.beanvalidation.MethodValidationPostProcessor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,6 +17,9 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
@@ -117,6 +125,7 @@ public class UploadController
     /**
      * 参数中同时包含了文件和application/json格式的数据
      *
+     * 不能使用postman调用, 但可以使用jmeter 服务端SSL双向认证时, 如果使用Burp Suite抓包,则postman或者jmeter和Burp Suite都需要配置私钥证书(pkcs12即可)
      *
      * 指定标准的http 响应码：
      * 1. 使用ResponseEntity   ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new HashMap<>());
@@ -130,6 +139,120 @@ public class UploadController
     @ResponseBody
     public Map<String, List<String>> multipleUpload2(MultipartHttpServletRequest request,
                                                                      @RequestPart(required = false, name = "params") Map<String, String> params, HttpServletResponse response)
+    {
+        Map<String, List<String>> result = new HashMap<>();
+        Map<String, MultipartFile> map = request.getFileMap();
+        result.putIfAbsent("failed1", new ArrayList<>());
+        result.putIfAbsent("success1", new ArrayList<>());
+        map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
+        {
+            try
+            {
+                t.getValue().transferTo(new File("D:\\opt\\" + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
+                result.get("success1").add(t.getValue().getOriginalFilename());
+            }
+            catch (IOException e)
+            {
+                result.get("failed1").add(t.getValue().getOriginalFilename());
+            }
+        });
+        return result;
+    }
+
+    /**
+     * 上传文件接口, 附带json格式参数, 可以使用postman调用 (parms得到的结果是 {"params" : "value"} )
+     */
+    @PostMapping("/upload/multiple/json3")
+    @ResponseBody
+    public Map<String, List<String>> multipleUpload3(MultipartHttpServletRequest request, @RequestParam Map<String, String> params)
+    {
+        Map<String, List<String>> result = new HashMap<>();
+        Map<String, MultipartFile> map = request.getFileMap();
+        result.putIfAbsent("failed1", new ArrayList<>());
+        result.putIfAbsent("success1", new ArrayList<>());
+        map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
+        {
+            try
+            {
+                t.getValue().transferTo(new File("D:\\opt\\" + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
+                result.get("success1").add(t.getValue().getOriginalFilename());
+            }
+            catch (IOException e)
+            {
+                result.get("failed1").add(t.getValue().getOriginalFilename());
+            }
+        });
+        return result;
+    }
+
+    @Bean
+    public MethodValidationPostProcessor methodValidationPostProcessor()
+    {
+        return new MethodValidationPostProcessor();
+    }
+
+    /**
+     * 上传文件接口, 附带json格式参数, 可以使用postman调用, 需要传入level
+     *
+     * 这里的 @NotEmpty不生效不知道怎么回事
+     */
+    @PostMapping("/upload/multiple/json4")
+    @ResponseBody
+    @Validated
+    public Map<String, List<String>> multipleUpload4(MultipartHttpServletRequest request,
+                                                     @NotEmpty(message = "level is empty") @RequestParam(value = "level", required = true) String level)
+    {
+        Map<String, List<String>> result = new HashMap<>();
+        Map<String, MultipartFile> map = request.getFileMap();
+        result.putIfAbsent("failed1", new ArrayList<>());
+        result.putIfAbsent("success1", new ArrayList<>());
+        map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
+        {
+            try
+            {
+                t.getValue().transferTo(new File("D:\\opt\\" + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
+                result.get("success1").add(t.getValue().getOriginalFilename());
+            }
+            catch (IOException e)
+            {
+                result.get("failed1").add(t.getValue().getOriginalFilename());
+            }
+        });
+        return result;
+    }
+
+    /**
+     * 可以使用postman调用, 需要分别传入 item中的name和value属性
+     */
+    @PostMapping("/upload/multiple/json5")
+    @ResponseBody
+    public Map<String, List<String>> multipleUpload5(MultipartHttpServletRequest request, @Validated Item item)
+    {
+        Map<String, List<String>> result = new HashMap<>();
+        Map<String, MultipartFile> map = request.getFileMap();
+        result.putIfAbsent("failed1", new ArrayList<>());
+        result.putIfAbsent("success1", new ArrayList<>());
+        map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
+        {
+            try
+            {
+                t.getValue().transferTo(new File("D:\\opt\\" + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
+                result.get("success1").add(t.getValue().getOriginalFilename());
+            }
+            catch (IOException e)
+            {
+                result.get("failed1").add(t.getValue().getOriginalFilename());
+            }
+        });
+        return result;
+    }
+
+    /**
+     *  使用@RequestPart接收对象 报文中必须指定格式为 Content-Type: application/json
+     */
+    @PostMapping("/upload/multiple/json6")
+    @ResponseBody
+    public Map<String, List<String>> multipleUpload6(MultipartHttpServletRequest request, @RequestPart List<Item> items)
     {
         Map<String, List<String>> result = new HashMap<>();
         Map<String, MultipartFile> map = request.getFileMap();
@@ -237,5 +360,19 @@ public class UploadController
 
         }
         return new byte[0];
+    }
+
+    @Data
+    private static class Item
+    {
+        @NotEmpty
+        @NotBlank
+        @NotNull
+        private String name;
+
+        @NotEmpty
+        @NotBlank
+        @NotNull
+        private String value;
     }
 }

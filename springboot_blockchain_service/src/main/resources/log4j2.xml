@@ -138,6 +138,9 @@
         <logger name="com.yk.crypto" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="error"/>
         </logger>
+        <logger name="org.springframework" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="error"/>
+        </logger>
 
         <root level="info" includeLocation="true">
             <appender-ref ref="Console"/>

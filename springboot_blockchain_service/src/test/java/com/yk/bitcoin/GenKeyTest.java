@@ -10,7 +10,10 @@ import org.junit.Test;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.Random;
 
 /**
@@ -28,10 +31,20 @@ public class GenKeyTest
     @Test
     public void main() throws InterruptedException
     {
-        byte[] bytes = new byte[12];
+        String[] SECURITY_LEVEL_ARRAY = new String[]{"GONGKAI", "NEIBU", "MIMI", "JIMI", "JUEMI"};
+        int index = Arrays.asList(SECURITY_LEVEL_ARRAY).indexOf("JUEMI");
+        String[] securityLevelAryMatch = Arrays.copyOfRange(SECURITY_LEVEL_ARRAY, index + 1, SECURITY_LEVEL_ARRAY.length);
+
+        String auth = "Basic ";
+
+        String t = auth.substring(auth.indexOf("Basic ") + 6);
+
+        System.out.println(Base64.getEncoder().encodeToString("secadmin".getBytes(StandardCharsets.UTF_8)));
+
+        byte[] bytes = new byte[32];
         new SecureRandom().nextBytes(bytes);
-        String id1 = HexUtil.encodeHexStr(bytes);
-        
+        String id1 = HexUtil.encodeHexStr(bytes).intern();
+        System.out.println(id1);
         new SecureRandom().nextBytes(bytes);
 
         Thread th1 = new Thread(() ->

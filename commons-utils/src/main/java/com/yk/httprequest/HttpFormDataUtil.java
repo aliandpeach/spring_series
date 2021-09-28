@@ -123,6 +123,7 @@ public class HttpFormDataUtil
                                                         Map<String, Object> headers,
                                                         HttpClientUtil.ProxyInfo proxyInfo,
                                                         String boundary,
+                                                        String paramName,
                                                         String contentType)
     {
         HttpResponse response;
@@ -143,10 +144,10 @@ public class HttpFormDataUtil
             Constructor<?> constructor = Arrays.stream(constructors).filter(c -> c.getParameterCount() == 3).findFirst().orElseThrow(() -> new RuntimeException("Constructor<?> null"));
             constructor.setAccessible(true);
             Header header = new Header();
-            header.addField(new MinimalField(MIME.CONTENT_DISPOSITION, "form-data; name=\"params\"\r\nContent-Type: " + contentType)); // 重点在这句
+            header.addField(new MinimalField(MIME.CONTENT_DISPOSITION, "form-data; name=\"" + paramName + "\"\r\nContent-Type: " + contentType)); // 重点在这句
             header.addField(new MinimalField(MIME.CONTENT_TYPE, contentType));
             header.addField(new MinimalField(MIME.CONTENT_TRANSFER_ENC, "binary"));
-            FormBodyPart bodyPart = (FormBodyPart) constructor.newInstance("params", new ByteArrayBody(content.getBytes(StandardCharsets.UTF_8), ContentType.create(contentType), null), header);
+            FormBodyPart bodyPart = (FormBodyPart) constructor.newInstance(paramName, new ByteArrayBody(content.getBytes(StandardCharsets.UTF_8), ContentType.create(contentType), null), header);
             builder.addPart(bodyPart);
 
             if (filePathMap != null && !filePathMap.isEmpty())

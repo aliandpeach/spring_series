@@ -9,6 +9,7 @@ import javax.crypto.NoSuchPaddingException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyStore;
@@ -31,21 +32,17 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class RSA2048Util
 {
-    public static final String ALIAS = "crazy";
-    
     public static final String RSA_ALGORITHM = "RSA";
     
     private static final String TYPE = "JKS";
-    
-    private static final String PRI = "rsa.jks";
-    
-    private static final String PUB = "rsa.crt";
-    
+
     private transient Map<String, byte[]> keys = new ConcurrentHashMap<>();
     
     private transient char[] storepasswd;
-    
     private transient char[] keypasswd;
+
+    private transient InputStream keystore;
+    private transient String alias;
     
     public synchronized byte[] getPrivateKey() throws IOException,
             KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException
@@ -54,30 +51,31 @@ public class RSA2048Util
         {
             return keys.get("private");
         }
-        try (InputStream inputStream = RSA2048Util.class.getClassLoader().getResourceAsStream(PRI))
+        try (InputStream inputStream = keystore)
         {
-            KeyStore privateKeyStore = KeyStore.getInstance(TYPE);
-            privateKeyStore.load(inputStream, storepasswd);
-            PrivateKey key = (PrivateKey) privateKeyStore.getKey(ALIAS, keypasswd);
+            KeyStore keyStore = KeyStore.getInstance(TYPE);
+            keyStore.load(inputStream, storepasswd);
+            PrivateKey key = (PrivateKey) keyStore.getKey(alias, keypasswd);
             keys.put("private", key.getEncoded());
-            return key.getEncoded();
+            PublicKey pub = (PublicKey) keyStore.getCertificate(alias);
+            keys.put("public", pub.getEncoded());
+            return keys.get("private");
         }
     }
     
-    public synchronized byte[] getPublicKey() throws IOException, CertificateException
+    public synchronized byte[] getPublicKey() throws IOException, KeyStoreException, CertificateException, NoSuchAlgorithmException, UnrecoverableKeyException
     {
         if (keys.containsKey("public") && null != keys.get("public"))
         {
             return keys.get("public");
         }
-        try (InputStream pri = RSA2048Util.class.getClassLoader().getResourceAsStream(PRI);
-             InputStream pub = RSA2048Util.class.getClassLoader().getResourceAsStream(PUB))
+        try (InputStream inputStream = keystore)
         {
-            CertificateFactory certificateFactory = CertificateFactory.getInstance("X509");
-            Certificate crt = certificateFactory.generateCertificate(pub);
-            byte pubEncoded[] = crt.getPublicKey().getEncoded();
-            keys.put("public", pubEncoded);
-            return pubEncoded;
+            KeyStore keyStore = KeyStore.getInstance(TYPE);
+            keyStore.load(inputStream, storepasswd);
+            PublicKey pub = (PublicKey) keyStore.getCertificate(alias);
+            keys.put("public", pub.getEncoded());
+            return keys.get("public");
         }
     }
     
@@ -90,20 +88,20 @@ public class RSA2048Util
         PrivateKey privateKey = KeyFactory.getInstance(RSA_ALGORITHM).generatePrivate(pkcs8EncodedKeySpec);
         Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        String outStr = new String(cipher.doFinal(Base64.decodeBase64(str.getBytes("UTF-8"))));
+        String outStr = new String(cipher.doFinal(Base64.decodeBase64(str.getBytes(StandardCharsets.UTF_8))));
         return outStr;
     }
     
     public String encrypt(String str) throws CertificateException, NoSuchAlgorithmException,
             IOException, InvalidKeySpecException, NoSuchPaddingException, InvalidKeyException,
-            BadPaddingException, IllegalBlockSizeException
+            BadPaddingException, IllegalBlockSizeException, UnrecoverableKeyException, KeyStoreException
     {
         
         X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(getPublicKey());
         PublicKey publicKey = KeyFactory.getInstance(RSA_ALGORITHM).generatePublic(x509EncodedKeySpec);
         Cipher cipher = Cipher.getInstance(RSA_ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-        String outStr = Base64.encodeBase64String(cipher.doFinal(str.getBytes("UTF-8")));
+        String outStr = Base64.encodeBase64String(cipher.doFinal(str.getBytes(StandardCharsets.UTF_8)));
         return outStr;
     }
     
@@ -120,7 +118,7 @@ public class RSA2048Util
     
     public ByteBuffer encrypt(byte[] bytes) throws NoSuchAlgorithmException, NoSuchPaddingException,
             InvalidKeyException, BadPaddingException, IllegalBlockSizeException, InvalidKeySpecException,
-            CertificateException, IOException
+            CertificateException, IOException, UnrecoverableKeyException, KeyStoreException
     {
         
         X509EncodedKeySpec x509EncodedKeySpec = new X509EncodedKeySpec(getPublicKey());
@@ -130,13 +128,21 @@ public class RSA2048Util
         return ByteBuffer.wrap(cipher.doFinal(bytes));
     }
     
-    private RSA2048Util(char[] storepasswd, char[] keypasswd)
+    private RSA2048Util(char[] storepasswd, char[] keypasswd, InputStream keystore, String alias)
     {
         this.storepasswd = storepasswd;
         this.keypasswd = keypasswd;
+        this.keystore = keystore;
+        this.alias = alias;
     }
-    
-    public static RSA2048Util getInstance(char[] storepasswd, char[] keypasswd)
+
+    private RSA2048Util(byte[] key, byte[] pub)
+    {
+        keys.put("private", key);
+        keys.put("public", pub);
+    }
+
+    public static RSA2048Util getInstance(char[] storepasswd, char[] keypasswd, InputStream keystore, String alias)
     {
         if (null == INSTANCE)
         {
@@ -144,12 +150,27 @@ public class RSA2048Util
             {
                 if (null == INSTANCE)
                 {
-                    INSTANCE = new RSA2048Util(storepasswd, keypasswd);
+                    INSTANCE = new RSA2048Util(storepasswd, keypasswd, keystore, alias);
                 }
             }
         }
         return INSTANCE;
     }
-    
+
+    public static RSA2048Util getInstance(byte []key, byte[]pub)
+    {
+        if (null == INSTANCE)
+        {
+            synchronized (RSA2048Util.class)
+            {
+                if (null == INSTANCE)
+                {
+                    INSTANCE = new RSA2048Util(key, pub);
+                }
+            }
+        }
+        return INSTANCE;
+    }
+
     private static volatile RSA2048Util INSTANCE;
 }

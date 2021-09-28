@@ -116,6 +116,12 @@ public class JSONUtilTest
         {
         });
 
+
+        // cn.hutool.json.JSONUtil不能解析复杂的json
+//        List<Map<String, Object>> depart5 = cn.hutool.json.JSONUtil.toBean(de, new cn.hutool.core.lang.TypeReference<List<Map<String, Object>>>()
+//        {
+//        }, true);
+
         Gson gson = new Gson();
         List<Map<String, Object>> depart2 = gson.fromJson(de, new MyType<List<Map<String, Object>>>(List.class, new Type[]{Map.class, String.class, Object.class}));
         List<Map<String, Object>> depart3 = gson.fromJson(de, new TypeToken<List<Map<String, Object>>>(){}.getType());

@@ -12,27 +12,25 @@ import javax.crypto.spec.PBEParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
+import java.security.spec.KeySpec;
 
 /**
  * 对称加密
  *
- * new SecureRandom("固定字符串".getBytes()).nextBytes(salt); 只要每次执行都 new SecureRandom对象 则得出的salt 结果都一样
+ * new SecureRandom("固定字符串".getBytes()).nextBytes(new byte[32]); 只要每次执行都 new SecureRandom对象 则得出的new byte[32] 结果都一样
  */
 public class SymmetricEncryption
 {
     private transient byte[] symmetrickey;
     
-    private transient byte[] symmetricsalt;
-    
     private static volatile SymmetricEncryption INSTANCE;
     
-    public SymmetricEncryption(byte[] symmetrickey, byte[] symmetricsalt)
+    public SymmetricEncryption(byte[] symmetrickey)
     {
         this.symmetrickey = symmetrickey;
-        this.symmetricsalt = symmetricsalt;
     }
     
-    public static SymmetricEncryption getInstance(byte[] symmetrickey, byte[] symmetricsalt)
+    public static SymmetricEncryption getInstance(byte[] symmetrickey)
     {
         if (null == INSTANCE)
         {
@@ -40,7 +38,7 @@ public class SymmetricEncryption
             {
                 if (null == INSTANCE)
                 {
-                    INSTANCE = new SymmetricEncryption(symmetrickey, symmetricsalt);
+                    INSTANCE = new SymmetricEncryption(symmetrickey);
                 }
             }
         }
@@ -56,23 +54,26 @@ public class SymmetricEncryption
         byte[] passwd = new byte[8];
         randomDESKey.nextBytes(passwd);
         
-        SecureRandom randomSalt = new SecureRandom(symmetricsalt);
-        byte[] salt = new byte[8];
-        randomSalt.nextBytes(salt);
+        SecureRandom randomIV = new SecureRandom();
+        byte[] ivBytes = new byte[8];
+        randomIV.nextBytes(ivBytes);
         
-        IvParameterSpec iv = new IvParameterSpec(salt);
+        IvParameterSpec iv = new IvParameterSpec(ivBytes);
         DESKeySpec dks = new DESKeySpec(passwd);
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
         SecretKey secretKey = keyFactory.generateSecret(dks);
         Cipher cipher = Cipher.getInstance("DES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, secretKey, iv);
         byte[] encryptBytes = cipher.doFinal(source);
-        randomSalt = null;
+        byte[] result = new byte[ivBytes.length + encryptBytes.length];
+        System.arraycopy(ivBytes, 0, result, 0, ivBytes.length);
+        System.arraycopy(encryptBytes, 0, result, ivBytes.length, encryptBytes.length);
+        randomIV = null;
         secretKey = null;
         dks = null;
         randomDESKey = null;
         cipher = null;
-        return ByteBuffer.wrap(encryptBytes);
+        return ByteBuffer.wrap(result);
     }
     
     /**
@@ -83,19 +84,20 @@ public class SymmetricEncryption
         SecureRandom randomDESKey = new SecureRandom(symmetrickey);
         byte[] passwd = new byte[8];
         randomDESKey.nextBytes(passwd);
+
+        byte[] ivBytes = new byte[8];
+        System.arraycopy(source, 0, ivBytes, 0, ivBytes.length);
         
-        SecureRandom randomSalt = new SecureRandom(symmetricsalt);
-        byte[] salt = new byte[8];
-        randomSalt.nextBytes(salt);
-        
-        IvParameterSpec iv = new IvParameterSpec(salt);
+        IvParameterSpec iv = new IvParameterSpec(ivBytes);
         DESKeySpec dks = new DESKeySpec(passwd);
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
         SecretKey secretKey = keyFactory.generateSecret(dks);
         Cipher cipher = Cipher.getInstance("DES/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
-        byte[] decryptBytes = cipher.doFinal(source);
-        randomSalt = null;
+
+        byte[] encryptBytes = new byte[source.length - ivBytes.length];
+        System.arraycopy(source, ivBytes.length, encryptBytes, 0, encryptBytes.length);
+        byte[] decryptBytes = cipher.doFinal(encryptBytes);
         secretKey = null;
         dks = null;
         randomDESKey = null;
@@ -112,11 +114,11 @@ public class SymmetricEncryption
         byte[] passwd = new byte[24];
         randomDESKey.nextBytes(passwd);
         
-        SecureRandom randomSalt = new SecureRandom(symmetricsalt);
-        byte[] salt = new byte[8]; // IV length: must be 8 bytes long
-        randomSalt.nextBytes(salt);
+        SecureRandom randomIV = new SecureRandom();
+        byte[] ivBytes = new byte[8]; // IV length: must be 8 bytes long
+        randomIV.nextBytes(ivBytes);
         
-        IvParameterSpec iv = new IvParameterSpec(salt);
+        IvParameterSpec iv = new IvParameterSpec(ivBytes);
         DESedeKeySpec dks = new DESedeKeySpec(passwd);
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DESede");
         SecretKey secretKey = keyFactory.generateSecret(dks);
@@ -135,17 +137,20 @@ public class SymmetricEncryption
         byte[] passwd = new byte[24];
         randomDESKey.nextBytes(passwd);
         
-        SecureRandom randomSalt = new SecureRandom(symmetricsalt);
-        byte[] salt = new byte[8]; // IV length: must be 8 bytes long
-        randomSalt.nextBytes(salt);
-        
-        IvParameterSpec iv = new IvParameterSpec(salt);
+        byte[] ivBytes = new byte[8];
+        System.arraycopy(source, 0, ivBytes, 0, ivBytes.length);
+
+        IvParameterSpec iv = new IvParameterSpec(ivBytes);
         DESedeKeySpec dks = new DESedeKeySpec(passwd);
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DESede");
         SecretKey secretKey = keyFactory.generateSecret(dks);
         Cipher cipher = Cipher.getInstance("DESede/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, secretKey, iv);
-        byte[] decryptBytes = cipher.doFinal(source);
+
+        byte[] encryptBytes = new byte[source.length - ivBytes.length];
+        System.arraycopy(source, ivBytes.length, encryptBytes, 0, encryptBytes.length);
+
+        byte[] decryptBytes = cipher.doFinal(encryptBytes);
         return ByteBuffer.wrap(decryptBytes);
     }
     
@@ -174,19 +179,23 @@ public class SymmetricEncryption
      */
     public ByteBuffer pbeEncrypt(byte[] source) throws Exception
     {
-        SecureRandom randomSalt = new SecureRandom(symmetricsalt);
-        byte[] salt = new byte[24];
-        randomSalt.nextBytes(salt);
-        
+        SecureRandom randomIV = new SecureRandom();
+        byte[] ivBytes = new byte[24];
+        randomIV.nextBytes(ivBytes);
+
         PBEKeySpec pbeKeySpec = new PBEKeySpec(new String(symmetrickey, 0, symmetrickey.length).toCharArray());
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBEWithSHA1AndDESede");
         SecretKey key = factory.generateSecret(pbeKeySpec);
         // ------加密处理---------
-        PBEParameterSpec pbeParameterSpec = new PBEParameterSpec(salt, 100);
+        PBEParameterSpec pbeParameterSpec = new PBEParameterSpec(ivBytes, 100);
         Cipher cipher = Cipher.getInstance("PBEWithSHA1AndDESede");
         cipher.init(Cipher.ENCRYPT_MODE, key, pbeParameterSpec);
         byte[] bytes = cipher.doFinal(source);
-        return ByteBuffer.wrap(bytes);
+
+        byte[] result = new byte[bytes.length + ivBytes.length];
+        System.arraycopy(ivBytes, 0, result, 0, ivBytes.length);
+        System.arraycopy(bytes, 0, result, ivBytes.length, bytes.length);
+        return ByteBuffer.wrap(result);
     }
     
     /**
@@ -194,18 +203,21 @@ public class SymmetricEncryption
      */
     public ByteBuffer pbeDecrypt(byte[] source) throws Exception
     {
-        SecureRandom randomSalt = new SecureRandom(symmetricsalt);
-        byte[] salt = new byte[24];
-        randomSalt.nextBytes(salt);
-        
+        byte[] ivBytes = new byte[24];
+        System.arraycopy(source, 0, ivBytes, 0, ivBytes.length);
+
         PBEKeySpec pbeKeySpec = new PBEKeySpec(new String(symmetrickey, 0, symmetrickey.length).toCharArray());
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBEWithSHA1AndDESede");
         SecretKey key = factory.generateSecret(pbeKeySpec);
-        
-        PBEParameterSpec pbeParameterSpec = new PBEParameterSpec(salt, 100);
+
+        PBEParameterSpec pbeParameterSpec = new PBEParameterSpec(ivBytes, 100);
         Cipher cipher = Cipher.getInstance("PBEWithSHA1AndDESede");
         cipher.init(Cipher.DECRYPT_MODE, key, pbeParameterSpec);
-        byte[] bytes = cipher.doFinal(source);
+
+        byte[] encryptBytes = new byte[source.length - ivBytes.length];
+        System.arraycopy(source, ivBytes.length, encryptBytes, 0, encryptBytes.length);
+
+        byte[] bytes = cipher.doFinal(encryptBytes);
         return ByteBuffer.wrap(bytes);
     }
     
@@ -216,18 +228,22 @@ public class SymmetricEncryption
     {
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         SecureRandom sr = new SecureRandom(symmetrickey);
-        
-        SecureRandom randomSalt = new SecureRandom(symmetricsalt);
-        byte[] salt = new byte[16]; // IV length: must be 16 bytes long
-        randomSalt.nextBytes(salt);
+
+        SecureRandom randomIV = new SecureRandom();
+        byte[] ivBytes = new byte[16]; // IV length: must be 16 bytes long
+        randomIV.nextBytes(ivBytes);
 
         keyGenerator.init(256, sr);// 生成AES的私钥key
         SecretKey key = keyGenerator.generateKey();
         
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(salt)); // CBC模式必须有 IvParameterSpec
-        byte[] enbytes = cipher.doFinal(source);
-        return ByteBuffer.wrap(enbytes);
+        cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(ivBytes)); // CBC模式必须有 IvParameterSpec
+        byte[] encryptBytes = cipher.doFinal(source);
+
+        byte[] result = new byte[ivBytes.length + encryptBytes.length];
+        System.arraycopy(ivBytes, 0, result, 0, ivBytes.length);
+        System.arraycopy(encryptBytes, 0, result, ivBytes.length, encryptBytes.length);
+        return ByteBuffer.wrap(result);
     }
     
     /**
@@ -237,18 +253,20 @@ public class SymmetricEncryption
     {
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         SecureRandom sr = new SecureRandom(symmetrickey);
-        
-        SecureRandom randomSalt = new SecureRandom(symmetricsalt);
-        byte[] salt = new byte[16]; // IV length: must be 16 bytes long
-        randomSalt.nextBytes(salt);
+
+        byte[] ivBytes = new byte[16];
+        System.arraycopy(source, 0, ivBytes, 0, ivBytes.length);
 
         keyGenerator.init(256, sr);
         SecretKey key = keyGenerator.generateKey();
         
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(salt));
+        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivBytes));
+
+        byte[] encryptBytes = new byte[source.length - ivBytes.length];
+        System.arraycopy(source, ivBytes.length, encryptBytes, 0, encryptBytes.length);
         
-        byte[] debytes = cipher.doFinal(source);
+        byte[] debytes = cipher.doFinal(encryptBytes);
         return ByteBuffer.wrap(debytes);
     }
     
@@ -260,38 +278,173 @@ public class SymmetricEncryption
         SecureRandom randomDESKey = new SecureRandom(symmetrickey);
         byte[] aesKey = new byte[32];
         randomDESKey.nextBytes(aesKey);// 生成AES的私钥key
-        
-        SecureRandom randomSalt = new SecureRandom(symmetricsalt);
-        byte[] salt = new byte[16]; // IV length: must be 16 bytes long
-        randomSalt.nextBytes(salt);
+
+        SecureRandom randomIV = new SecureRandom();
+        byte[] ivBytes = new byte[16]; // IV length: must be 16 bytes long
+        randomIV.nextBytes(ivBytes);
 
         SecretKey key = new SecretKeySpec(aesKey, 0, aesKey.length, "AES");
         
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(salt));
-        byte[] enbytes = cipher.doFinal(source);
-        return ByteBuffer.wrap(enbytes);
+        cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(ivBytes));
+        byte[] encryptBytes = cipher.doFinal(source);
+
+        byte[] result = new byte[ivBytes.length + encryptBytes.length];
+        System.arraycopy(ivBytes, 0, result, 0, ivBytes.length);
+        System.arraycopy(encryptBytes, 0, result, ivBytes.length, encryptBytes.length);
+        return ByteBuffer.wrap(result);
     }
     
     /**
-     *
+     * 通过SecureRandom生成的 AES256的32字节密码，win和linux不同 需要指定为 SecureRandom r = SecureRandom.getInstance("SHA1PRNG","SUN"); r.setSeed(symmetrickey);
      */
     public ByteBuffer aesDecrypt2(byte[] source) throws Exception
     {
         SecureRandom randomDESKey = new SecureRandom(symmetrickey);
         byte[] aesKey = new byte[32];
         randomDESKey.nextBytes(aesKey);// 生成AES的私钥key
-        
-        SecureRandom randomSalt = new SecureRandom(symmetricsalt);
-        byte[] salt = new byte[16]; // IV length: must be 16 bytes long
-        randomSalt.nextBytes(salt);
+
+        byte[] ivBytes = new byte[16];
+        System.arraycopy(source, 0, ivBytes, 0, ivBytes.length);
         
         SecretKey key = new SecretKeySpec(aesKey, "AES");
         
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(salt));
-        
-        byte[] debytes = cipher.doFinal(source);
+        cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivBytes));
+
+        byte[] encryptBytes = new byte[source.length - ivBytes.length];
+        System.arraycopy(source, ivBytes.length, encryptBytes, 0, encryptBytes.length);
+
+        byte[] debytes = cipher.doFinal(encryptBytes);
+        return ByteBuffer.wrap(debytes);
+    }
+
+    public ByteBuffer aesEncryptWithSalt(byte[] source) throws Exception
+    {
+        int saltLength = 128;
+
+        SecureRandom randomDESKey = new SecureRandom(symmetrickey);
+        byte[] aesKey = new byte[32];
+        randomDESKey.nextBytes(aesKey);// 生成AES的私钥key
+
+        SecureRandom randomIV = new SecureRandom();
+        byte[] ivBytes = new byte[16]; // IV length: must be 16 bytes long
+        randomIV.nextBytes(ivBytes);
+
+        SecureRandom randomSalt = new SecureRandom();
+        byte[] saltBytes = new byte[saltLength];
+        randomSalt.nextBytes(saltBytes);
+
+        KeySpec keySpec = new PBEKeySpec(new String(aesKey, 0, aesKey.length).toCharArray(), saltBytes, 1000, 256);
+        SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        byte[] keyBytes = keyFactory.generateSecret(keySpec).getEncoded();
+
+        IvParameterSpec iv = new IvParameterSpec(ivBytes);
+
+        SecretKey key = new SecretKeySpec(keyBytes, 0, keyBytes.length, "AES");
+
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+        byte[] encryptBytes = cipher.doFinal(source);
+
+        byte[] result = new byte[saltBytes.length + ivBytes.length + encryptBytes.length];
+        System.arraycopy(saltBytes, 0, result, 0, saltBytes.length);
+        System.arraycopy(ivBytes, 0, result, saltBytes.length, ivBytes.length);
+        System.arraycopy(encryptBytes, 0, result, ivBytes.length + saltBytes.length, encryptBytes.length);
+        return ByteBuffer.wrap(result);
+    }
+
+    public ByteBuffer aesDecryptWithSalt(byte[] source) throws Exception
+    {
+        int saltLength = 128;
+
+        SecureRandom randomDESKey = new SecureRandom(symmetrickey);
+        byte[] aesKey = new byte[32];
+        randomDESKey.nextBytes(aesKey);// 生成AES的私钥key
+
+        byte[] saltBytes = new byte[saltLength];
+        System.arraycopy(source, 0, saltBytes, 0, saltBytes.length);
+        byte[] ivBytes = new byte[16];
+        System.arraycopy(source, saltBytes.length, ivBytes, 0, ivBytes.length);
+        IvParameterSpec iv = new IvParameterSpec(ivBytes);
+
+        KeySpec keySpec = new PBEKeySpec(new String(aesKey, 0, aesKey.length).toCharArray(), saltBytes, 1000, 256);
+        SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
+        byte[] keyBytes = keyFactory.generateSecret(keySpec).getEncoded();
+
+        SecretKey key = new SecretKeySpec(keyBytes, "AES");
+
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, key, iv);
+
+        byte[] encryptBytes = new byte[source.length - ivBytes.length - saltBytes.length];
+        System.arraycopy(source, ivBytes.length + saltBytes.length, encryptBytes, 0, encryptBytes.length);
+
+        byte[] debytes = cipher.doFinal(encryptBytes);
+        return ByteBuffer.wrap(debytes);
+    }
+
+    public ByteBuffer aesEncryptWithSalt2(byte[] source) throws Exception
+    {
+        int saltLength = 128;
+
+//        SecureRandom randomDESKey = new SecureRandom(symmetrickey);
+//        byte[] aesKey = new byte[32];
+//        randomDESKey.nextBytes(aesKey);
+
+        SecureRandom randomIV = new SecureRandom();
+        byte[] ivBytes = new byte[16]; // IV length: must be 16 bytes long
+        randomIV.nextBytes(ivBytes);
+
+        SecureRandom randomSalt = new SecureRandom();
+        byte[] saltBytes = new byte[saltLength];
+        randomSalt.nextBytes(saltBytes);
+
+        KeySpec keySpec = new PBEKeySpec(new String(symmetrickey, 0, symmetrickey.length).toCharArray());
+        SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWITHHMACSHA512ANDAES_256");
+        SecretKey key = keyFactory.generateSecret(keySpec);
+
+        IvParameterSpec iv = new IvParameterSpec(ivBytes);
+        PBEParameterSpec parameterSpec = new PBEParameterSpec(saltBytes, 1000, iv);
+
+        Cipher cipher = Cipher.getInstance("PBEWITHHMACSHA512ANDAES_256");
+        cipher.init(Cipher.ENCRYPT_MODE, key, parameterSpec);
+        byte[] encryptBytes = cipher.doFinal(source);
+
+        byte[] result = new byte[saltBytes.length + ivBytes.length + encryptBytes.length];
+        System.arraycopy(saltBytes, 0, result, 0, saltBytes.length);
+        System.arraycopy(ivBytes, 0, result, saltBytes.length, ivBytes.length);
+        System.arraycopy(encryptBytes, 0, result, ivBytes.length + saltBytes.length, encryptBytes.length);
+        return ByteBuffer.wrap(result);
+    }
+
+    public ByteBuffer aesDecryptWithSalt2(byte[] source) throws Exception
+    {
+        int saltLength = 128;
+
+//        SecureRandom randomDESKey = new SecureRandom(symmetrickey);
+//        byte[] aesKey = new byte[32];
+//        randomDESKey.nextBytes(aesKey);
+
+        byte[] saltBytes = new byte[saltLength];
+        System.arraycopy(source, 0, saltBytes, 0, saltBytes.length);
+        byte[] ivBytes = new byte[16];
+        System.arraycopy(source, saltBytes.length, ivBytes, 0, ivBytes.length);
+        IvParameterSpec iv = new IvParameterSpec(ivBytes);
+
+        KeySpec keySpec = new PBEKeySpec(new String(symmetrickey, 0, symmetrickey.length).toCharArray());
+        SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBEWITHHMACSHA512ANDAES_256");
+        SecretKey key = keyFactory.generateSecret(keySpec);
+
+        PBEParameterSpec parameterSpec = new PBEParameterSpec(saltBytes, 1000, iv);
+
+        Cipher cipher = Cipher.getInstance("PBEWITHHMACSHA512ANDAES_256");
+        cipher.init(Cipher.DECRYPT_MODE, key, parameterSpec);
+
+        byte[] encryptBytes = new byte[source.length - ivBytes.length - saltBytes.length];
+        System.arraycopy(source, ivBytes.length + saltBytes.length, encryptBytes, 0, encryptBytes.length);
+
+        byte[] debytes = cipher.doFinal(encryptBytes);
         return ByteBuffer.wrap(debytes);
     }
 }

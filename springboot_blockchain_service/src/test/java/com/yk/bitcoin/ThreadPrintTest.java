@@ -11,7 +11,19 @@ public class ThreadPrintTest
     private static final int MAX = 100;
     
     private static int current = 1;
-    
+
+    private static final long KB = 1024;
+
+    private static final long MB = 1024 * 1024;
+
+    private static final long GB = 1024 * 1024 * 1024;
+
+    @Test
+    public void print() throws InterruptedException
+    {
+        System.out.println(((GB - 2) / GB));
+    }
+
     // junit主线程退出后 t1 线程也跟着退出 不同于main函数，所以这里需要join
     @Test
     public void addPrint() throws InterruptedException

@@ -26,7 +26,7 @@ public class SymmetricEncryptionTest
     {
         char [] key = new char[]{'t', 'e', 's', 't', '_', 'd', 'b', 's', '_', 'k', 'e', 'y', '_', 'h', 'h', 'g', 'f', 'd', 'o', 'y', 't', 'y', 't', '#', 'd', 's', 'd', '.', '1', '2', '#', '2', 'u', 'i'};
         char [] iv = new char[]{'r', 't', 'e', 'c', '$', 'j', 'b', 's', '_', 'k', 'e', 'y', '_', 'h', 'h', 'g', 'f', 'd', 'o', 'y', 't', 'y', 't', '#', 'd', 's', 'd', '.', '1', '2', '#', '2', 'u', 'i'};
-        symmetricEncryption = SymmetricEncryption.getInstance(new String(key).getBytes(), new String(iv).getBytes());
+        symmetricEncryption = SymmetricEncryption.getInstance(new String(key).getBytes());
     }
     
     @Test
@@ -89,6 +89,26 @@ public class SymmetricEncryptionTest
         
         ByteBuffer bufferE = symmetricEncryption.pbeEncrypt(testString.getBytes(StandardCharsets.UTF_8));
         ByteBuffer bufferD = symmetricEncryption.pbeDecrypt(bufferE.array());
+        String ret = new String(bufferD.array(), StandardCharsets.UTF_8);
+        Assert.assertEquals(ret, testString);
+    }
+
+    @Test
+    public void aesAes256Salt() throws Exception
+    {
+        String testString = "测试字符串。。。￥￥￥！@@@";
+        ByteBuffer bufferE = symmetricEncryption.aesEncryptWithSalt(testString.getBytes(StandardCharsets.UTF_8));
+        ByteBuffer bufferD = symmetricEncryption.aesDecryptWithSalt(bufferE.array());
+        String ret = new String(bufferD.array(), StandardCharsets.UTF_8);
+        Assert.assertEquals(ret, testString);
+    }
+
+    @Test
+    public void aesAes256Salt2() throws Exception
+    {
+        String testString = "测试字符串。。。￥￥￥！@@@";
+        ByteBuffer bufferE = symmetricEncryption.aesEncryptWithSalt2(testString.getBytes(StandardCharsets.UTF_8));
+        ByteBuffer bufferD = symmetricEncryption.aesDecryptWithSalt2(bufferE.array());
         String ret = new String(bufferD.array(), StandardCharsets.UTF_8);
         Assert.assertEquals(ret, testString);
     }
