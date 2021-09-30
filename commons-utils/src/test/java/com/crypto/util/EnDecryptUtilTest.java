@@ -26,8 +26,8 @@ public class EnDecryptUtilTest
     @Before
     public void init()
     {
-        storepasswd = null;
-        keypasswd = null;
+        storepasswd = "".toCharArray();
+        keypasswd = "".toCharArray();;
     }
     
     @Test
@@ -36,8 +36,9 @@ public class EnDecryptUtilTest
         String srcf = "C:\\Users\\yangkai\\Desktop\\test\\record__.txt";
         String tof = "C:\\Users\\yangkai\\Desktop\\test\\record___encrypt.txt";
         String toHexf = "C:\\Users\\yangkai\\Desktop\\test\\record___encrypt_hex.txt";
-        
-        new EnDecryptUtil(storepasswd, keypasswd, null, null).fileEncryptToHex(srcf, tof, toHexf, 245);
+
+        new EnDecryptUtil(storepasswd, keypasswd, EnDecryptUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/rsa.key"), "crazy")
+                .fileEncryptToHex(srcf, tof, toHexf, 245);
     }
     
     @Test
@@ -46,7 +47,8 @@ public class EnDecryptUtilTest
     {
         String srcHexf = "C:\\Users\\xxxx\\Desktop\\test\\record__hex.txt";
         String tof = "C:\\Users\\xxxx\\Desktop\\test\\record__hex_src.txt";
-        new EnDecryptUtil(storepasswd, keypasswd, null, null).hexDecryptToFile(srcHexf, tof, 256);
+        new EnDecryptUtil(storepasswd, keypasswd, EnDecryptUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/rsa.key"), "crazy")
+                .hexDecryptToFile(srcHexf, tof, 256);
     }
     
     
@@ -56,7 +58,8 @@ public class EnDecryptUtilTest
         String srcf = "C:\\Users\\xxxx\\Desktop\\test\\lombok.zip";
         String toHexf = "C:\\Users\\xxxx\\Desktop\\test\\lombok_encrypt_hex.zip";
         
-        new EnDecryptUtil(storepasswd, keypasswd, null, null).fileEncryptToHex(srcf, toHexf, 245);
+        new EnDecryptUtil(storepasswd, keypasswd, EnDecryptUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/rsa.key"), "crazy")
+                .fileEncryptToHex(srcf, toHexf, 245);
     }
     
     @Test
@@ -64,7 +67,8 @@ public class EnDecryptUtilTest
     {
         String srcHexf = "C:\\Users\\xxxx\\Desktop\\test\\lombok_encrypt_hex.zip";
         String tof = "C:\\Users\\xxxx\\Desktop\\test\\lombok_decrypt.zip";
-        new EnDecryptUtil(storepasswd, keypasswd, null, null).hexDecryptToFile(srcHexf, tof);
+        new EnDecryptUtil(storepasswd, keypasswd, EnDecryptUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/rsa.key"), "crazy")
+                .hexDecryptToFile(srcHexf, tof);
     }
     
     @Test
@@ -72,7 +76,8 @@ public class EnDecryptUtilTest
             NoSuchAlgorithmException, KeyStoreException, InvalidKeySpecException, BadPaddingException,
             NoSuchPaddingException, IllegalBlockSizeException, InvalidKeyException
     {
-        new EnDecryptUtil(storepasswd, keypasswd, null, null).decrypt("C:\\Users\\xxxx\\Desktop\\test");
+        new EnDecryptUtil(storepasswd, keypasswd, EnDecryptUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/rsa.key"), "crazy")
+                .decrypt("D:\\idea_workspace\\development_code\\doc\\test");
     }
     
     @Test
@@ -80,7 +85,8 @@ public class EnDecryptUtilTest
             NoSuchAlgorithmException, KeyStoreException, InvalidKeySpecException, BadPaddingException,
             NoSuchPaddingException, IllegalBlockSizeException, InvalidKeyException
     {
-        new EnDecryptUtil(storepasswd, keypasswd, null, null).encrypt("C:\\Users\\xxxx\\Desktop\\test", false);
+        new EnDecryptUtil(storepasswd, keypasswd, EnDecryptUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/rsa.key"), "crazy")
+                .encrypt("D:\\idea_workspace\\development_code\\doc\\test", true);
     }
     
     @Test

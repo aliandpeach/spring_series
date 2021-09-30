@@ -1,5 +1,8 @@
 package com.yk.crypto;
 
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
+import org.jasypt.encryption.pbe.config.EnvironmentPBEConfig;
+
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -22,14 +25,14 @@ import java.security.spec.KeySpec;
 public class SymmetricEncryption
 {
     private transient byte[] symmetrickey;
-    
+
     private static volatile SymmetricEncryption INSTANCE;
-    
+
     public SymmetricEncryption(byte[] symmetrickey)
     {
         this.symmetrickey = symmetrickey;
     }
-    
+
     public static SymmetricEncryption getInstance(byte[] symmetrickey)
     {
         if (null == INSTANCE)
@@ -44,7 +47,7 @@ public class SymmetricEncryption
         }
         return INSTANCE;
     }
-    
+
     /**
      * des加密
      */
@@ -53,11 +56,11 @@ public class SymmetricEncryption
         SecureRandom randomDESKey = new SecureRandom(symmetrickey);
         byte[] passwd = new byte[8];
         randomDESKey.nextBytes(passwd);
-        
+
         SecureRandom randomIV = new SecureRandom();
         byte[] ivBytes = new byte[8];
         randomIV.nextBytes(ivBytes);
-        
+
         IvParameterSpec iv = new IvParameterSpec(ivBytes);
         DESKeySpec dks = new DESKeySpec(passwd);
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
@@ -75,7 +78,7 @@ public class SymmetricEncryption
         cipher = null;
         return ByteBuffer.wrap(result);
     }
-    
+
     /**
      * des解密
      */
@@ -87,7 +90,7 @@ public class SymmetricEncryption
 
         byte[] ivBytes = new byte[8];
         System.arraycopy(source, 0, ivBytes, 0, ivBytes.length);
-        
+
         IvParameterSpec iv = new IvParameterSpec(ivBytes);
         DESKeySpec dks = new DESKeySpec(passwd);
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DES");
@@ -104,7 +107,7 @@ public class SymmetricEncryption
         cipher = null;
         return ByteBuffer.wrap(decryptBytes);
     }
-    
+
     /**
      * 3des 加密
      */
@@ -113,11 +116,11 @@ public class SymmetricEncryption
         SecureRandom randomDESKey = new SecureRandom(symmetrickey);
         byte[] passwd = new byte[24];
         randomDESKey.nextBytes(passwd);
-        
+
         SecureRandom randomIV = new SecureRandom();
         byte[] ivBytes = new byte[8]; // IV length: must be 8 bytes long
         randomIV.nextBytes(ivBytes);
-        
+
         IvParameterSpec iv = new IvParameterSpec(ivBytes);
         DESedeKeySpec dks = new DESedeKeySpec(passwd);
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("DESede");
@@ -127,7 +130,7 @@ public class SymmetricEncryption
         byte[] encryptBytes = cipher.doFinal(source);
         return ByteBuffer.wrap(encryptBytes);
     }
-    
+
     /**
      * 3des解密
      */
@@ -136,7 +139,7 @@ public class SymmetricEncryption
         SecureRandom randomDESKey = new SecureRandom(symmetrickey);
         byte[] passwd = new byte[24];
         randomDESKey.nextBytes(passwd);
-        
+
         byte[] ivBytes = new byte[8];
         System.arraycopy(source, 0, ivBytes, 0, ivBytes.length);
 
@@ -153,7 +156,7 @@ public class SymmetricEncryption
         byte[] decryptBytes = cipher.doFinal(encryptBytes);
         return ByteBuffer.wrap(decryptBytes);
     }
-    
+
     /**
      *  
      * java6和bouncycastle支持的算法列表
@@ -197,7 +200,7 @@ public class SymmetricEncryption
         System.arraycopy(bytes, 0, result, ivBytes.length, bytes.length);
         return ByteBuffer.wrap(result);
     }
-    
+
     /**
      * PBE解密
      */
@@ -220,7 +223,7 @@ public class SymmetricEncryption
         byte[] bytes = cipher.doFinal(encryptBytes);
         return ByteBuffer.wrap(bytes);
     }
-    
+
     /**
      * aes256
      */
@@ -235,7 +238,7 @@ public class SymmetricEncryption
 
         keyGenerator.init(256, sr);// 生成AES的私钥key
         SecretKey key = keyGenerator.generateKey();
-        
+
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(ivBytes)); // CBC模式必须有 IvParameterSpec
         byte[] encryptBytes = cipher.doFinal(source);
@@ -245,7 +248,7 @@ public class SymmetricEncryption
         System.arraycopy(encryptBytes, 0, result, ivBytes.length, encryptBytes.length);
         return ByteBuffer.wrap(result);
     }
-    
+
     /**
      *
      */
@@ -259,17 +262,17 @@ public class SymmetricEncryption
 
         keyGenerator.init(256, sr);
         SecretKey key = keyGenerator.generateKey();
-        
+
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivBytes));
 
         byte[] encryptBytes = new byte[source.length - ivBytes.length];
         System.arraycopy(source, ivBytes.length, encryptBytes, 0, encryptBytes.length);
-        
+
         byte[] debytes = cipher.doFinal(encryptBytes);
         return ByteBuffer.wrap(debytes);
     }
-    
+
     /**
      * aes256
      */
@@ -284,7 +287,7 @@ public class SymmetricEncryption
         randomIV.nextBytes(ivBytes);
 
         SecretKey key = new SecretKeySpec(aesKey, 0, aesKey.length, "AES");
-        
+
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(ivBytes));
         byte[] encryptBytes = cipher.doFinal(source);
@@ -294,7 +297,7 @@ public class SymmetricEncryption
         System.arraycopy(encryptBytes, 0, result, ivBytes.length, encryptBytes.length);
         return ByteBuffer.wrap(result);
     }
-    
+
     /**
      * 通过SecureRandom生成的 AES256的32字节密码，win和linux不同 需要指定为 SecureRandom r = SecureRandom.getInstance("SHA1PRNG","SUN"); r.setSeed(symmetrickey);
      */
@@ -306,9 +309,9 @@ public class SymmetricEncryption
 
         byte[] ivBytes = new byte[16];
         System.arraycopy(source, 0, ivBytes, 0, ivBytes.length);
-        
+
         SecretKey key = new SecretKeySpec(aesKey, "AES");
-        
+
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(ivBytes));
 
@@ -384,6 +387,26 @@ public class SymmetricEncryption
         return ByteBuffer.wrap(debytes);
     }
 
+    /**
+     * jdk支持：
+     * list.add("PBEWITHHMACSHA1ANDAES_128");
+     * list.add("PBEWITHHMACSHA1ANDAES_256");
+     * list.add("PBEWITHHMACSHA224ANDAES_128");
+     * list.add("PBEWITHHMACSHA224ANDAES_256");
+     * list.add("PBEWITHHMACSHA256ANDAES_128");
+     * list.add("PBEWITHHMACSHA256ANDAES_256");
+     * list.add("PBEWITHHMACSHA384ANDAES_128");
+     * list.add("PBEWITHHMACSHA384ANDAES_256");
+     * list.add("PBEWITHHMACSHA512ANDAES_128");
+     * list.add("PBEWITHHMACSHA512ANDAES_256");
+     * list.add("PBEWITHMD5ANDDES");
+     * list.add("PBEWITHMD5ANDTRIPLEDES");
+     * list.add("PBEWITHSHA1ANDDESEDE");
+     * list.add("PBEWITHSHA1ANDRC2_128");
+     * list.add("PBEWITHSHA1ANDRC2_40");
+     * list.add("PBEWITHSHA1ANDRC4_128");
+     * list.add("PBEWITHSHA1ANDRC4_40");
+     */
     public ByteBuffer aesEncryptWithSalt2(byte[] source) throws Exception
     {
         int saltLength = 128;
@@ -446,5 +469,29 @@ public class SymmetricEncryption
 
         byte[] debytes = cipher.doFinal(encryptBytes);
         return ByteBuffer.wrap(debytes);
+    }
+
+    public String aesEncryptWithJasypt(String plainText)
+    {
+        StandardPBEStringEncryptor standardPBEStringEncryptor = new StandardPBEStringEncryptor();
+        EnvironmentPBEConfig config = new EnvironmentPBEConfig();
+        config.setAlgorithm("PBEWITHHMACSHA512ANDAES_256");
+        char[] passwdNew = new char[symmetrickey.length];
+        System.arraycopy(symmetrickey, 0, passwdNew, 0, symmetrickey.length);
+        config.setPasswordCharArray(passwdNew);
+        standardPBEStringEncryptor.setConfig(config);
+        return standardPBEStringEncryptor.encrypt(plainText);
+    }
+
+    public String aesDecryptWithJasypt(String encryptedText)
+    {
+        StandardPBEStringEncryptor standardPBEStringEncryptor = new StandardPBEStringEncryptor();
+        EnvironmentPBEConfig config = new EnvironmentPBEConfig();
+        config.setAlgorithm("PBEWITHHMACSHA512ANDAES_256");
+        char[] passwdNew = new char[symmetrickey.length];
+        System.arraycopy(symmetrickey, 0, passwdNew, 0, symmetrickey.length);
+        config.setPasswordCharArray(passwdNew);
+        standardPBEStringEncryptor.setConfig(config);
+        return standardPBEStringEncryptor.decrypt(encryptedText);
     }
 }

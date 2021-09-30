@@ -20,7 +20,6 @@ import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
@@ -57,7 +56,8 @@ public class RSA2048Util
             keyStore.load(inputStream, storepasswd);
             PrivateKey key = (PrivateKey) keyStore.getKey(alias, keypasswd);
             keys.put("private", key.getEncoded());
-            PublicKey pub = (PublicKey) keyStore.getCertificate(alias);
+            Certificate certificate = keyStore.getCertificate(alias);
+            PublicKey pub = certificate.getPublicKey();
             keys.put("public", pub.getEncoded());
             return keys.get("private");
         }
@@ -73,7 +73,8 @@ public class RSA2048Util
         {
             KeyStore keyStore = KeyStore.getInstance(TYPE);
             keyStore.load(inputStream, storepasswd);
-            PublicKey pub = (PublicKey) keyStore.getCertificate(alias);
+            Certificate certificate = keyStore.getCertificate(alias);
+            PublicKey pub = certificate.getPublicKey();
             keys.put("public", pub.getEncoded());
             return keys.get("public");
         }

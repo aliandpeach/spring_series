@@ -347,7 +347,7 @@ public class EnDecryptUtil
         for (File file : listFile)
         {
             String path = file.getParentFile().getCanonicalPath();
-            String dest = path + File.separator + file.getName().replace("encrypt_", "decrypt_");
+            String dest = path + File.separator + file.getName().replace("encrypt_", "");
             boolean is = !new File(dest).exists() || new File(dest).delete();
             System.out.println(is);
             try (FileChannel out = new FileOutputStream(dest).getChannel();
