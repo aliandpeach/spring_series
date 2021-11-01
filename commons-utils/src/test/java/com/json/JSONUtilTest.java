@@ -2,10 +2,12 @@ package com.json;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.yk.httprequest.JSONUtil;
+import lombok.Data;
 import org.junit.Test;
 
 import java.lang.reflect.ParameterizedType;
@@ -20,13 +22,17 @@ import java.util.stream.IntStream;
 /**
  * JSONUtilTest
  */
-
 public class JSONUtilTest
 {
-    
+
     @Test
     public void test()
     {
+        String json_j = "{\"result\":{\"机密\":[{4:2}]},\"code\":0,\"level\":\"alert\",\"message\":\"操作成功！\",\"taskId\":\"360b02f3-0e2c-4e74-8cf4-2b80cf842935\"}";
+        TestModel result_r = JSONUtil.fromJson(json_j, new TypeReference<TestModel>()
+        {
+        });
+
         List<TestUser> users = new ArrayList<>();
         Map<Integer, TestUser> mapUsers = new HashMap<>();
         
@@ -153,5 +159,13 @@ public class JSONUtilTest
         {
             return clazz;
         }
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private static class TestModel
+    {
+        private String taskId;
+        private Map<String, List<Map<Integer, Integer>>> result;
     }
 }

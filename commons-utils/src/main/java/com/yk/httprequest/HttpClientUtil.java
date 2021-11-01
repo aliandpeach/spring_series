@@ -72,7 +72,8 @@ public class HttpClientUtil
             .setSocketTimeout(24000).build();
 
     public static final ThreadLocal<Config> CONFIG_THREAD_LOCAL = new ThreadLocal<>();
-    
+    public static final ThreadLocal<RequestConfig> REQUEST_CONFIG_THREAD_LOCAL = new ThreadLocal<>();
+
     private static CloseableHttpClient httpClient; // 发送请求的客户端单例
     
     public static CloseableHttpClient getClient(Config config) throws GeneralSecurityException, IOException
@@ -140,11 +141,16 @@ public class HttpClientUtil
                     // 设置代理
                     if (null != config.getProxyInfo() && config.getProxyInfo().isProxy())
                     {
-                        HttpHost httpHost = new HttpHost(config.getProxyInfo().getHostname(), config.getProxyInfo().getPort(), config.getProxyInfo().getScheme());
-                        DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(httpHost);
+                        HttpHost httpProxy = new HttpHost(config.getProxyInfo().getHostname(), config.getProxyInfo().getPort(), config.getProxyInfo().getScheme());
+
+                        //包含账号密码的代理
+//                        CredentialsProvider provider = new BasicCredentialsProvider();
+//                        provider.setCredentials(new AuthScope(httpProxy), new UsernamePasswordCredentials("username", "password"));
+
+                        DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(httpProxy);
                         // setProxy  setRoutePlanner最终都是为了生成 DefaultProxyRoutePlanner, 二者使用一个即可
                         // RequestConfig.Builder 的 setProxy() 也一样最后都是用于生成 DefaultProxyRoutePlanner (RequestConfig的方式可以灵活的使 CloseableHttpClient 发送请求的时候使用或者不使用代理)
-                        httpClientBuilder.setRoutePlanner(routePlanner).setProxy(httpHost);
+                        httpClientBuilder.setRoutePlanner(routePlanner).setProxy(httpProxy);
                     }
                     httpClient = httpClientBuilder.build();
                     
@@ -190,10 +196,10 @@ public class HttpClientUtil
 
     public static <T> T post(String url, Map<String, String> headers, Map<String, String> body, final TypeReference<T> typeReference)
     {
-        try (CloseableHttpClient client = getClient(new Config()))
+        try (CloseableHttpClient client = getClient(null == CONFIG_THREAD_LOCAL.get() ? new Config() : CONFIG_THREAD_LOCAL.get()))
         {
             HttpPost httpPost = new HttpPost(url);
-            httpPost.setConfig(requestConfig);
+            httpPost.setConfig(null == REQUEST_CONFIG_THREAD_LOCAL.get() ? requestConfig : REQUEST_CONFIG_THREAD_LOCAL.get());
             initHeader(httpPost, headers);
 
             EntityBuilder builder = EntityBuilder.create();
@@ -473,6 +479,12 @@ public class HttpClientUtil
             this.hostname = hostname;
             this.port = port;
             this.scheme = scheme;
+
+//            System.setProperty("http.proxyHost", hostname);
+//            System.setProperty("http.proxyPort", port + "");
+//            System.setProperty("http.proxyUser", username);
+//            System.setProperty("http.proxyPassword", passwd);
+//            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
         }
     }
 
@@ -542,11 +554,6 @@ public class HttpClientUtil
                     return new PasswordAuthentication(username, passwd.toCharArray());
                 }
             };
-//            System.setProperty("http.proxyHost", hostname);
-//            System.setProperty("http.proxyPort", port + "");
-//            System.setProperty("http.proxyUser", username);
-//            System.setProperty("http.proxyPassword", passwd);
-//            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
 //            Authenticator.setDefault(auth);
         }
     }
