@@ -138,7 +138,8 @@ public class UploadController
     @PostMapping("/upload/multiple/json")
     @ResponseBody
     public Map<String, List<String>> multipleUpload2(MultipartHttpServletRequest request,
-                                                                     @RequestPart(required = false, name = "params") Map<String, String> params, HttpServletResponse response)
+                                                    @RequestPart(required = false, name = "params") Map<String, String> params,
+                                                    HttpServletResponse response)
     {
         Map<String, List<String>> result = new HashMap<>();
         Map<String, MultipartFile> map = request.getFileMap();
@@ -160,12 +161,13 @@ public class UploadController
     }
 
     /**
-     * 上传文件接口, 附带json格式参数, 可以使用postman调用 (parms得到的结果是 {"params" : "value"} )
+     * 上传文件接口, 附带json格式参数, 可以使用postman调用 (params得到的结果是 {"params" : "value"} )
      */
     @PostMapping("/upload/multiple/json3")
     @ResponseBody
     public Map<String, List<String>> multipleUpload3(MultipartHttpServletRequest request, @RequestParam Map<String, String> params)
     {
+        String value = params.get("params");
         Map<String, List<String>> result = new HashMap<>();
         Map<String, MultipartFile> map = request.getFileMap();
         result.putIfAbsent("failed1", new ArrayList<>());
@@ -195,12 +197,32 @@ public class UploadController
      * 上传文件接口, 附带json格式参数, 可以使用postman调用, 需要传入level
      *
      * 这里的 @NotEmpty不生效不知道怎么回事
+     *
+     *
+     *
+     * Host: 192.190.10.122:21111
+     * Accept-Encoding: gzip, deflate
+     * Connection: close
+     * Content-Type: multipart/form-data; boundary=--------------------------153054330803524445015047
+     * Content-Length: 514
+     *
+     * ----------------------------153054330803524445015047
+     * Content-Disposition: form-data; name="1"; filename="test_secret17.txt"
+     * Content-Type: text/plain
+     *
+     *
+     * -文件字节参数-
+     * ----------------------------153054330803524445015047
+     * Content-Disposition: form-data; name="level"
+     *
+     * 11111
+     * ----------------------------153054330803524445015047--
      */
     @PostMapping("/upload/multiple/json4")
     @ResponseBody
     @Validated
     public Map<String, List<String>> multipleUpload4(MultipartHttpServletRequest request,
-                                                     @NotEmpty(message = "level is empty") @RequestParam(value = "level", required = true) String level)
+                                                     @NotEmpty(message = "level is empty") @RequestParam(value = "level", required = false) String level)
     {
         Map<String, List<String>> result = new HashMap<>();
         Map<String, MultipartFile> map = request.getFileMap();
@@ -223,6 +245,28 @@ public class UploadController
 
     /**
      * 可以使用postman调用, 需要分别传入 item中的name和value属性
+     *
+     * POST /import/upload/multiple/json5 HTTP/1.1
+     * User-Agent: PostmanRuntime/7.26.8
+     * Host: 192.190.10.122:21111
+     * Accept-Encoding: gzip, deflate
+     * Connection: close
+     * Content-Type: multipart/form-data; boundary=--------------------------570002456370464510172609
+     * Content-Length: 614
+     *
+     * ----------------------------570002456370464510172609
+     * Content-Disposition: form-data; name="1"; filename="test_secret17.txt"
+     * Content-Type: text/plain
+     *
+     * -文件字节参数-
+     * Content-Disposition: form-data; name="name"
+     *
+     * 1
+     * ----------------------------570002456370464510172609
+     * Content-Disposition: form-data; name="value"
+     *
+     * 2
+     * ----------------------------570002456370464510172609--
      */
     @PostMapping("/upload/multiple/json5")
     @ResponseBody
@@ -249,10 +293,74 @@ public class UploadController
 
     /**
      *  使用@RequestPart接收对象 报文中必须指定格式为 Content-Type: application/json
+     *
+     *  Host: 192.190.10.122:21111
+     * Accept-Encoding: gzip, deflate
+     * Connection: close
+     * Content-Type: multipart/form-data; boundary=--------------------------748011833044869520584701
+     * Content-Length: 511
+     *
+     * ----------------------------748011833044869520584701
+     * Content-Disposition: form-data; name="1"; filename="test_secret17.txt"
+     * Content-Type: text/plain
+     *
+     *
+     * -文件字节参数-
+     * ----------------------------748011833044869520584701
+     * Content-Disposition: form-data; name="items"
+     * Content-Type: application/json
+     *
+     * []
+     * ----------------------------748011833044869520584701--
      */
     @PostMapping("/upload/multiple/json6")
     @ResponseBody
     public Map<String, List<String>> multipleUpload6(MultipartHttpServletRequest request, @RequestPart List<Item> items)
+    {
+        Map<String, List<String>> result = new HashMap<>();
+        Map<String, MultipartFile> map = request.getFileMap();
+        result.putIfAbsent("failed1", new ArrayList<>());
+        result.putIfAbsent("success1", new ArrayList<>());
+        map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
+        {
+            try
+            {
+                t.getValue().transferTo(new File("D:\\opt\\" + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
+                result.get("success1").add(t.getValue().getOriginalFilename());
+            }
+            catch (IOException e)
+            {
+                result.get("failed1").add(t.getValue().getOriginalFilename());
+            }
+        });
+        return result;
+    }
+
+    /**
+     * 使用@RequestPart接收对象
+     *
+     * POST /import/upload/multiple/json7 HTTP/1.1
+     * User-Agent: PostmanRuntime/7.26.8
+     * Host: 192.190.10.122:21111
+     * Accept-Encoding: gzip, deflate
+     * Connection: close
+     * Content-Type: multipart/form-data; boundary=--------------------------038190145852481148403885
+     * Content-Length: 511
+     *
+     * ----------------------------038190145852481148403885
+     * Content-Disposition: form-data; name="xxxx"; filename="test.txt"
+     * Content-Type: text/plain
+     *
+     * -文件字节参数-
+     * ----------------------------038190145852481148403885
+     * Content-Disposition: form-data; name="xxxx"
+     *
+     * -字符串参数-
+     * ----------------------------038190145852481148403885--
+     */
+    @PostMapping("/upload/multiple/json7")
+    @ResponseBody
+    public Map<String, List<String>> multipleUpload7(MultipartHttpServletRequest request, @RequestPart(name = "name") String json)
     {
         Map<String, List<String>> result = new HashMap<>();
         Map<String, MultipartFile> map = request.getFileMap();
