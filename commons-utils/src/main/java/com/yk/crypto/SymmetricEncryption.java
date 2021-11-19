@@ -322,6 +322,15 @@ public class SymmetricEncryption
         return ByteBuffer.wrap(debytes);
     }
 
+    /**
+     * 1. Key != Password
+     *    SecretKeySpec expects a key, not a password. See below
+     * 2. It might be due to a policy restriction that prevents using 32 byte keys. See other answer on that
+     *
+     * @param source
+     * @return
+     * @throws Exception
+     */
     public ByteBuffer aesEncryptWithSalt(byte[] source) throws Exception
     {
         int saltLength = 128;
@@ -338,7 +347,9 @@ public class SymmetricEncryption
         byte[] saltBytes = new byte[saltLength];
         randomSalt.nextBytes(saltBytes);
 
-        KeySpec keySpec = new PBEKeySpec(new String(aesKey, 0, aesKey.length).toCharArray(), saltBytes, 1000, 256);
+        // 原来的写法是根据密码生成aesKey再生成PBEKeySpec, key并不等同于passwd, 所以这里直接换成 symmetrickey
+        // KeySpec keySpec = new PBEKeySpec(new String(aesKey, 0, aesKey.length).toCharArray(), saltBytes, 1000, 256);
+        KeySpec keySpec = new PBEKeySpec(new String(symmetrickey, 0, symmetrickey.length).toCharArray(), saltBytes, 1000, 256);
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
         byte[] keyBytes = keyFactory.generateSecret(keySpec).getEncoded();
 
@@ -371,7 +382,9 @@ public class SymmetricEncryption
         System.arraycopy(source, saltBytes.length, ivBytes, 0, ivBytes.length);
         IvParameterSpec iv = new IvParameterSpec(ivBytes);
 
-        KeySpec keySpec = new PBEKeySpec(new String(aesKey, 0, aesKey.length).toCharArray(), saltBytes, 1000, 256);
+        // 原来的写法是根据密码生成aesKey再生成PBEKeySpec, key并不等同于passwd, 所以这里直接换成 symmetrickey
+        // KeySpec keySpec = new PBEKeySpec(new String(aesKey, 0, aesKey.length).toCharArray(), saltBytes, 1000, 256);
+        KeySpec keySpec = new PBEKeySpec(new String(symmetrickey, 0, symmetrickey.length).toCharArray(), saltBytes, 1000, 256);
         SecretKeyFactory keyFactory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1");
         byte[] keyBytes = keyFactory.generateSecret(keySpec).getEncoded();
 

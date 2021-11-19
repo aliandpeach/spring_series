@@ -28,10 +28,13 @@ public class JSONUtilTest
     @Test
     public void test()
     {
-        String json_j = "{\"result\":{\"机密\":[{4:2}]},\"code\":0,\"level\":\"alert\",\"message\":\"操作成功！\",\"taskId\":\"360b02f3-0e2c-4e74-8cf4-2b80cf842935\"}";
+        String json_j = "{\"result\":{\"机密\":[{\"16\":2}]},\"code\":0,\"level\":\"alert\",\"message\":\"操作成功！\",\"taskId\":\"0a4c3acf-de76-4434-9afc-05b5940426c6\"}";
         TestModel result_r = JSONUtil.fromJson(json_j, new TypeReference<TestModel>()
         {
         });
+
+        String ssssss = "userpass:";
+        String[] ary = ssssss.split(":");
 
         List<TestUser> users = new ArrayList<>();
         Map<Integer, TestUser> mapUsers = new HashMap<>();

@@ -38,6 +38,7 @@ public class ServiceApplication {
     private static final String KEYSTOREPASS = "Admin@123";
     
     public static void main(String[] args) {
+        System.setProperty("log.home", System.getProperty("user.dir"));
         Banner banner = new ResourceBanner(new ClassPathResource("banner.txt"));
         /*SpringApplicationBuilder builder = new SpringApplicationBuilder();
         builder.main(ServiceApplication.class);
@@ -80,7 +81,7 @@ public class ServiceApplication {
         };
         tomcat.addConnectorCustomizers(new TomcatConnectorCustomizer() {
             public void customize(Connector connector) {
-                connector.setPort(9024);
+                connector.setPort(9097);
                 connector.setSecure(true);
                 connector.setScheme("https");
 
@@ -98,7 +99,7 @@ public class ServiceApplication {
          * 额外增加的Connector
          */
         Connector connectorAdditional = new Connector("org.apache.coyote.http11.Http11NioProtocol");
-        connectorAdditional.setPort(9025);
+        connectorAdditional.setPort(9099);
         connectorAdditional.setSecure(true);
         connectorAdditional.setScheme("https");
 
@@ -142,7 +143,7 @@ public class ServiceApplication {
                 }
                 factory.addConnectorCustomizers(new TomcatConnectorCustomizer() {
                     public void customize(Connector connector) {
-                        connector.setPort(9026);
+                        connector.setPort(9098);
                         connector.setSecure(true);
                         connector.setScheme("https");
 

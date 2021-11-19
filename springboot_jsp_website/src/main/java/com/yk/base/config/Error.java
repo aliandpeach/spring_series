@@ -1,6 +1,7 @@
 package com.yk.base.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.stereotype.Controller;
@@ -18,7 +19,7 @@ import java.util.Map;
 /**
  * BasicErrorController 默认会返回new ModelAndView("error") （页面需要放入view目录下）
  *
- * DefaultErrorViewResolver默认会返回 /error/4xx.jsp /error/5xx.jsp （页面就需要放入views目录下面的error目录）
+ * DefaultErrorViewResolver默认会返回 /error/4xx.jsp /error/5xx.jsp （页面就需要放入 views (BaseWebMvcConfiguration中配置) 目录下面的error目录）
  *
  * 用户实现 ErrorController 覆盖掉了 ErrorMvcAutoConfiguration 的 basicErrorController,
  * 如果没有自定义, 会去执行 BasicErrorController, 其内部通过注入的 DefaultErrorViewResolver 寻找有没有配置 /error/4xx.jsp /error/5xx.jsp页面, 没有就直接返回error.jsp
@@ -52,7 +53,7 @@ public class Error implements ErrorController
     public ModelAndView errorPageHandler(HttpServletRequest request, HttpServletResponse response)
     {
         ServletWebRequest requestAttributes = new ServletWebRequest(request);
-        Map<String, Object> attr = this.errorAttributes.getErrorAttributes(requestAttributes, false);
+        Map<String, Object> attr = this.errorAttributes.getErrorAttributes(requestAttributes, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.MESSAGE));
         return new ModelAndView("400"); // 不存在或者内部错误的资源请求进入 views/400 页面
     }
     
@@ -64,7 +65,7 @@ public class Error implements ErrorController
     public Map<String, Integer> errorApiHander(HttpServletRequest request)
     {
         ServletWebRequest requestAttributes = new ServletWebRequest(request);
-        Map<String, Object> attr = this.errorAttributes.getErrorAttributes(requestAttributes, false);
+        Map<String, Object> attr = this.errorAttributes.getErrorAttributes(requestAttributes, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.MESSAGE));
         return new HashMap<>(Collections.singletonMap("status", 400));
     }
 }

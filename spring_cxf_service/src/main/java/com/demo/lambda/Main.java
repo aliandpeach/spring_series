@@ -252,16 +252,24 @@ public class Main {
 
 
         java.util.List<Map<String, String>> list_2_map = new ArrayList<>();
-        Map<String, String> m1_list_2_map = new HashMap<>(); m1_list_2_map.put("jobId", "1");m1_list_2_map.put("name", "name1");
+        Map<String, String> m1_list_2_map = new HashMap<>();
+        m1_list_2_map.put("jobId", "1");
+        m1_list_2_map.put("name", "name1");
         list_2_map.add(m1_list_2_map);
 
-        Map<String, String> m2_list_2_map = new HashMap<>(); m2_list_2_map.put("jobId", "2");m2_list_2_map.put("name", "name2");
+        Map<String, String> m2_list_2_map = new HashMap<>();
+        m2_list_2_map.put("jobId", "2");
+        m2_list_2_map.put("name", "name2");
         list_2_map.add(m2_list_2_map);
 
-        Map<String, String> m3_list_2_map = new HashMap<>(); m3_list_2_map.put("jobId", "3");m3_list_2_map.put("name", "name3");
+        Map<String, String> m3_list_2_map = new HashMap<>();
+        m3_list_2_map.put("jobId", "3");
+        m3_list_2_map.put("name", "name3");
         list_2_map.add(m3_list_2_map);
 
-        Map<String, String> m4_list_2_map = new HashMap<>(); m4_list_2_map.put("jobId", "4");m4_list_2_map.put("name", "name4");
+        Map<String, String> m4_list_2_map = new HashMap<>();
+        m4_list_2_map.put("jobId", "4");
+        m4_list_2_map.put("name", "name4");
         list_2_map.add(m4_list_2_map);
 
 

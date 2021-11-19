@@ -10,6 +10,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 
 import static com.google.common.jimfs.Feature.FILE_CHANNEL;
 import static com.google.common.jimfs.Feature.LINKS;
@@ -25,6 +28,21 @@ import static com.google.common.jimfs.PathNormalization.CASE_FOLD_ASCII;
  */
 public class FileTest
 {
+    private static class Item
+    {
+        private List<String> items;
+
+        public List<String> getItems()
+        {
+            return items;
+        }
+
+        public void setItems(List<String> items)
+        {
+            this.items = items;
+        }
+    }
+
     public static void main(String[] args) throws IOException
     {
         /*File file = new File("F:\\Download\\ideaIU-2021.1.exe");
@@ -43,6 +61,13 @@ public class FileTest
             }
         }
         System.out.println("over!!!");*/
+
+
+        String fileName = "1.";
+        String fileSuffix = null == fileName || fileName.lastIndexOf(".") == -1 ? "" : "*" + fileName.substring(fileName.lastIndexOf("."));
+
+        Item item = new Item();
+        List<String> o = Optional.ofNullable(item.getItems()).orElse(new ArrayList<>());
 
         Configuration config = Configuration.builder(PathType.windows())
                 .setRoots("F:\\")

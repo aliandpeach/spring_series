@@ -2,17 +2,17 @@
 
 <Configuration status="off" monitorInterval="1800">
     <properties>
-        <property name="LOG_HOME">D:/springboot_logs/</property>
+        <property name="LOG_HOME">${sys:log.home}/static/</property>
     </properties>
 
     <Appenders>
         <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout pattern="%d %-5p (%F:%L) - %m%n"/>
+            <PatternLayout charset="UTF-8" pattern="%d %-5p (%F:%L) - %m%n"/>
         </Console>
         <RollingRandomAccessFile name="demo"
                                  fileName="${LOG_HOME}/logs/demo.log"
-                                 filePattern="${LOG_HOME}/logs/demo.log.%d{yyyy-MM-dd}.gz">
-            <PatternLayout
+                                 filePattern="${LOG_HOME}/logs/demo.log.%d{yyyy-MM-dd}-%i.gz">
+            <PatternLayout charset="UTF-8"
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
@@ -23,8 +23,8 @@
 
         <RollingRandomAccessFile name="base"
                                  fileName="${LOG_HOME}/logs/base.log"
-                                 filePattern="${LOG_HOME}/logs/base.log.%d{yyyy-MM-dd}.gz">
-            <PatternLayout
+                                 filePattern="${LOG_HOME}/logs/base.log.%d{yyyy-MM-dd}-%i.gz">
+            <PatternLayout charset="UTF-8"
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
@@ -44,5 +44,20 @@
         <root level="info" includeLocation="true">
             <appender-ref ref="Console"/>
         </root>
+        <logger name="com.yk" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="demo"/>
+        </logger>
+        <logger name="com.yk" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="demo"/>
+        </logger>
+        <logger name="org.springframework.boot" level="ERROR">
+            <appender-ref ref="demo"/>
+        </logger>
+        <logger name="org.springframework.security" level="ERROR">
+            <appender-ref ref="demo"/>
+        </logger>
+        <!--<Root level="info">
+            <AppenderRef ref="demo"/>
+        </Root>-->
     </Loggers>
 </Configuration>

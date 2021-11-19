@@ -83,7 +83,7 @@ public class MyBatisConfiguration {
      * @param dataSource
      * @return
      */
-    @Bean
+    @Bean("commonTx")
     public PlatformTransactionManager transactionManager(DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
