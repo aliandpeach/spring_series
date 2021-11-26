@@ -25,7 +25,7 @@ import org.thymeleaf.spring5.view.ThymeleafViewResolver;
  *
  *          也可通过配置 addResourceHandler 来解决: webapp 目录下的 static目录被映射为resource
  *          registry.addResourceHandler("/resource/**").addResourceLocations("/static/");
- *          但是如此配置经过测试，能找到jsp页面文件，确无法解析
+ *          但是如此配置经过测试，能找到jsp页面资源，却无法解析: 如下行配置
  *          registry.addResourceHandler("/WEB-INF/view/**").addResourceLocations("/WEB-INF/view/");
  *
  *          结论：Spring接管所有请求后，通过配置DefaultServletHandlerConfigurer和addResourceHandler 组合配置来解决jsp和其它资源访问的问题
@@ -78,6 +78,9 @@ public class SpringMvcConfig implements WebMvcConfigurer
     
     /**
      * <mvc:default-servlet-handler/>
+     *     Spring mvc 不配置这个的话，由于dispatchServlet完全取代了 default servlet(容器)，就访问不到静态资源了， 这时候要么使用addResourceHandler去映射静态资源
+     *     (但是这么做 jps无法被解析)，要么就开启 default-servlet-handler， 可直接访问静态资源 (非WEB-INF目录), 同时直接访问jsp也可以被解析
+     *
      * 交由web容器默认的servlet处理
      *
      * 如果dispatcherserlet 的urlmapping 配置了/* 则需要配置这里才能访问jsp

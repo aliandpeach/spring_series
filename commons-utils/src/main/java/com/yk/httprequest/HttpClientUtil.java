@@ -66,10 +66,10 @@ public class HttpClientUtil
 
     //setConnectTimeout：设置连接超时时间，单位毫秒。
     //setConnectionRequestTimeout：设置从connect Manager获取Connection 超时时间，单位毫秒。这个属性是新加的属性，因为目前版本是可以共享连接池的。
-    //setSocketTimeout：请求获取数据的超时时间，单位毫秒。 如果访问一个接口，多少时间内无法返回数据，就直接放弃此次调用。
+    //setSocketTimeout：请求获取数据的超时时间，单位毫秒。 如果访问一个接口，多少时间内无法返回数据，就直接放弃此次调用， 下载一个大文件的时候，只要有持续响应，文件流就不会中断直到结束传输(除非中间有网络问题导致的超过SocketTimeout的时间)。
     private static RequestConfig requestConfig = RequestConfig.custom()
             .setConnectTimeout(22000).setConnectionRequestTimeout(12000)
-            .setSocketTimeout(24000).build();
+            .setSocketTimeout(2000).build();
 
     public static final ThreadLocal<Config> CONFIG_THREAD_LOCAL = new ThreadLocal<>();
     public static final ThreadLocal<RequestConfig> REQUEST_CONFIG_THREAD_LOCAL = new ThreadLocal<>();

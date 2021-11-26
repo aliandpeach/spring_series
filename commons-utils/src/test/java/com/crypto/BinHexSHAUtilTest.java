@@ -38,10 +38,11 @@ public class BinHexSHAUtilTest
     public void testDigest()
     {
         // github连接过程中的回显的指纹信息，就是本地的publicKey进行Base64解密后，再执行MessageDigest("SHA-256") 后转16进制字符串
-        String path = "F:\\Download\\vcredist_x64.exe";
+        String path = "C:\\Users\\Spinfo\\Desktop\\20M测试.pptx";
         try
         {
-            MessageDigest messageDigest = MessageDigest.getInstance("SHA-256");
+            String algorithm = "MD5";
+            MessageDigest messageDigest = MessageDigest.getInstance(algorithm);
             FileInputStream input = new FileInputStream(new File(path));
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             int len = 0;
@@ -66,8 +67,8 @@ public class BinHexSHAUtilTest
             
             byte[] rtn = messageDigest.digest();
             System.out.println("byte2Hex 转换byte[]为16进制 : " + BinHexSHAUtil.byte2Hex(rtn));
-            System.out.println("把文件一次性读入后 计算的hash 再转换为16进制 : " + BinHexSHAUtil.byte2Hex(MessageDigest.getInstance("SHA-256").digest(clone)));
-            System.out.println("把文件一次性读入后 计算的hash 再转换为16进制 : " + DigestUtils.sha256Hex(clone));
+            System.out.println("把文件一次性读入后 计算的hash 再转换为16进制 : " + BinHexSHAUtil.byte2Hex(MessageDigest.getInstance(algorithm).digest(clone)));
+            System.out.println("把文件一次性读入后 计算的hash 再转换为16进制 : " + DigestUtils.md5Hex(clone));
             
             //1代表绝对值, 该方法可以把byte[] 转换为16进制字符串
             BigInteger bigInt = new BigInteger(1, rtn);

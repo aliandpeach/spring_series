@@ -1,12 +1,23 @@
 package com.yk.base.config;
 
+import com.yk.httprequest.HttpClientUtil;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.ClientHttpRequestFactory;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurationSupport;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.List;
 
 /**
@@ -37,7 +48,9 @@ import java.util.List;
  * 在使用2.0版本的springboot的时候 使用WebMvcConfigurationSupport类配置拦截器时一定要重写addResourceHandlers来实现静态资源的映射,不要使用application.properties中添加配置来实现映射，不然资源会映射不成功导致打开页面资源一直加载不到
  */
 @Configuration
-public class BaseWebMvcConfiguration extends WebMvcConfigurationSupport {
+public class BaseWebMvcConfiguration extends WebMvcConfigurationSupport
+{
+    private static final Logger LOGGER = LoggerFactory.getLogger(BaseWebMvcConfiguration.class);
 
     @Autowired
     private StringHttpMessageConverter stringHttpMessageConverter;
@@ -48,14 +61,57 @@ public class BaseWebMvcConfiguration extends WebMvcConfigurationSupport {
      * 添加转换器
      */
     @Override
-    public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
-        for (int i = 0; i < converters.size(); i++) {
-            if (converters.get(i) instanceof StringHttpMessageConverter) {
+    public void extendMessageConverters(List<HttpMessageConverter<?>> converters)
+    {
+        for (int i = 0; i < converters.size(); i++)
+        {
+            if (converters.get(i) instanceof StringHttpMessageConverter)
+            {
                 converters.set(i, stringHttpMessageConverter);
             }
-            if (converters.get(i) instanceof MappingJackson2HttpMessageConverter) {
+            if (converters.get(i) instanceof MappingJackson2HttpMessageConverter)
+            {
                 converters.set(i, httpMessageConverter);
             }
         }
+    }
+
+    @Bean
+    public CloseableHttpClient factory() throws GeneralSecurityException, IOException
+    {
+        return HttpClientUtil.getClient(new HttpClientUtil.Config());
+    }
+
+    @Bean
+    public ClientHttpRequestFactory factory(CloseableHttpClient httpClient)
+    {
+        HttpComponentsClientHttpRequestFactory httpRequestFactory;
+        try
+        {
+            // 底层使用 http-client组件代替默认的HttpUrlConnection
+            httpRequestFactory = new HttpComponentsClientHttpRequestFactory(httpClient);
+            httpRequestFactory.setConnectTimeout(15000);
+            httpRequestFactory.setReadTimeout(5000);
+            return httpRequestFactory;
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("build HttpComponentsClientHttpRequestFactory error", e);
+            httpRequestFactory = new HttpComponentsClientHttpRequestFactory();
+            httpRequestFactory.setConnectTimeout(15000);
+            httpRequestFactory.setReadTimeout(5000);
+            return httpRequestFactory;
+        }
+    }
+
+    /**
+     * RestTemplateBuilder由RestTemplateAutoConfiguration 自动组装
+     */
+    @Bean
+    public RestTemplate restTemplate(ClientHttpRequestFactory factory, RestTemplateBuilder builder)
+    {
+        // requestFactory方法内部重新new了一个 RestTemplateBuilder对象
+        RestTemplate restTemplate = builder.requestFactory(() -> factory).build();
+        return restTemplate;
     }
 }

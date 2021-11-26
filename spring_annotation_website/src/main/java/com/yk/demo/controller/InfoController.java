@@ -2,16 +2,38 @@ package com.yk.demo.controller;
 
 import com.yk.demo.model.CommonParam;
 import com.yk.demo.model.CommonResult;
+import com.yk.demo.model.DownloadInfo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpInputMessage;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpMessageConverterExtractor;
+import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * PageController
@@ -20,6 +42,9 @@ import java.util.Map;
 @RequestMapping("/rest")
 public class InfoController
 {
+    @Autowired
+    private RestTemplate restTemplate;
+
     /**
      * {"ids":["1", "2"]}
      *
@@ -28,7 +53,7 @@ public class InfoController
      */
     @RequestMapping("/of")
     @ResponseBody
-    public CommonResult of(@RequestBody CommonParam<String> body)
+    public CommonResult<Map<String, Object>> of(@RequestBody CommonParam<String> body)
     {
         List<String> list = body.getIds();
 
@@ -56,7 +81,7 @@ public class InfoController
      */
     @RequestMapping("/array")
     @ResponseBody
-    public CommonResult array(@RequestParam(value = "ids[]") List<Long> ids)
+    public CommonResult<Map<String, Object>> array(@RequestParam(value = "ids[]") List<Long> ids)
     {
         return CommonResult.buildSuccess(new HashMap<>(Collections.singletonMap("key1", ids)));
     }
@@ -76,7 +101,7 @@ public class InfoController
      */
     @RequestMapping("/string")
     @ResponseBody
-    public CommonResult string(@RequestParam(value = "str") String str)
+    public CommonResult<Map<String, Object>> string(@RequestParam(value = "str") String str)
     {
         return CommonResult.buildSuccess(new HashMap<>(Collections.singletonMap("str", str)));
     }
@@ -98,8 +123,57 @@ public class InfoController
      */
     @RequestMapping("/map")
     @ResponseBody
-    public CommonResult map(@RequestParam Map<String, String> params)
+    public CommonResult<Map<String, Object>> map(@RequestParam Map<String, String> params)
     {
         return CommonResult.buildSuccess(new HashMap<>(params));
+    }
+
+    @RequestMapping("/download")
+    @ResponseBody
+    public CommonResult<Map<String, Object>> download(@RequestBody @Validated DownloadInfo downloadInfo)
+    {
+        // 下载文件
+        HttpMethod method = HttpMethod.POST.name().equalsIgnoreCase(downloadInfo.getMethod()) ? HttpMethod.POST : HttpMethod.GET;
+        HttpHeaders headers = new HttpHeaders();
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<byte[]> entity1 = restTemplate.exchange(downloadInfo.getUrl(), method, entity, byte[].class);
+        HttpHeaders httpHeaders = entity1.getHeaders();
+        byte[] bytes1 = entity1.getBody();
+        String str1 = new String(bytes1, StandardCharsets.UTF_8);
+
+        byte[] bytes2 = restTemplate.execute(downloadInfo.getUrl(), method, req ->
+        {
+
+        }, new HttpMessageConverterExtractor<byte[]>(byte[].class, Objects.requireNonNull(restTemplate.getMessageConverters())));
+        String str2 = new String(bytes1, StandardCharsets.UTF_8);
+
+        byte[] bytes3 = restTemplate.execute(downloadInfo.getUrl(), method, req ->
+        {
+
+        }, new HttpMessageConverterExtractor<byte[]>(byte[].class, new ArrayList<>(Arrays.asList(new ByteArrayHttpMessageConverter()))));
+        String str3 = new String(bytes1, StandardCharsets.UTF_8);
+
+        restTemplate.execute(downloadInfo.getUrl(), method, req ->
+        {
+
+        }, new HttpMessageConverterExtractor<byte[]>(byte[].class, new ArrayList<>(Arrays.asList(new ByteArrayHttpMessageConverter()
+        {
+            @Override
+            public byte[] readInternal(Class<? extends byte[]> clazz, HttpInputMessage inputMessage) throws IOException
+            {
+                HttpHeaders _httpHeaders = inputMessage.getHeaders();
+                ContentDisposition contentDisposition = _httpHeaders.getContentDisposition();
+                OutputStream out = new FileOutputStream(System.getProperty("user.dir") + File.separator + contentDisposition.getFilename());
+                int len;
+                byte[] buf = new byte[8192];
+                InputStream input = inputMessage.getBody();
+                while ((len = input.read(buf)) != -1)
+                {
+                    out.write(buf, 0, len);
+                }
+                return new byte[0];
+            }
+        }))));
+        return CommonResult.buildSuccess(new HashMap<>());
     }
 }

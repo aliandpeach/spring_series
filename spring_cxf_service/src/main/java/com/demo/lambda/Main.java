@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiFunction;
@@ -28,6 +29,9 @@ public class Main {
         /**
          * 类名::实例方法
          */
+
+        String id = UUID.randomUUID().toString().replace("-", "");
+        System.out.println(id);
 
         Predicate<List<UserModel>> p1 = List::isEmpty;
         p1.test(new ArrayList<>());// 检测new ArrayList是否为空

@@ -58,6 +58,7 @@ public class GenKeyTest
                 }
                 catch (InterruptedException e)
                 {
+                    e.printStackTrace();
                 }
             }
         });
@@ -96,7 +97,9 @@ public class GenKeyTest
         });
         th3.start();
         th2.join();
-//        th1.join();
+
+        th1.interrupt();// interrupt()会导致 th1线程抛出异常
+        th1.join();
     }
     
     @Test

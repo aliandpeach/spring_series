@@ -33,7 +33,7 @@ import java.util.List;
  *
  * 根据 WebMvcAutoConfiguration的配置，只要 用户自定义了 HttpMessageConverters bean
  * 最终都会被自动配置的 ObjectProvider<HttpMessageConverters> 拿到多个bean 然后遍历 存入 converters
- * 因此不管是 @Bean new HttpMessageConverters(MappingJackson2HttpMessageConverter) 还是 实现configureMessageConverters方法都可以加入到转换器集合中
+ * 因此不管是 @Bean HttpMessageConverters customerConverters { return new HttpMessageConverters(MappingJackson2HttpMessageConverter)} 还是 实现configureMessageConverters方法都可以让自定义的Converter加入到转换器集合中
  */
 @Configuration
 public class BaseWebMvcConfiguration implements WebMvcConfigurer

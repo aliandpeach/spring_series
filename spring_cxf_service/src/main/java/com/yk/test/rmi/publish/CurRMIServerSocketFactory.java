@@ -39,22 +39,9 @@ public class CurRMIServerSocketFactory implements RMIServerSocketFactory, Serial
             trustManagerFactory.init(trustStore);
             SSLContext sslContext = SSLContext.getInstance("SSL");
             sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), new SecureRandom());
-            SSLServerSocket sslServerSocket = (SSLServerSocket) sslContext.getServerSocketFactory()
-                    .createServerSocket(port);
-            return sslServerSocket;
-        } catch (NoSuchAlgorithmException e)
-        {
-            e.printStackTrace();
-        } catch (CertificateException e)
-        {
-            e.printStackTrace();
-        } catch (UnrecoverableKeyException e)
-        {
-            e.printStackTrace();
-        } catch (KeyStoreException e)
-        {
-            e.printStackTrace();
-        } catch (KeyManagementException e)
+            return (SSLServerSocket) sslContext.getServerSocketFactory().createServerSocket(port);
+        }
+        catch (Exception e)
         {
             e.printStackTrace();
         }

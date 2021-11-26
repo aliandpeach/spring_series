@@ -37,19 +37,8 @@ public class CurRMIClientSocketFactory implements RMIClientSocketFactory, Serial
             SSLSocket sslSocket = (SSLSocket) sslContext.getSocketFactory()
                     .createSocket(InetAddress.getByName(host), port);
             return sslSocket;
-        } catch (NoSuchAlgorithmException e)
-        {
-            e.printStackTrace();
-        } catch (CertificateException e)
-        {
-            e.printStackTrace();
-        } catch (UnrecoverableKeyException e)
-        {
-            e.printStackTrace();
-        } catch (KeyStoreException e)
-        {
-            e.printStackTrace();
-        } catch (KeyManagementException e)
+        }
+        catch (Exception e)
         {
             e.printStackTrace();
         }

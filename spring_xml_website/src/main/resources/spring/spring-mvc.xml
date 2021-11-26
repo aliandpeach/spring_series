@@ -26,7 +26,7 @@
     </bean>-->
 
     <!-- 下面两个配置只在DispatcherServlet拦截所有请求的情况下配置即可-->
-    <mvc:default-servlet-handler/>
+    <mvc:default-servlet-handler/> <!-- DispatcherServlet 拦截了所有请求包括静态资源，开启这个配置，就可以直接访问除安全目录外的其他静态资源 -->
     <mvc:resources mapping="/jquery/**" location="/plugin/jquery/"/>
 
     <bean id="templateResolver"
