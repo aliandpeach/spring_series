@@ -9,6 +9,12 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
     <modules>
         <module>spring_cxf_service</module>
         <module>spring_annotation</module>
@@ -19,5 +25,6 @@
         <module>springboot_jsp_website</module>
         <module>springboot_thymeleaf_service</module>
         <module>springboot_blockchain_service</module>
+        <module>springboot-crawler-service</module>
     </modules>
 </project>
