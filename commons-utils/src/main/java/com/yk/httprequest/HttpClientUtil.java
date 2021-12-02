@@ -9,6 +9,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.AuthCache;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.ResponseHandler;
@@ -17,6 +18,7 @@ import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -25,6 +27,8 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ContentType;
+import org.apache.http.impl.auth.BasicScheme;
+import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -53,9 +57,12 @@ import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.security.GeneralSecurityException;
+import java.security.KeyManagementException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
@@ -67,139 +74,165 @@ public class HttpClientUtil
     //setConnectTimeout：设置连接超时时间，单位毫秒。
     //setConnectionRequestTimeout：设置从connect Manager获取Connection 超时时间，单位毫秒。这个属性是新加的属性，因为目前版本是可以共享连接池的。
     //setSocketTimeout：请求获取数据的超时时间，单位毫秒。 如果访问一个接口，多少时间内无法返回数据，就直接放弃此次调用， 下载一个大文件的时候，只要有持续响应，文件流就不会中断直到结束传输(除非中间有网络问题导致的超过SocketTimeout的时间)。
-    private static RequestConfig requestConfig = RequestConfig.custom()
-            .setConnectTimeout(22000).setConnectionRequestTimeout(12000)
-            .setSocketTimeout(2000).build();
 
-    public static final ThreadLocal<Config> CONFIG_THREAD_LOCAL = new ThreadLocal<>();
-    public static final ThreadLocal<RequestConfig> REQUEST_CONFIG_THREAD_LOCAL = new ThreadLocal<>();
+    private CloseableHttpClient httpClient;
 
-    private static CloseableHttpClient httpClient; // 发送请求的客户端单例
-    
-    public static CloseableHttpClient getClient(Config config) throws GeneralSecurityException, IOException
+    private AuthCache authCache;
+
+    private CredentialsProvider credentialsProvider;
+
+    private DefaultProxyRoutePlanner routePlanner;
+
+    private HttpHost httpProxy;
+
+    private RequestConfig requestConfig;
+
+    public HttpClientUtil(Config config) throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, UnrecoverableKeyException, KeyManagementException
     {
         if (null == config)
         {
-            throw new RuntimeException("config must not be null");
+            config = new Config();
         }
-        if (null == httpClient)
+
+        RequestConfig.Builder requestConfigBuilder = RequestConfig.custom();
+        requestConfigBuilder.setSocketTimeout(config.getSocketTimeout());
+        requestConfigBuilder.setConnectTimeout(config.getConnectTimeout());
+        requestConfigBuilder.setConnectionRequestTimeout(config.getConnectionRequestTimeout());
+
+        SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
+        sslContextBuilder.loadTrustMaterial((chain, authType) -> true);
+
+        SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+
+        config.configError();
+        KeyManagerFactory keyFactory = KeyManagerFactory.getInstance("SunX509");
+        if (config.isSslKeyManager())
         {
-            synchronized (HttpClientUtil.class)
-            {
-                if (null == httpClient)
-                {
-                    SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
-                    sslContextBuilder.loadTrustMaterial((chain, authType) -> true);
-
-                    SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
-
-                    config.configError();
-                    KeyManagerFactory keyFactory = KeyManagerFactory.getInstance("SunX509");
-                    if (config.isSslKeyManager())
-                    {
-                        KeyStore key = KeyStore.getInstance(config.getType());
-                        key.load(new FileInputStream(config.getKeyStore()), config.getKeyStorePasswd().toCharArray());
-                        keyFactory.init(key, config.getKeyPasswd().toCharArray());
-                    }
-                    TrustManagerFactory trustFactory = TrustManagerFactory.getInstance("SunX509");
-                    if (config.isSslTrustManager())
-                    {
-                        KeyStore trust = KeyStore.getInstance(config.getType());
-                        trust.load(new FileInputStream(config.getTrustStore()), config.getTrustStorePasswd().toCharArray());
-                        trustFactory.init(trust);
-                    }
-                    sslContext.init(config.isSslKeyManager() ? keyFactory.getKeyManagers() : null,
-                            config.isSslTrustManager() ? trustFactory.getTrustManagers() : new TrustManager[]{new NullX509TrustManager()},
-                            new SecureRandom());
-
-                    // NoopHostnameVerifier | DefaultHostnameVerifier
-                    SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);
-                    Registry<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create()
-                            .register("http", new PlainConnectionSocketFactory())
-                            .register("https", sslConnectionSocketFactory)
-                            .build();
-    
-                    //连接池管理类
-                    PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registryBuilder);
-                    poolingHttpClientConnectionManager.setMaxTotal(3000);
-                    poolingHttpClientConnectionManager.setDefaultMaxPerRoute(3000);
-    
-                    HttpClientBuilder httpClientBuilder = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
-                            .setConnectionManager(poolingHttpClientConnectionManager)
-                            .setConnectionManagerShared(true).setDefaultRequestConfig(requestConfig);
-
-                    // 服务器认证: Basic, Digest and NTLM. 主要用于soap-webservice的登录验证
-                    if (null != config.getCredentials() && null != config.getCredentials().getUsername() && null != config.getCredentials().getPasswd())
-                    {
-                        CredentialsProvider provider = new BasicCredentialsProvider();
-                        UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials(config.getCredentials().getUsername(), config.getCredentials().getPasswd());
-                        NTCredentials webServiceCredentials = new NTCredentials(config.getCredentials().getUsername(), config.getCredentials().getPasswd(), "", "");
-                        provider.setCredentials(new AuthScope(AuthScope.ANY), webServiceCredentials);
-                        httpClientBuilder.setDefaultCredentialsProvider(provider);
-                    }
-
-                    // 设置代理
-                    if (null != config.getProxyInfo() && config.getProxyInfo().isProxy())
-                    {
-                        HttpHost httpProxy = new HttpHost(config.getProxyInfo().getHostname(), config.getProxyInfo().getPort(), config.getProxyInfo().getScheme());
-
-                        //包含账号密码的代理
-//                        CredentialsProvider provider = new BasicCredentialsProvider();
-//                        provider.setCredentials(new AuthScope(httpProxy), new UsernamePasswordCredentials("username", "password"));
-
-                        DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(httpProxy);
-                        // setProxy  setRoutePlanner最终都是为了生成 DefaultProxyRoutePlanner, 二者使用一个即可
-                        // RequestConfig.Builder 的 setProxy() 也一样最后都是用于生成 DefaultProxyRoutePlanner (RequestConfig的方式可以灵活的使 CloseableHttpClient 发送请求的时候使用或者不使用代理)
-                        httpClientBuilder.setRoutePlanner(routePlanner).setProxy(httpProxy);
-                    }
-                    httpClient = httpClientBuilder.build();
-                    
-                    Runtime.getRuntime().addShutdownHook(new Thread(() ->
-                    {
-                        try
-                        {
-                            logger.info("closing http client");
-                            httpClient.close();
-                            logger.info("http client closed");
-                        }
-                        catch (IOException e)
-                        {
-                            logger.error(e.getMessage(), e);
-                        }
-                    }));
-                    return httpClient;
-                }
-            }
+            KeyStore key = KeyStore.getInstance(config.getType());
+            key.load(new FileInputStream(config.getKeyStore()), config.getKeyStorePasswd().toCharArray());
+            keyFactory.init(key, config.getKeyPasswd().toCharArray());
         }
-        return httpClient;
+        TrustManagerFactory trustFactory = TrustManagerFactory.getInstance("SunX509");
+        if (config.isSslTrustManager())
+        {
+            KeyStore trust = KeyStore.getInstance(config.getType());
+            trust.load(new FileInputStream(config.getTrustStore()), config.getTrustStorePasswd().toCharArray());
+            trustFactory.init(trust);
+        }
+        sslContext.init(config.isSslKeyManager() ? keyFactory.getKeyManagers() : null,
+                config.isSslTrustManager() ? trustFactory.getTrustManagers() : new TrustManager[]{new NullX509TrustManager()},
+                new SecureRandom());
+
+        // NoopHostnameVerifier | DefaultHostnameVerifier
+        SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, (s, sslSession) -> true);
+        Registry<ConnectionSocketFactory> registryBuilder = RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("http", new PlainConnectionSocketFactory())
+                .register("https", sslConnectionSocketFactory)
+                .build();
+
+        //连接池管理类
+        PoolingHttpClientConnectionManager poolingHttpClientConnectionManager = new PoolingHttpClientConnectionManager(registryBuilder);
+        poolingHttpClientConnectionManager.setMaxTotal(3000);
+        poolingHttpClientConnectionManager.setDefaultMaxPerRoute(3000);
+
+        HttpClientBuilder httpClientBuilder = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
+                .setConnectionManager(poolingHttpClientConnectionManager)
+                .setConnectionManagerShared(true)/*.setDefaultRequestConfig(defaultRequestConfigBuilder.build())*/;
+
+        // 服务器认证: Basic, Digest and NTLM. 主要用于soap-webservice的登录验证
+        if (null != config.getCredentials() && null != config.getCredentials().getUsername() && null != config.getCredentials().getPasswd())
+        {
+            credentialsProvider = new BasicCredentialsProvider();
+            UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials(config.getCredentials().getUsername(), config.getCredentials().getPasswd());
+            NTCredentials ntCredentials = new NTCredentials(config.getCredentials().getUsername(), config.getCredentials().getPasswd(), "", "");
+            credentialsProvider.setCredentials(new AuthScope(AuthScope.ANY), ntCredentials);
+//            httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+        }
+
+        // 服务器代理
+        if (null != config.getProxyInfo() && config.getProxyInfo().isProxy())
+        {
+            httpProxy = new HttpHost(config.getProxyInfo().getHostname(), config.getProxyInfo().getPort(), config.getProxyInfo().getScheme());
+            this.authCache = new BasicAuthCache();
+            authCache.put(httpProxy, new BasicScheme());
+
+            routePlanner = new DefaultProxyRoutePlanner(httpProxy);
+            // setProxy  setRoutePlanner最终都是为了生成 DefaultProxyRoutePlanner, 二者使用一个即可
+            // RequestConfig.Builder 的 setProxy() 也一样最后都是用于生成 DefaultProxyRoutePlanner (RequestConfig的方式可以灵活的使 CloseableHttpClient 发送请求的时候使用或者不使用代理)
+//            httpClientBuilder.setRoutePlanner(routePlanner).setProxy(httpProxy);
+            requestConfigBuilder.setProxy(httpProxy);
+        }
+
+        requestConfig = requestConfigBuilder.build();
+        httpClient = httpClientBuilder.build();
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() ->
+        {
+            try
+            {
+                logger.info("closing http client");
+                httpClient.close();
+                logger.info("http client closed");
+            }
+            catch (IOException e)
+            {
+                logger.error(e.getMessage(), e);
+            }
+        }));
     }
 
-    public static boolean getBytes(String url, Map<String, String> headers, Map<String, String> params, String fileName, String dir, String rootDir)
+    public static CloseableHttpClient getClient(Config config) throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException
     {
-        try (CloseableHttpClient client = getClient(new Config()))
+        HttpClientUtil httpClientUtil = new HttpClientUtil(config);
+        return httpClientUtil.httpClient;
+    }
+
+    public boolean getBytes(String url, Map<String, String> headers, Map<String, String> params, String fileName, String dir, String rootDir)
+    {
+
+        HttpGet httpGet = null;
+        try
         {
             url = initUrlParams(url, params);
-            HttpGet httpGet = new HttpGet(url);
-            httpGet.setConfig(requestConfig);
+            httpGet = new HttpGet(url);
             /*initHeader(httpGet, headers);*/
             httpGet.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
             httpGet.addHeader("Accept-Encoding", "gzip, deflate, br");
             httpGet.addHeader("Connection", "keep-alive");
             httpGet.addHeader("User-Agent", "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36");
-            return client.execute(httpGet, new CurResponseHandlerBytes(fileName, dir, rootDir));
+
+            HttpClientContext httpContext = createHttpClientContext();
+            return httpClient.execute(httpGet, new CurResponseHandlerBytes(fileName, dir, rootDir), httpContext);
         }
         catch (Exception e)
         {
             throw new RuntimeException("getBytes error", e);
         }
+        finally
+        {
+            if (null != httpGet)
+                httpGet.releaseConnection();
+        }
     }
 
-    public static <T> T post(String url, Map<String, String> headers, Map<String, String> body, final TypeReference<T> typeReference)
+    private HttpClientContext createHttpClientContext()
     {
-        try (CloseableHttpClient client = getClient(null == CONFIG_THREAD_LOCAL.get() ? new Config() : CONFIG_THREAD_LOCAL.get()))
+        HttpClientContext httpContext = HttpClientContext.create();
+        httpContext.setRequestConfig(requestConfig);
+        if (null != credentialsProvider)
         {
-            HttpPost httpPost = new HttpPost(url);
-            httpPost.setConfig(null == REQUEST_CONFIG_THREAD_LOCAL.get() ? requestConfig : REQUEST_CONFIG_THREAD_LOCAL.get());
+            httpContext.setAuthCache(authCache);
+            httpContext.setCredentialsProvider(credentialsProvider);
+        }
+        return httpContext;
+    }
+
+    public <T> T post(String url, Map<String, String> headers, Map<String, String> body, final TypeReference<T> typeReference)
+    {
+        HttpPost httpPost = null;
+        try
+        {
+            httpPost = new HttpPost(url);
             initHeader(httpPost, headers);
 
             EntityBuilder builder = EntityBuilder.create();
@@ -208,35 +241,35 @@ public class HttpClientUtil
             builder.setContentEncoding(StandardCharsets.UTF_8.name());
             httpPost.setEntity(builder.build());
 
-            return client.execute(httpPost, new CurResponseHandler<T>(typeReference));
+            HttpClientContext httpContext = createHttpClientContext();
+            return httpClient.execute(httpPost, new CurResponseHandler<T>(typeReference), httpContext);
         }
         catch (Exception e)
         {
             throw new RuntimeException("T post error", e);
         }
+        finally
+        {
+            if (null != httpPost)
+                httpPost.releaseConnection();
+        }
     }
 
-    public static <T> T get(String url,
-                            Map<String, String> headers,
-                            Map<String, String> params,
-                            TypeReference<T> tTypeReference,
-                            int times)
+    public <T> T get(String url,
+                     Map<String, String> headers,
+                     Map<String, String> params,
+                     TypeReference<T> tTypeReference,
+                     int times)
     {
         long start = System.currentTimeMillis();
         HttpGet httpGet = null;
         try
         {
-            CloseableHttpClient client = getClient(null == CONFIG_THREAD_LOCAL.get() ? new Config() : CONFIG_THREAD_LOCAL.get());
-            if (client == null)
-            {
-                throw new RuntimeException("client is null");
-            }
             url = initUrlParams(url, params);
             httpGet = new HttpGet(url);
-            httpGet.setConfig(requestConfig);
             initHeader(httpGet, headers);
-            T result = client.execute(httpGet, new CurResponseHandler<>(tTypeReference));
-            return result;
+            HttpClientContext httpContext = createHttpClientContext();
+            return httpClient.execute(httpGet, new CurResponseHandler<>(tTypeReference), httpContext);
         }
         catch (IOException e)
         {
@@ -261,20 +294,20 @@ public class HttpClientUtil
         }
     }
 
-    public static String getString(String url, Map<String, String> headers, Map<String, String> params)
+    public String getString(String url, Map<String, String> headers, Map<String, String> params)
     {
-        try (CloseableHttpClient client = getClient(new Config()))
+        HttpGet httpGet = null;
+        try
         {
             url = initUrlParams(url, params);
-            HttpGet httpGet = new HttpGet(url);
-            httpGet.setConfig(requestConfig);
+            httpGet = new HttpGet(url);
 //            initHeader(httpGet, headers);
             httpGet.addHeader("Content-Type", "text/html; charset=UTF-8");
             httpGet.addHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36");
             httpGet.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
             httpGet.addHeader("Connection", "close");
-            String result = client.execute(httpGet, new CurResponseHandlerString());
-            return result;
+            HttpClientContext httpContext = createHttpClientContext();
+            return httpClient.execute(httpGet, new CurResponseHandlerString(), httpContext);
         }
         catch (IOException e)
         {
@@ -283,6 +316,11 @@ public class HttpClientUtil
         catch (Exception e)
         {
             throw new RuntimeException("getString Exception error", e);
+        }
+        finally
+        {
+            if (null != httpGet)
+                httpGet.releaseConnection();
         }
     }
 
@@ -297,12 +335,12 @@ public class HttpClientUtil
         {
             builder = new URIBuilder(url);
             URIBuilder finalBuilder = builder;
-            params.entrySet().stream().forEach(entry -> finalBuilder.setParameter(entry.getKey(), entry.getValue()));
+            params.entrySet().forEach(entry -> finalBuilder.setParameter(entry.getKey(), entry.getValue()));
             url = builder.build().toString();
         }
         catch (URISyntaxException e)
         {
-            e.printStackTrace();
+            logger.error("init builder url params error", e);
         }
         return url;
     }
@@ -318,7 +356,7 @@ public class HttpClientUtil
             return;
         }
         httpRequestBase.addHeader("ContentType", "application/json");
-        headers.entrySet().stream().forEach((entry) ->
+        headers.entrySet().forEach((entry) ->
         {
             httpRequestBase.addHeader(entry.getKey(), entry.getValue());
         });
@@ -327,7 +365,7 @@ public class HttpClientUtil
     static class CurResponseHandler<T> implements ResponseHandler<T>
     {
 
-        private TypeReference<T> typeReference;
+        private final TypeReference<T> typeReference;
 
         public CurResponseHandler(TypeReference<T> typeReference)
         {
@@ -374,6 +412,7 @@ public class HttpClientUtil
     static class CurResponseHandlerBytes implements ResponseHandler<Boolean>
     {
         private String fileName;
+
         private String dir;
 
         private String targetDir;
@@ -401,13 +440,11 @@ public class HttpClientUtil
             HttpEntity httpEntity = response.getEntity();
             if (null != httpEntity && null != httpEntity.getContent())
             {
-                InputStream inputStream = httpEntity.getContent();
-                FileOutputStream randomAccessFile = null;
-                byte[] buffer = null;
-                try
+                try (InputStream inputStream = httpEntity.getContent();
+                     FileOutputStream randomAccessFile = new FileOutputStream(new File(targetDir + fileName));)
                 {
-                    randomAccessFile = new FileOutputStream(new File(targetDir + fileName));
-                    buffer = new byte[1024 * 100];
+
+                    byte[] buffer = new byte[8128 * 50];
                     int len = 0;
                     while ((len = inputStream.read(buffer)) != -1)
                     {
@@ -417,25 +454,6 @@ public class HttpClientUtil
                 }
                 finally
                 {
-                    try
-                    {
-                        if (null != randomAccessFile)
-                            randomAccessFile.close();
-                    }
-                    catch (IOException e)
-                    {
-                        logger.error("ScanTask IOException error", e);
-                    }
-                    try
-                    {
-                        if (null != inputStream)
-                            inputStream.close();
-                    }
-                    catch (IOException e)
-                    {
-                        logger.error("ScanTask IOException error", e);
-                    }
-                    buffer = null;
                     System.gc();
                 }
             }
@@ -479,12 +497,6 @@ public class HttpClientUtil
             this.hostname = hostname;
             this.port = port;
             this.scheme = scheme;
-
-//            System.setProperty("http.proxyHost", hostname);
-//            System.setProperty("http.proxyPort", port + "");
-//            System.setProperty("http.proxyUser", username);
-//            System.setProperty("http.proxyPassword", passwd);
-//            System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
         }
     }
 
@@ -501,6 +513,12 @@ public class HttpClientUtil
 
         private boolean sslKeyManager;
         private boolean sslTrustManager;
+
+        private int connectTimeout = 20000; //setConnectTimeout：设置连接超时时间，单位毫秒。
+
+        private int connectionRequestTimeout = -1;//setConnectionRequestTimeout：设置从connect Manager获取Connection 超时时间，单位毫秒。这个属性是新加的属性，因为目前版本是可以共享连接池的。
+
+        private int socketTimeout = 20000; //setSocketTimeout：请求获取数据的超时时间，单位毫秒。 如果访问一个接口，多少时间内无法返回数据，就直接放弃此次调用， 下载一个大文件的时候，只要有持续响应，文件流就不会中断直到结束传输(除非中间有网络问题导致的超过SocketTimeout的时间)。
 
         private ProxyInfo proxyInfo;
 
@@ -565,7 +583,7 @@ public class HttpClientUtil
 
     public static class ByteArrayRequestEntity extends BasicHttpEntity
     {
-
+        // request body 写入ByteArrayOutputStream 缓存
         private ByteArrayOutputStream os = null;
 
         public ByteArrayRequestEntity(OutputStream os)
@@ -595,6 +613,7 @@ public class HttpClientUtil
         @Override
         public void writeTo(OutputStream out) throws IOException
         {
+            // ByteArrayOutputStream 缓存的request body写入 connection.getOutputStream();
             os.writeTo(out);
         }
 

@@ -10,20 +10,23 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
-
-import static com.yk.httprequest.HttpClientUtil.CONFIG_THREAD_LOCAL;
-import static com.yk.httprequest.HttpClientUtil.REQUEST_CONFIG_THREAD_LOCAL;
 
 /**
  * 描述
@@ -35,7 +38,7 @@ import static com.yk.httprequest.HttpClientUtil.REQUEST_CONFIG_THREAD_LOCAL;
 public class HttpClientAuthTest
 {
     @Test
-    public void httpGet()
+    public void httpGet() throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException
     {
         byte[] bytes = new byte[16];
         new SecureRandom().nextBytes(bytes);
@@ -51,11 +54,10 @@ public class HttpClientAuthTest
         config.setKeyStorePasswd("E47CF21F723705F516F5F2F0068001FE@m$5Sq4Q");
         config.setType("JKS");
         config.setSslKeyManager(true);
-        CONFIG_THREAD_LOCAL.set(config);
         Map<String, String> param = new HashMap<>(Collections.singletonMap("jobId", "jobId"));
         param.put("id", "id");
         param.put("name", "name");
-        Map<String, String> result = HttpClientUtil.get("https://192.190.116.205:443/SIMP_DBS_S/event/file/analysis/analyze",
+        Map<String, String> result = new HttpClientUtil(config).get("https://192.190.116.205:443/SIMP_DBS_S/event/file/analysis/analyze",
                 new HashMap<>(),
                 param,
                 new TypeReference<Map<String, String>>()
@@ -183,14 +185,10 @@ public class HttpClientAuthTest
         config.setKeyStorePasswd("E47CF21F723705F516F5F2F0068001FE@m$5Sq4Q");
         config.setType("JKS");
         config.setSslKeyManager(true);
-        CONFIG_THREAD_LOCAL.set(config);
-        REQUEST_CONFIG_THREAD_LOCAL.set(RequestConfig.custom()
-                .setConnectTimeout(22000).setConnectionRequestTimeout(12000)
-                .setSocketTimeout(-1).build());
         Map<String, String> body = new HashMap<>(Collections.singletonMap("jobId", "0560ec07891f472980b78dcb2fa9a29c"));
         body.put("id", "123456789");
         body.put("text", sb.toString());
-        Map<String, Object> result = HttpClientUtil.post("https://192.190.116.205/SIMP_DBS_S/event/file/analysis/task/text",
+        Map<String, Object> result = new HttpClientUtil(config).post("https://192.190.116.205/SIMP_DBS_S/event/file/analysis/task/text",
                 new HashMap<>(),
                 body,
                 new TypeReference<Map<String, Object>>()

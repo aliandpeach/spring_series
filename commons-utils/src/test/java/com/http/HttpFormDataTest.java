@@ -342,6 +342,6 @@ public class HttpFormDataTest
     public void getHtml() throws Exception
     {
         String url = "https://192.190.116.205/temporary_upload/bmj-new-install-1.5.0.0.7.v5.zip";
-        HttpClientUtil.getBytes(url, new HashMap<>(), new HashMap<>(), "a.html", System.currentTimeMillis() + "", "F:\\iworkspace\\_downloadx");
+        new HttpClientUtil(null).getBytes(url, new HashMap<>(), new HashMap<>(), "a.html", System.currentTimeMillis() + "", "F:\\iworkspace\\_downloadx");
     }
 }

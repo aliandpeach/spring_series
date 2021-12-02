@@ -125,7 +125,7 @@ public class UploadController
     /**
      * 参数中同时包含了文件和application/json格式的数据
      *
-     * 不能使用postman调用, 但可以使用jmeter 服务端SSL双向认证时, 如果使用Burp Suite抓包,则postman或者jmeter和Burp Suite都需要配置私钥证书(pkcs12即可)
+     * 使用postman调用, 或者jmeter 服务端SSL双向认证时, 如果使用Burp Suite抓包,则postman或者jmeter和Burp Suite都需要配置私钥证书(pkcs12即可)
      *
      * 指定标准的http 响应码：
      * 1. 使用ResponseEntity   ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new HashMap<>());
