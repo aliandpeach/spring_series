@@ -38,6 +38,10 @@ public class JwtTokenProvider
     private long validityInMilliseconds = 3600000; // 1h
 
     @Getter
+    @Value("${secret.related.excepts}")
+    private String excepts;
+
+    @Getter
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 

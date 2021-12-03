@@ -37,6 +37,8 @@ server:
   port: 9098
   servlet:
     context-path: /
+    encoding:
+      force: true # HttpEncodingAutoConfiguration
   ssl:
     enabled: true
     key-store: classpath:key/website.ks
@@ -45,3 +47,6 @@ server:
     key-store-password: Admin@123
   error:
     path: /error
+secret:
+  related:
+    excepts: /api/signin;/api/signup

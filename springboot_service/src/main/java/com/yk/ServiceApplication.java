@@ -29,7 +29,7 @@ import java.util.Collection;
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling
-// 注解类的说明是为了注册@WebListener@WebFilter@WebServlet 但同时也说明了内置tomcat才有用 本工程采用外置tomcat不需要该注解,一样可以生效
+// 注解类的说明是为了注册@WebListener@WebFilter@WebServlet 但同时也说明了embedded-tomcat才有用 若工程采用外置tomcat则不需要该注解,一样可以生效
 @ServletComponentScan
 @PropertySources({@PropertySource("classpath:Hikari.properties")})
 //@EnableAspectJAutoProxy(proxyTargetClass = true)

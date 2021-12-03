@@ -2,6 +2,7 @@ package com.yk.db.jpa.service;
 
 import com.yk.base.exception.CustomException;
 import com.yk.base.security.JwtTokenProvider;
+import com.yk.db.jpa.model.Role;
 import com.yk.db.jpa.model.User;
 import com.yk.db.jpa.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -9,11 +10,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,11 +40,13 @@ public class UserService
     {
         try
         {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
             return jwtTokenProvider.createToken(username, userRepository.findByName(username).getRoles());
         }
         catch (AuthenticationException e)
         {
+            SecurityContextHolder.getContext().setAuthentication(null);
             throw new CustomException("Invalid username/password supplied", HttpStatus.UNPROCESSABLE_ENTITY);
         }
     }
@@ -81,5 +88,22 @@ public class UserService
     public String refresh(String username)
     {
         return jwtTokenProvider.createToken(username, userRepository.findByName(username).getRoles());
+    }
+
+    private void reloadUserAuthority(String username)
+    {
+        List<Role> authorityList = userRepository.findByName(username).getRoles();
+
+        SecurityContext securityContext = SecurityContextHolder.getContext();
+        Authentication authentication = securityContext.getAuthentication();
+        User principal = (User) authentication.getPrincipal();
+        principal.setRoles(authorityList);
+
+        // 重新new一个token，因为Authentication中的权限是不可变的.
+        UsernamePasswordAuthenticationToken result = new UsernamePasswordAuthenticationToken(
+                principal, authentication.getCredentials(),
+                authorityList);
+        result.setDetails(authentication.getDetails());
+        securityContext.setAuthentication(result);
     }
 }

@@ -3,36 +3,30 @@ package com.yk.base.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.access.AccessDeniedHandler;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import java.util.Optional;
 
 @Configuration
 @EnableWebSecurity
-@EnableGlobalMethodSecurity(prePostEnabled = true)// @PreAuthorize
+@EnableGlobalMethodSecurity(prePostEnabled = true)// @PreAuthorize生效
 @RequiredArgsConstructor
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 {
     private final JwtTokenProvider jwtTokenProvider;
 
+    /**
+     * http://blog.itpub.net/69923331/viewspace-2695120/
+     */
     @Override
     protected void configure(HttpSecurity http) throws Exception
     {
@@ -42,11 +36,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
         // No session will be created or used by spring security
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
+        String[] excepts = Optional.ofNullable(jwtTokenProvider.getExcepts()).orElse("").split(";");
+
         // Entry points
-        http.authorizeRequests()//
-//                .antMatchers("/api/signin").permitAll()
-//                .antMatchers("/api/signup").permitAll()
+        http.authorizeRequests()
+                .antMatchers(excepts).permitAll()
                 .antMatchers("/h2-console/**/**").permitAll()
+//                .antMatchers("/error").permitAll()
                 // Disallow everything else..
                 .anyRequest().authenticated();
 
@@ -96,9 +92,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
                 .antMatchers("/webjars/**")
                 .antMatchers("/public")
                 .antMatchers("/static")
-                .antMatchers("/api/signup")
-                .antMatchers("/api/signin")
-                .antMatchers("/error")
+                .antMatchers("/describe.html")
 
                 // Un-secure H2 Database (for testing purposes, H2 console shouldn't be unprotected in production)
                 .and()

@@ -17,7 +17,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
  * 使用了@EnableWebMvc 注解， 那么sprig boot 的默认配置就会失效。
  * 如默认的静态文件配置路径："classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/"，将失效。
  * <p>
- * 根据@EnableWebMv源码的解释：
+ *    根据@EnableWebMv源码的解释：
  * 1. @EnableWebMvc 修饰配置类，不做任何继承和实现 就能使用 WebMvcConfigurationSupport的配置
  * 2. @EnableWebMvc + WebMvcConfigurer
  * 3. 如果WebMvcConfigurer接口没有更多公开的的高级配置，那么就需要继承 WebMvcConfigurationSupport, 注意不要添加 @EnableWebMvc
@@ -25,9 +25,9 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
  *    WebMvcAutoConfiguration 这个配置类的注解@ConditionalOnMissingBean({WebMvcConfigurationSupport.class})
  *    会判断容器是否存在WebMvcConfigurationSupport bean，如果存在，则当前配置类不生效
  *
- *    所以以上3种方式都会使得Spring默认配置失效。
+ *    所以以上3种方式都会使得SpringBoot默认自动配置失效。
  *
- *    如果只实现 WebMvcConfigurer接口，不会覆盖掉 Spring原有的配置, 只会对覆盖的接口进行功能性的增加，
+ *      如果只实现 WebMvcConfigurer接口，不会覆盖掉 Spring原有的配置, 只会对覆盖的接口进行功能性的增加，
  *      例如覆盖 addResourceHandlers方法，增加 .addResourceHandler("/other/**").addResourceLocations("/png/")
  *      那么Spring默认的和用户增加的映射都可以生效 ( webjars/** classpath:/META-INF/resources/ ...)
  *

@@ -22,9 +22,7 @@ import java.util.List;
  * 该配置类继承 WebMvcConfigurationSupport 和@EnableWebMvc作用一致
  * (@EnableWebMvc相当于继承WebMvcConfigurationSupport后没有任何方法覆盖)
  * 无论是使用@EnableWebMvc还是 继承WebMvcConfigurationSupport，都会禁止Spring Boot的自动装配@EnableAutoConfiguration中的设置
- * <p>
- * <p>
- * 默认的静态文件配置路径："classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/"
+ * 进而导致, 默认的静态文件配置路径："classpath:/META-INF/resources/", "classpath:/resources/", "classpath:/static/", "classpath:/public/" 失效
  *
  * <p>
  * 继承WebMvcConfigurationSupport 某些配置失效问题

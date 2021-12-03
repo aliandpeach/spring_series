@@ -147,7 +147,7 @@
         ExceptionHandlerExceptionResolver
         以支持使用注解@Controller的注解方法（如@RequestMapping、@ExceptionHandler）来处理request，
         并开启一系列默认功能设置，有了这个配置，就能将所有请求映射到@Controller修饰的handler上，
-        以及对应的@RequestMapping上，仅仅配置这个，可以处理数据接口，但是无法映射静态资源，这时我们再添加一个配置即可
+        以及对应的@RequestMapping上，仅仅配置这个，可以处理数据接口，但是无法映射静态资源，这时我们再添加一个<mvc:default-servlet-handler />配置即可
     -->
     <mvc:annotation-driven>
         <!-- use for converting @RequestBody method parameters and @ResponseBody method return values -->

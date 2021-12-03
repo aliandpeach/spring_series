@@ -13,6 +13,8 @@ import org.thymeleaf.spring5.view.ThymeleafViewResolver;
  *  * 1. @EnableWebMvc 修饰配置类，不做任何继承和实现 就能使用WebMvcConfigurationSupport的配置
  *  * 2. @EnableWebMvc + WebMvcConfigurer
  *  * 3. 如果WebMvcConfigurer接口没有更多公开的的高级配置，那么就需要继承WebMvcConfigurationSupport， 注意不要添加 @EnableWebMvc
+ *
+ *  该工程是xml配置工程应该是不需要该配置类的 (下次测试之后删除)
  */
 @Configuration
 @EnableWebMvc
