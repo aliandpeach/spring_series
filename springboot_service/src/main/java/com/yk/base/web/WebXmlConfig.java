@@ -12,17 +12,19 @@ import org.springframework.context.annotation.Configuration;
 import javax.servlet.Filter;
 import javax.servlet.ServletContextListener;
 import javax.servlet.http.HttpServlet;
-import java.util.Arrays;
+import java.util.Collections;
 
 /**
  * 统一注册的配置类
  */
 @Configuration
-public class WebXmlConfig {
+public class WebXmlConfig
+{
 
     @Bean
-    public ServletRegistrationBean<HttpServlet> servletRegistrationBean() {
-        ServletRegistrationBean<HttpServlet> bean = new ServletRegistrationBean<HttpServlet>();
+    public ServletRegistrationBean<HttpServlet> servletRegistrationBean()
+    {
+        ServletRegistrationBean<HttpServlet> bean = new ServletRegistrationBean<>();
         bean.setServlet(new UploadServlet());
         bean.addUrlMappings("/upload");
 //        bean.addInitParameter();
@@ -30,18 +32,19 @@ public class WebXmlConfig {
     }
 
     @Bean
-    public FilterRegistrationBean<Filter> filterRegistrationBean() {
-        FilterRegistrationBean<Filter> bean = new FilterRegistrationBean<Filter>();
+    public FilterRegistrationBean<Filter> filterRegistrationBean()
+    {
+        FilterRegistrationBean<Filter> bean = new FilterRegistrationBean<>();
         bean.setFilter(new BaseFilter());
-        bean.setUrlPatterns(Arrays.asList("/*"));
+        bean.setUrlPatterns(Collections.singletonList("/*"));
 //        bean.setInitParameters();
         return bean;
     }
 
     @Bean
-    public ServletListenerRegistrationBean<ServletContextListener> servletListenerRegistrationBean() {
-        ServletListenerRegistrationBean<ServletContextListener> bean =
-                new ServletListenerRegistrationBean<ServletContextListener>();
+    public ServletListenerRegistrationBean<ServletContextListener> servletListenerRegistrationBean()
+    {
+        ServletListenerRegistrationBean<ServletContextListener> bean = new ServletListenerRegistrationBean<>();
         bean.setListener(new BaseListener());
         return bean;
     }

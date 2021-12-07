@@ -1,6 +1,7 @@
 package com.yk.base.security;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +14,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 
 import java.util.Optional;
 
@@ -22,11 +26,12 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 {
-    private final JwtTokenProvider jwtTokenProvider;
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
 
-    /**
-     * http://blog.itpub.net/69923331/viewspace-2695120/
-     */
+    @Autowired
+    private AuthenticationManager authenticationManager;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception
     {
@@ -75,7 +80,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 //        });
 
         // Apply JWT
-        http.apply(new JwtTokenFilterConfigurer(jwtTokenProvider));
+        http.apply(new JwtTokenFilterConfigurer(jwtTokenProvider, authenticationManager));
 
         // Optional, if you want to test the API from a browser
         // http.httpBasic();

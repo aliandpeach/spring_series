@@ -2,10 +2,13 @@ package com.yk.base.security;
 
 import com.yk.base.exception.CustomException;
 import com.yk.httprequest.JSONUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
@@ -14,7 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,6 +24,8 @@ import java.util.stream.Collectors;
 // We should use OncePerRequestFilter since we are doing a database call, there is no point in doing this more than once
 public class JwtTokenFilter extends OncePerRequestFilter
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenFilter.class);
+
     private JwtTokenProvider jwtTokenProvider;
 
     public JwtTokenFilter(JwtTokenProvider jwtTokenProvider)
@@ -29,77 +33,65 @@ public class JwtTokenFilter extends OncePerRequestFilter
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
-    boolean isExclusion(String requestUri, Set<String> excludesPattern, String contextPath)
+    boolean isExclusion(HttpServletRequest request, Set<String> excludesPattern)
     {
-        String uri = "/";
-        if (null != excludesPattern && null != requestUri)
+        if (null == excludesPattern || excludesPattern.size() == 0)
         {
-            if (null != contextPath && requestUri.startsWith(contextPath))
+            return false;
+        }
+        for (String exclude : excludesPattern)
+        {
+            if (!this.matches(exclude, request))
             {
-                requestUri = requestUri.substring(contextPath.length());
-                if (!requestUri.startsWith(uri))
-                {
-                    requestUri = "/".concat(requestUri);
-                }
+                continue;
             }
-            Iterator<String> iterator = excludesPattern.iterator();
-            String pattern;
-            do
-            {
-                if (!iterator.hasNext())
-                {
-                    return false;
-                }
-                pattern = (String) iterator.next();
-            }
-            while (!this.matches(pattern, requestUri));
             return true;
         }
-        else
-        {
-            return false;
-        }
+        return false;
     }
 
-    boolean matches(String pattern, String source)
+    boolean matches(String pattern, HttpServletRequest request)
     {
-        if (null != pattern && null != source)
-        {
-            pattern = pattern.trim();
-            source = source.trim();
-            int start;
-            if (pattern.endsWith("*"))
-            {
-                start = pattern.length() - 1;
-                return source.length() >= start && pattern.substring(0, start).equals(source.substring(0, start));
-            }
-            else if (pattern.startsWith("*"))
-            {
-                start = pattern.length() - 1;
-                return source.length() >= start && source.endsWith(pattern.substring(1));
-            }
-            else if (pattern.contains("*"))
-            {
-                start = pattern.indexOf("*");
-                int end = pattern.lastIndexOf("*");
-                return source.startsWith(pattern.substring(0, start)) && source.endsWith(pattern.substring(end + 1));
-            }
-            else
-            {
-                return pattern.equals(source);
-            }
-        }
-        else
-        {
-            return false;
-        }
+//        if (null != pattern && null != source)
+//        {
+//            pattern = pattern.trim();
+//            source = source.trim();
+//            int start;
+//            if (pattern.endsWith("*"))
+//            {
+//                start = pattern.length() - 1;
+//                return source.length() >= start && pattern.substring(0, start).equals(source.substring(0, start));
+//            }
+//            else if (pattern.startsWith("*"))
+//            {
+//                start = pattern.length() - 1;
+//                return source.length() >= start && source.endsWith(pattern.substring(1));
+//            }
+//            else if (pattern.contains("*"))
+//            {
+//                start = pattern.indexOf("*");
+//                int end = pattern.lastIndexOf("*");
+//                return source.startsWith(pattern.substring(0, start)) && source.endsWith(pattern.substring(end + 1));
+//            }
+//            else
+//            {
+//                return pattern.equals(source);
+//            }
+//        }
+//        else
+//        {
+//            return false;
+//        }
+        AntPathRequestMatcher antPathRequestMatcher = new AntPathRequestMatcher(pattern);
+        return antPathRequestMatcher.matches(request);
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException
     {
         String uri = httpServletRequest.getRequestURI();
-        if (isExclusion(uri, Arrays.stream(Optional.ofNullable(jwtTokenProvider.getExcepts()).orElse("").split(";")).collect(Collectors.toSet()), httpServletRequest.getContextPath()))
+        LOGGER.info("jwt token filter uri {}", uri);
+        if (isExclusion(httpServletRequest, Arrays.stream(Optional.ofNullable(jwtTokenProvider.getExcepts()).orElse("").split(";")).collect(Collectors.toSet())))
         {
             filterChain.doFilter(httpServletRequest, httpServletResponse);
             return;
@@ -119,8 +111,10 @@ public class JwtTokenFilter extends OncePerRequestFilter
             }
             if (jwtTokenProvider.validateToken(token))
             {
+                // JWT-token验证完成后, 在这里会更新该登录用户的权限（权限可能是由管理员通过其他接口或者直接在数据库修改的）
+                // 保证了token不用重新登录, 用户也可以直接获取权限
                 Authentication auth = jwtTokenProvider.getAuthentication(token);
-                // 这里应该是为了后续线程执行到controller前对权限等的校验
+                // 这里应该是为了后续线程执行到Controller前对权限等的校验, 如果删除下面行, 则token虽然校验成功, 但是执行Controller的权限失败
                 SecurityContextHolder.getContext().setAuthentication(auth);
                 UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
                 logger.error("");
@@ -153,7 +147,6 @@ public class JwtTokenFilter extends OncePerRequestFilter
             httpServletResponse.getWriter().write(result == null ? "{\"message\": \"" + ex.getMessage() + "\"}" : result);
             return;
         }
-
         filterChain.doFilter(httpServletRequest, httpServletResponse);
     }
 }

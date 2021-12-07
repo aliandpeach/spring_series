@@ -1,5 +1,6 @@
 package com.yk.db.jpa.controller;
 
+import com.yk.db.jpa.dto.UserDataDTO;
 import com.yk.db.jpa.model.Role;
 import com.yk.db.jpa.model.User;
 import com.yk.db.jpa.repository.GroupRepository;
@@ -14,6 +15,7 @@ import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -72,11 +74,9 @@ public class UserController implements InitializingBean
     @ApiResponses(value = {
             @ApiResponse(code = 400, message = "Something went wrong"), //
             @ApiResponse(code = 422, message = "Invalid name/passwd supplied")})
-    public String login(
-            @ApiParam("name") @RequestParam String name, //
-            @ApiParam("passwd") @RequestParam String passwd)
+    public String login(@ApiParam("name") @RequestBody @Validated UserDataDTO user)
     {
-        return userService.signin(name, passwd);
+        return userService.signin(user.getName(), user.getPasswd());
     }
 
     @PostMapping("/signup")
@@ -88,11 +88,14 @@ public class UserController implements InitializingBean
     // MyBatisConfiguration 的DataSourceTransactionManager 默认使用在JPA上会无法生效， 所以这里需要特别指定JPA自己的自定义事务名
     // 不指定事务的时候，JPA会默认使用 transactionManager bean
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public String signup(@ApiParam("Signup User") @RequestBody User user)
+    public String signup(@ApiParam("Signup User") @RequestBody UserDataDTO userDataDTO)
     {
+        User user = new User();
         List<Role> roles = new ArrayList<>(Collections.singleton(roleRepository.findRoleByName("ROLE_CLIENT")));
         user.setRoles(roles);
         user.setGroup(groupRepository.findByName("GROUP_CLIENT"));
+        user.setName(userDataDTO.getName());
+        user.setPasswd(userDataDTO.getPasswd());
         return userService.signup(user);
     }
 

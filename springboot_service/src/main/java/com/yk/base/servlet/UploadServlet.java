@@ -7,11 +7,14 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 
-public class UploadServlet extends HttpServlet {
+public class UploadServlet extends HttpServlet
+{
+    private static final long serialVersionUID = 8870794471270415658L;
     private Logger logger = LoggerFactory.getLogger("base");
 
     @Override
-    public void service(ServletRequest request, ServletResponse response) {
+    public void service(ServletRequest request, ServletResponse response)
+    {
         logger.info("UploadServlet service");
     }
 }

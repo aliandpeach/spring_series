@@ -10,6 +10,7 @@ import com.yk.httprequest.JSONUtil;
 import lombok.Data;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class JSONUtilTest
 {
 
     @Test
-    public void test()
+    public void test() throws IOException
     {
         String json_j = "{\"result\":{\"机密\":[{\"16\":2}]},\"code\":0,\"level\":\"alert\",\"message\":\"操作成功！\",\"taskId\":\"0a4c3acf-de76-4434-9afc-05b5940426c6\"}";
         TestModel result_r = JSONUtil.fromJson(json_j, new TypeReference<TestModel>()

@@ -25,5 +25,8 @@ public class UserDataDTO
     private String name;
 
     @ApiModelProperty(position = 2)
+    private String passwd;
+
+    @ApiModelProperty(position = 3)
     List<Role> roles;
 }
