@@ -36,6 +36,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
@@ -65,7 +66,10 @@ import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class HttpClientUtil
 {
@@ -255,6 +259,34 @@ public class HttpClientUtil
         }
     }
 
+    public <T> T postURLEncoded(String url, Map<String, String> headers, Map<String, String> body, final TypeReference<T> typeReference)
+    {
+        HttpPost httpPost = null;
+        try
+        {
+            httpPost = new HttpPost(url);
+            initHeader(httpPost, headers);
+
+            EntityBuilder builder = EntityBuilder.create();
+            builder.setParameters(Optional.ofNullable(body).orElse(new HashMap<>()).entrySet().stream().map(t -> new BasicNameValuePair(t.getKey(), t.getValue())).collect(Collectors.toList()));
+            builder.setContentType(ContentType.APPLICATION_FORM_URLENCODED);
+            builder.setContentEncoding(StandardCharsets.UTF_8.name());
+            httpPost.setEntity(builder.build());
+
+            HttpClientContext httpContext = createHttpClientContext();
+            return httpClient.execute(httpPost, new CurResponseHandler<T>(typeReference), httpContext);
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException("T post error", e);
+        }
+        finally
+        {
+            if (null != httpPost)
+                httpPost.releaseConnection();
+        }
+    }
+
     public <T> T get(String url,
                      Map<String, String> headers,
                      Map<String, String> params,
@@ -385,7 +417,7 @@ public class HttpClientUtil
             {
                 throw new IOException("httpEntity is null");
             }
-            return JSONUtil.fromJson(EntityUtils.toString(httpEntity), typeReference);
+            return JSONUtil.fromJson(response.getEntity().getContent(), typeReference);
         }
     }
 

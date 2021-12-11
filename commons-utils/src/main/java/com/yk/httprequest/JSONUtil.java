@@ -1,12 +1,14 @@
 package com.yk.httprequest;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
@@ -48,7 +50,21 @@ public class JSONUtil
         return result;
     }
 
+    public static <T> T fromJson(String json, JavaType type) throws IOException
+    {
+        ObjectMapper objectMapper = new ObjectMapper();
+        T result = objectMapper.readValue(json, type);
+        return result;
+    }
+
     public static <T> T fromJson(String json, TypeReference<T> type) throws IOException
+    {
+        ObjectMapper objectMapper = new ObjectMapper();
+        T result = objectMapper.readValue(json, type);
+        return result;
+    }
+
+    public static <T> T fromJson(InputStream json, TypeReference<T> type) throws IOException
     {
         ObjectMapper objectMapper = new ObjectMapper();
         T result = objectMapper.readValue(json, type);
@@ -59,6 +75,12 @@ public class JSONUtil
     {
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.writeValueAsString(object);
+    }
+
+    public static byte[] toJsonBytes(Object object) throws IOException
+    {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.writeValueAsBytes(object);
     }
 
     public static class CurParameterizedType implements ParameterizedType

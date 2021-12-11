@@ -6,9 +6,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * 描述
@@ -19,31 +23,50 @@ import java.nio.charset.StandardCharsets;
  */
 public class TCPDownloadServer
 {
-    public static void main(String[] args)
+    private static ExecutorService service = Executors.newFixedThreadPool(10);
+
+    public static void main(String[] args) throws IOException
     {
-        File f = new File("test.zip");
-        int port = 136;
-        try (ServerSocket server_socket = new ServerSocket(port);
-             Socket server = server_socket.accept();
-             OutputStream fos = new FileOutputStream(f);
-             InputStream is = server.getInputStream())
+        int port = 1366;
+        InetAddress inetAddress = InetAddress.getByName("localhost");
+        //创建指定端口号的服务器套接字ServerSocket
+        ServerSocket server_socket = new ServerSocket(port, 0, inetAddress);
+        //设置服务器套接字的等待时间，超过时间，自动关闭。以毫秒为单位
+//        server_socket.setSoTimeout(10000);
+        while (true)
         {
-            //创建指定端口号的服务器套接字ServerSocket
-            //设置服务器套接字的等待时间，超过时间，自动关闭。以毫秒为单位
-            server_socket.setSoTimeout(10000);
-            int i;
-            while ((i = is.read()) != -1)
+            Socket socket = server_socket.accept();
+            service.submit(new ChatSocket(socket));
+        }
+    }
+
+    private static class ChatSocket implements Runnable
+    {
+        private Socket socket;
+
+        public ChatSocket(Socket socket)
+        {
+            this.socket = socket;
+        }
+
+        @Override
+        public void run()
+        {
+            File f = new File("C:\\Users\\Spinfo\\Desktop\\11" + System.currentTimeMillis() + ".xml");
+            try (InputStream in = socket.getInputStream();
+                 OutputStream fos = new FileOutputStream(f))
             {
-                fos.write(i);
+                byte[] buf = new byte[8192];
+                int len;
+                while ((len = in.read(buf)) != -1)
+                {
+                    fos.write(buf, 0, len);
+                }
+                fos.flush();
             }
-            fos.flush();
-        }
-        catch (IOException e)
-        {
-        }
-        finally
-        {
-            System.out.println("接收完成");
+            catch (IOException e)
+            {
+            }
         }
     }
 }

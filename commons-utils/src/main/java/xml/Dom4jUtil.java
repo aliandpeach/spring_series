@@ -44,6 +44,24 @@ public class Dom4jUtil
         return null;
     }
 
+    public static Document getDocumentStream(InputStream input)
+    {
+        if (null == input)
+        {
+            return null;
+        }
+        SAXReader reader = new SAXReader();
+        try
+        {
+            return reader.read(input);
+        }
+        catch (Exception e)
+        {
+            LOGGER.error("init read xml file error", e);
+        }
+        return null;
+    }
+
     public static Document getDocumentContent(String xmlContent)
     {
         SAXReader reader = new SAXReader();

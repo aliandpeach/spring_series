@@ -60,7 +60,8 @@ public class JSONUtilTest
         {
         });
         System.out.println(_usersx);
-        
+
+        // CurTypeReference2 这么写的话, 会造成List<>中的对象是LinkedHashMap而不是TestUser
         List<TestUser> __users = JSONUtil.fromJson(json, new JSONUtil.CurTypeReference2<List<TestUser>>());
         List<TestUser> _users = JSONUtil.fromJson(json, new JSONUtil.CurTypeReference<List<TestUser>>(type));
         System.out.println(_users);

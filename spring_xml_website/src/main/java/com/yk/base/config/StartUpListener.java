@@ -39,32 +39,28 @@ import java.util.Optional;
 import java.util.Properties;
 
 @WebListener
-public class StartUpListener implements ServletContextListener {
+public class StartUpListener implements ServletContextListener
+{
 
     Logger logger = LoggerFactory.getLogger("demo");
 
+    /**
+     * getClassLoader()是当前类加载器,而getContextClassLoader是当前线程的类加载器
+     *
+     * Tomcat org.apache.catalina.startup.Bootstrap启动类，启动的时候的类加载器是ClassLoader.getSystemClassLoader()。
+     * 而我们后面的WEB程序，里面的jar、resources都是由Tomcat内部来加载的，所以你在代码中动态加载jar、资源文件的时候，
+     * 首先应该是使用Thread.currentThread().getContextClassLoader()。如果你使用Test.class.getClassLoader()，
+     * 可能会导致和当前线程所运行的类加载器不一致（因为Java天生的多线程）。
+     * Test.class.getClassLoader()一般用在getResource，因为你想要获取某个资源文件的时候，这个资源文件的位置是相对固定的。
+     *
+     * java的类加载机制（jvm规范）是委托模型，简单的说，如果一个类加载器想要加载一个类，
+     * 首先它会委托给它的parent去加载，如果它的所有parent都没有成功的加载那么它才会自己亲自来。
+     */
     @Override
-    public void contextInitialized(ServletContextEvent sce) {
-        //JDK提供的方法
-        /**
-         * getClassLoader()是当前类加载器,而getContextClassLoader是当前线程的类加载器
-         *
-         * Tomcat org.apache.catalina.startup.Bootstrap启动类，启动的时候的类加载器是ClassLoader.getSystemClassLoader()。
-         * 而我们后面的WEB程序，里面的jar、resources都是由Tomcat内部来加载的，所以你在代码中动态加载jar、资源文件的时候，
-         * 首先应该是使用Thread.currentThread().getContextClassLoader()。如果你使用Test.class.getClassLoader()，
-         * 可能会导致和当前线程所运行的类加载器不一致（因为Java天生的多线程）。
-         * Test.class.getClassLoader()一般用在getResource，因为你想要获取某个资源文件的时候，这个资源文件的位置是相对固定的。
-         *
-         * java的类加载机制（jvm规范）是委托模型，简单的说，如果一个类加载器想要加载一个类，
-         * 首先它会委托给它的parent去加载，如果它的所有parent都没有成功的加载那么它才会自己亲自来。
-         *
-         *
-         * 如果你使用Test.class.getClassLoader()，可能会导致和当前线程所运行的类加载器不一致
-         */
-        // Thread.currentThread().getContextClassLoader();
-        // Thread.currentThread().getClass().getClassLoader();
-        // StartUpListener.class.getClassLoader();
-        try {
+    public void contextInitialized(ServletContextEvent sce)
+    {
+        try
+        {
             // 带/ 从根目录位置查找，不带/, 从当前包位置查找, 该方法会先处理参数是否带/的过程，不带就找TestResource.class的全类限定名
             InputStream in1 = StartUpListener.class.getResource("/druid.properties").openStream();
             // path : /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
@@ -74,8 +70,11 @@ public class StartUpListener implements ServletContextListener {
 
             // 默认从根目录查询，不能带/, 属于简化版的class.getResource方法 (web项目中，带不带/都可以，这是因为web项目获取的是相对路径)
             InputStream in2 = StartUpListener.class.getClassLoader().getResource("druid.properties").openStream();
-            String s3 = StartUpListener.class.getClassLoader().getResource("/").getPath();// /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
-            String s4 = StartUpListener.class.getClassLoader().getResource("").getPath(); // /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+
+            // /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+            String s3 = StartUpListener.class.getClassLoader().getResource("/").getPath();
+            // /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+            String s4 = StartUpListener.class.getClassLoader().getResource("").getPath();
 
             // 无法获取到getClassLoader 不可用
             // InputStream in3 = Thread.currentThread().getClass().getClassLoader().getResource("druid.properties").openStream();
@@ -87,23 +86,34 @@ public class StartUpListener implements ServletContextListener {
 
             // 默认从根目录查询，不能带/, 属于简化版的class.getResource方法 (web项目中，带不带/都可以)
             InputStream in5 = Thread.currentThread().getContextClassLoader().getResource("druid.properties").openStream();
-            String s7 = Thread.currentThread().getContextClassLoader().getResource("/").getPath();// /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
-            String s8 = Thread.currentThread().getContextClassLoader().getResource("").getPath(); // /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
 
-            String s9 = this.getClass().getClassLoader().getResource("/").getPath();// /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
-            String s10 = this.getClass().getClassLoader().getResource("").getPath();// /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+            // /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+            String s7 = Thread.currentThread().getContextClassLoader().getResource("/").getPath();
+            // /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+            String s8 = Thread.currentThread().getContextClassLoader().getResource("").getPath();
 
-            String s11 = this.getClass().getResource("/").getPath();// path : /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
-            String s12 = this.getClass().getResource("").getPath(); // path : /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/com/yk/base/config/
+
+            // /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+            String s9 = this.getClass().getClassLoader().getResource("/").getPath();
+            // /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+            String s10 = this.getClass().getClassLoader().getResource("").getPath();
+
+            // path : /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
+            String s11 = this.getClass().getResource("/").getPath();
+            // path : /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/com/yk/base/config/
+            String s12 = this.getClass().getResource("").getPath();
 
             Properties properties = new Properties();
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
 
         ClassPathResource env = new ClassPathResource("spring/bean.xml"); //类路径的文件
         String path1 = env.getPath(); //类路径的文件
-        try (InputStream in = env.getInputStream()) {
+        try (InputStream in = env.getInputStream())
+        {
             DataInputStream data = new DataInputStream(in);
             DataOutputStream out = new DataOutputStream(new FileOutputStream("D:\\env.txt"));
             int size = in.available();
@@ -111,7 +121,9 @@ public class StartUpListener implements ServletContextListener {
             data.readFully(buf);
             out.write(buf);
             out.flush();
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
         String realPath = sce.getServletContext().getRealPath("/");
@@ -142,10 +154,13 @@ public class StartUpListener implements ServletContextListener {
         */
 
         EncodedResource encodedResource = new EncodedResource(new ClassPathResource("spring/bean.xml"), "UTF-8");
-        try {
+        try
+        {
             String content = FileCopyUtils.copyToString(encodedResource.getReader());
 //            Optional.of(content).ifPresent(System.out::println);
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
 
@@ -170,9 +185,12 @@ public class StartUpListener implements ServletContextListener {
 
         DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
         XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory);
-        try {
+        try
+        {
             reader.loadBeanDefinitions(new PathMatchingResourcePatternResolver().getResources("classpath:spring/bean.xml"));
-        } catch (IOException e) {
+        }
+        catch (IOException e)
+        {
             e.printStackTrace();
         }
         factory.addBeanPostProcessor(new MyBeanPostProcessor());
@@ -207,11 +225,13 @@ public class StartUpListener implements ServletContextListener {
     }
 
     @Override
-    public void contextDestroyed(ServletContextEvent sce) {
+    public void contextDestroyed(ServletContextEvent sce)
+    {
 
     }
 
-    private void copy(StringWriter writer, InputStreamReader reader) throws IOException {
+    private void copy(StringWriter writer, InputStreamReader reader) throws IOException
+    {
         char[] buffer = new char[4069];
         int len;
         while ((len = reader.read(buffer)) != -1)
