@@ -25,5 +25,6 @@
         <module>springboot_jsp_website</module>
         <module>springboot_thymeleaf_service</module>
         <module>springboot_blockchain_service</module>
+		<module>springboot-session-service</module>
     </modules>
 </project>

@@ -12,6 +12,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 描述
@@ -38,6 +41,8 @@ import java.util.List;
 @Api
 public class UserController implements InitializingBean
 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserController.class);
+
     @Autowired
     private UserRepository userRepository;
 
@@ -52,6 +57,14 @@ public class UserController implements InitializingBean
 
 //    @Autowired
 //    private ModelMapper modelMapper;
+
+    @PostMapping("/log/record")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN')")
+    public Map<String, String> log(@RequestParam String log)
+    {
+        LOGGER.error(log);
+        return Collections.singletonMap("result", "success");
+    }
 
     @RequestMapping("/query/user/all")
     @PreAuthorize("hasRole('ROLE_ADMIN')")

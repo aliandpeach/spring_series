@@ -187,7 +187,7 @@ public class KeyUtil
     }
 
     /**
-     * 生成加密的私钥, 加密的私钥可以被 readEncryptedKey方法读取
+     * 生成加密的私钥, 加密的私钥可以被 readEncryptedKey 方法读取
      */
     public static void writeEncryptedKey(PrivateKey key, String outEncryptedPasswd, String out) throws OperatorCreationException, IOException
     {
@@ -287,7 +287,7 @@ public class KeyUtil
     /**
      * 读取公钥 pkcs8 PEM格式 ( openssl rsa -in pkcs8.pem -pubout -out pkcs8_pub.pem )
      *
-     * @param pem 私钥文件
+     * @param pem 公钥文件
      */
     public static RSAPublicKey readPublicKey(InputStream pem) throws Exception
     {
@@ -307,7 +307,7 @@ public class KeyUtil
     /**
      * 读取公钥 pkcs1 PEM格式 ( openssl rsa -in pkcs1.pem -RSAPublicKey_out -out pkcs1_pub.pem )
      *
-     * @param pem 私钥文件
+     * @param pem 公钥文件
      */
     public static RSAPublicKey readPublicKeySecondApproach(InputStream pem) throws IOException
     {

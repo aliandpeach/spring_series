@@ -26,7 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
- * 描述
+ * 密码校验拦截器 只在登录或者注册或者修改密码的接口中进行拦截
  *
  * @author yangk
  * @version 1.0
