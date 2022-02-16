@@ -1,0 +1,1 @@
+docker build -t springboot-docker-service:1.0-SNAPSHOT .

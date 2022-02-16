@@ -1,0 +1,22 @@
+version: '3.9'
+
+services:
+  springboot-service-demo:
+    build: .
+    image: springboot-docker-service:1.0-SNAPSHOT
+    # 指定容器名称
+    container_name: springboot-docker-service-container
+    restart: always
+    # 指定服务运行的端口
+    ports:
+      - 31111:31111
+    # 指定容器中需要挂载的文件
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - /opt/springboot-docker-service/static/logs:/usr/local/docker/springboot-docker-service/static/logs
+    environment:
+      - DATABASE_HOST=127.0.0.1:3306
+      - DATABASE_USER=root
+      - DATABASE_PWD=root
+      - REDIS_HOST=127.0.0.1
+      - REDIS_PORT=6379
