@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="cn" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <style>
+    </style>
+    <script type="text/javascript" th:src="@{/jquery/jquery-1.8.0.min.js}"></script>
+    <script type="text/javascript" th:src="@{/resource/common.js}" ></script>
+    <script th:inline="javascript">
+        function uploadOnload() {
+            // var body = $(window.frames['_upload_resp_iframe'].window.document.body);
+            var body = $(window.frames['_upload_resp_iframe'].document.body);
+            var retMsg = $("#returnMsg");
+            retMsg.text(body.context.textContent);
+
+            //top.document.getElementById("_upload_resp_iframe").contentWindow.document.body.textContent
+            //top.document.getElementById("_upload_resp_iframe").contentDocument.body.textContent
+        }
+    </script>
+</head>
+<body>
+    <form method="post" action="/import/upload/multiple" enctype="multipart/form-data" target="_upload_resp_iframe">
+        选择要上传的文件：<input accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" multiple="multiple" type="file" name="fileName_1"><br>
+        选择要上传的文件：<input accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" multiple="multiple" type="file" name="fileName_2"><br>
+        <hr>
+        <input type="hidden" name="upload.name" value="aaa.zip">
+        <input type="submit" value="提交">
+    </form>
+
+    <!--<form method="post" action="/import/upload/single" enctype="multipart/form-data" target="_upload_resp_iframe" style="margin-top: 10px">-->
+        <!--选择要上传的文件：<input accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" type="file" name="_uploadSingle_one"><br>-->
+        <!--<hr>-->
+        <!--<input type="submit" value="提交">-->
+    <!--</form>-->
+    <!--<form method="post" action="/import/upload/single2" enctype="multipart/form-data" target="_upload_resp_iframe" style="margin-top: 10px">-->
+        <!--选择要上传的文件：<input accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" type="file" name="_uploadSingle_two"><br>-->
+        <!--<hr>-->
+        <!--<input type="submit" value="提交">-->
+    <!--</form>-->
+
+    <div style="margin-top: 10px">
+        <form method="post" action="/import/upload/multiple/json" enctype="multipart/form-data" target="_upload_resp_iframe" style="margin-top: 10px">
+            选择要上传的文件：<input id="_upload_input1" accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" multiple="multiple" type="file" name="_upload_input1"><br>
+            <hr>
+            <input type="hidden" name="upload.name" value="aaa.zip">
+        </form>
+        <button id="submitBtn">上传</button>
+    </div>
+
+    <span id="returnMsg" style="margin-left:20px;font-size:15px;"></span>
+    <iframe style="display: none" onload="uploadOnload()" name="_upload_resp_iframe" id="_upload_resp_iframe"></iframe>
+
+    <div style="margin-top: 10px">
+        <button id="downloadBtn">下载</button>
+        <input id="download_name" name="download.name" value="" placeholder="路径">
+    </div>
+</body>
+<script th:inline="javascript">
+
+    $(function () {
+       $("#submitBtn").bind("click", function(){
+           sendForm();
+       })
+       $("#downloadBtn").bind("click", function(){
+           downloadBlob("download.name", $("#download_name").val());
+       })
+    });
+
+    function sendForm() {
+        var formData = new FormData();
+		
+		var _files = $("#_upload_input1")[0].files;
+		var params = {};
+		for(var i = 0; i< _files.length; i++ ){
+			var id = new Date().getTime() + i + "";
+			formData.append(id, _files[i]);
+			params[id] = _files[i].name;
+		}
+		var _params = JSON.stringify(params);
+        formData.append('params', new Blob([_params],{type: "application/json"}));
+
+        $.ajax({
+            url: "/import/upload/multiple/json",
+            type: "POST",
+            contentType: false,
+            processData: false,
+            dataType: "json",
+            data: formData,
+			async: true,
+            success: function (res) {
+                $("#returnMsg").html(JSON.stringify(res));
+            }
+        });
+    }
+
+    function downloadBlob(_key, _name) {
+        var _params = {};
+        _params[_key] = _name;
+        common._http.ajax("/import/downloadBlob", "POST", JSON.stringify(_params), 1).then(function(blob){
+            var link = document.createElement('a');
+            link.href = window.URL.createObjectURL(new Blob([blob], {type: "application/octet-stream"}));
+            link.download = _name;
+            link.click();
+            window.URL.revokeObjectURL(link.href);
+
+            // var reader = new FileReader();
+            // reader.readAsArrayBuffer(new Blob([blob], {type: "application/octet-stream"}));
+            // reader.onloadend = function (e) {
+            //     var a = document.createElement('a');
+            //     a.download = 'abc.exe';
+            //     a.href = e.target.result;
+            //     $("body").append(a);
+            //     a.click();
+            // }
+        });
+    }
+</script>
+</html>
