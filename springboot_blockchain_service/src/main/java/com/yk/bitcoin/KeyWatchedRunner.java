@@ -29,6 +29,9 @@ public class KeyWatchedRunner implements Runnable
     @Autowired
     private BlockchainProperties blockchainProperties;
 
+    @Autowired
+    private HttpClientUtil httpClientUtil;
+
     @Override
     public void run()
     {
@@ -88,7 +91,7 @@ public class KeyWatchedRunner implements Runnable
             Map<String, Map<String, Long>> result = null;
             try
             {
-                result = HttpClientUtil.get(blockchainProperties.getApiHost()
+                result = httpClientUtil.get(blockchainProperties.getApiHost()
                         , headers, params, new TypeReference<Map<String, Map<String, Long>>>()
                         {
                         }, 3);

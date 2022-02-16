@@ -33,7 +33,7 @@ server:
     client-auth: NONE
 block:
   chain:
-    execute: @_active@
+    execute: true
     consume: 20
     produce: 30
     secure: false

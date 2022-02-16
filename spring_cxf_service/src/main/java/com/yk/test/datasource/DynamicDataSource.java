@@ -7,6 +7,8 @@ import java.sql.SQLException;
 
 public class DynamicDataSource extends DruidDataSource
 {
+    private static final long serialVersionUID = 4059357116837066441L;
+
     @Override
     public DruidPooledConnection getConnection() throws SQLException
     {

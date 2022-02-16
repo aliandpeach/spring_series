@@ -3,6 +3,8 @@ package com.yk.base.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 
 import javax.persistence.EntityManagerFactory;
@@ -19,18 +21,27 @@ import java.util.Properties;
 @Configuration
 public class JpaConfig
 {
+    /**
+     * 自动配置 {@link org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration} 不需要手动配置
+     *         HibernateJpaAutoConfiguration -> HibernateJpaConfiguration -> JpaBaseConfiguration
+     * @param dataSource
+     * @return
+     */
 //    @Bean
-//    public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource)
-//    {
-//        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
-//        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
-//        factory.setJpaVendorAdapter(vendorAdapter);
-//        factory.setPackagesToScan("com.yk");
-//        factory.setJpaProperties(hibernateProperties());
-//        factory.setDataSource(dataSource);
-//        return factory;
-//    }
+    public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource)
+    {
+        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+        factory.setJpaVendorAdapter(vendorAdapter);
+        factory.setPackagesToScan("com.yk");
+        factory.setJpaProperties(hibernateProperties());
+        factory.setDataSource(dataSource);
+        return factory;
+    }
 
+    /**
+     * JPA的事务管理器 必须使用JpaTransactionManager 类生成
+     */
     @Bean
     public PlatformTransactionManager transactionManager(DataSource dataSource, EntityManagerFactory entityManagerFactory)
     {

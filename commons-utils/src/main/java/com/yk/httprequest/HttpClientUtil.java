@@ -1,5 +1,6 @@
 package com.yk.httprequest;
 
+import cn.hutool.core.util.HexUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Data;
 import org.apache.http.Header;
@@ -61,6 +62,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
@@ -191,7 +193,7 @@ public class HttpClientUtil
         return httpClientUtil.httpClient;
     }
 
-    public boolean getBytes(String url, Map<String, String> headers, Map<String, String> params, String fileName, String dir, String rootDir)
+    public String getBytes(String url, Map<String, String> headers, Map<String, String> params, String fileName, String dir, String rootDir)
     {
 
         HttpGet httpGet = null;
@@ -199,12 +201,7 @@ public class HttpClientUtil
         {
             url = initUrlParams(url, params);
             httpGet = new HttpGet(url);
-            /*initHeader(httpGet, headers);*/
-            httpGet.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
-            httpGet.addHeader("Accept-Encoding", "gzip, deflate, br");
-            httpGet.addHeader("Connection", "keep-alive");
-            httpGet.addHeader("User-Agent", "User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36");
-
+            initHeader(httpGet, headers);
             HttpClientContext httpContext = createHttpClientContext();
             return httpClient.execute(httpGet, new CurResponseHandlerBytes(fileName, dir, rootDir), httpContext);
         }
@@ -333,11 +330,7 @@ public class HttpClientUtil
         {
             url = initUrlParams(url, params);
             httpGet = new HttpGet(url);
-//            initHeader(httpGet, headers);
-            httpGet.addHeader("Content-Type", "text/html; charset=UTF-8");
-            httpGet.addHeader("User-Agent", "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36");
-            httpGet.addHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
-            httpGet.addHeader("Connection", "close");
+            initHeader(httpGet, headers);
             HttpClientContext httpContext = createHttpClientContext();
             return httpClient.execute(httpGet, new CurResponseHandlerString(), httpContext);
         }
@@ -441,7 +434,7 @@ public class HttpClientUtil
         }
     }
 
-    static class CurResponseHandlerBytes implements ResponseHandler<Boolean>
+    static class CurResponseHandlerBytes implements ResponseHandler<String>
     {
         private String fileName;
 
@@ -452,8 +445,8 @@ public class HttpClientUtil
         public CurResponseHandlerBytes(String fileName, String dir, String rootDir)
         {
             this.fileName = fileName;
-            this.dir = dir;/*dir.replaceAll(Constants.REGEX_FILE_NAME, "")*/
-            targetDir = /*CommonConfig.getInstance().getFileSaveDir()*/rootDir + File.separator + this.dir + File.separator;
+            this.dir = dir;
+            targetDir = rootDir + File.separator + this.dir + File.separator;
             if (!new File(targetDir).exists())
             {
                 new File(targetDir).mkdirs();
@@ -462,12 +455,22 @@ public class HttpClientUtil
 
 
         @Override
-        public Boolean handleResponse(HttpResponse response) throws ClientProtocolException, IOException
+        public String handleResponse(HttpResponse response) throws IOException
         {
             int status = response.getStatusLine().getStatusCode();
             if (status < 200 || status >= 300)
             {
-                return false;
+                return null;
+            }
+            String algorithm = "SHA-256";
+            MessageDigest messageDigest;
+            try
+            {
+                messageDigest = MessageDigest.getInstance(algorithm);
+            }
+            catch (NoSuchAlgorithmException e)
+            {
+                throw new IOException("MessageDigest instance error SHA-256");
             }
             HttpEntity httpEntity = response.getEntity();
             if (null != httpEntity && null != httpEntity.getContent())
@@ -480,16 +483,17 @@ public class HttpClientUtil
                     int len = 0;
                     while ((len = inputStream.read(buffer)) != -1)
                     {
+                        messageDigest.update(buffer, 0, len);
                         randomAccessFile.write(buffer, 0, len);
                     }
-                    return true;
+                    return HexUtil.encodeHexStr(messageDigest.digest());
                 }
                 finally
                 {
                     System.gc();
                 }
             }
-            return false;
+            return null;
         }
     }
 

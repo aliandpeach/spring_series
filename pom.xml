@@ -26,5 +26,6 @@
         <module>springboot_thymeleaf_service</module>
         <module>springboot_blockchain_service</module>
 		<module>springboot-session-service</module>
+		<module>springboot-docker-service</module>
     </modules>
 </project>

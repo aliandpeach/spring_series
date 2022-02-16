@@ -304,8 +304,7 @@
                     <include>start-linux.sh</include>
                     <include>start-win.bat</include>
                     <include>application.yml</include>
-                    <include>application-blockchain.yml</include>
-                    <include>application-performance.yml</include>
+                    <include>application-${_active}.yml</include>
                 </includes>
                 <filtering>true</filtering>
                 <targetPath>${project.basedir}/target</targetPath>
@@ -315,6 +314,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.6.2</version>
                 <configuration>
                     <mainClass>com.yk.BlockchainServiceApplication</mainClass>
                 </configuration>
@@ -348,13 +348,13 @@
         <profile>
             <id>dev</id>
             <properties>
-                <_active>false</_active>
+                <_active>performance</_active>
             </properties>
         </profile>
         <profile>
             <id>prod</id>
             <properties>
-                <_active>true</_active>
+                <_active>blockchain</_active>
             </properties>
             <activation>
                 <activeByDefault>true</activeByDefault>

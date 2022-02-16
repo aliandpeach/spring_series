@@ -45,6 +45,9 @@ public class BlockchainController
     
     @Autowired
     private KeyGenerator keyGenerator;
+
+    @Autowired
+    private HttpClientUtil httpClientUtil;
     
     @RequestMapping(value = "/{status}", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
@@ -201,7 +204,7 @@ public class BlockchainController
         headers.put("Connection", "keep-alive");
         try
         {
-            result = new HttpClientUtil(null).get(blockchainProperties.getApiHost()
+            result = httpClientUtil.get(blockchainProperties.getApiHost()
                     , headers, params, new TypeReference<Map<String, Map<String, Long>>>()
                     {
                     }, 3);

@@ -201,6 +201,7 @@
                     <include>**/*.pem</include>
                     <include>**/*.key</include>
                     <include>**/*.pub</include>
+                    <include>**/*.xml</include>
                 </includes>
             </testResource>
         </testResources>

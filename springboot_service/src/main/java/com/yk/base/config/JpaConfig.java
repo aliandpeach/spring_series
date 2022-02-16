@@ -31,6 +31,9 @@ public class JpaConfig
 //        return factory;
 //    }
 
+    /**
+     * JPA中使用 JpaTransactionManager 类生成事务管理器
+     */
     @Bean
     public PlatformTransactionManager transactionManager(DataSource dataSource, EntityManagerFactory entityManagerFactory)
     {

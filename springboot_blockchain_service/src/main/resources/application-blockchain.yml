@@ -78,7 +78,7 @@ server:
   #address: 0.0.0.0
 block:
   chain:
-    execute: @_active@
+    execute: true
     consume: 20
     produce: 30
     secure: false
