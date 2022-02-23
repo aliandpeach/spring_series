@@ -62,7 +62,7 @@ public class Error implements ErrorController
      */
     @RequestMapping(value = ERROR_PATH)
     @ResponseBody
-    public Map<String, Integer> errorApiHander(HttpServletRequest request)
+    public Map<String, Integer> errorApiHandler(HttpServletRequest request)
     {
         ServletWebRequest requestAttributes = new ServletWebRequest(request);
         Map<String, Object> attr = this.errorAttributes.getErrorAttributes(requestAttributes, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.MESSAGE));
