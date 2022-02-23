@@ -2,12 +2,16 @@ package com.yk.base.exception;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
+import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,6 +32,7 @@ public class SessionErrorController implements ErrorController
 {
     private static final String ERROR_PATH = "/error";
 
+    @Autowired
     private ErrorAttributes errorAttributes;
 
     @Override
@@ -36,11 +41,18 @@ public class SessionErrorController implements ErrorController
         return ERROR_PATH;
     }
 
-    @Autowired
-    public SessionErrorController(ErrorAttributes errorAttributes)
-
+    @Bean
+    public ErrorAttributes errorAttributes()
     {
-        this.errorAttributes = errorAttributes;
+        return new DefaultErrorAttributes()
+        {
+            @Override
+            public Map<String, Object> getErrorAttributes(WebRequest webRequest, ErrorAttributeOptions options)
+            {
+                // 结果包含异常的message信息
+                return super.getErrorAttributes(webRequest, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.MESSAGE, ErrorAttributeOptions.Include.EXCEPTION));
+            }
+        };
     }
 
     /**
@@ -50,7 +62,7 @@ public class SessionErrorController implements ErrorController
     public ModelAndView errorPageHandler(HttpServletRequest request, HttpServletResponse response)
     {
         ServletWebRequest requestAttributes = new ServletWebRequest(request);
-        Map<String, Object> attr = this.errorAttributes.getErrorAttributes(requestAttributes, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.MESSAGE));
+        Map<String, Object> attr = errorAttributes.getErrorAttributes(requestAttributes, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.MESSAGE, ErrorAttributeOptions.Include.EXCEPTION));
         return new ModelAndView("400");
     }
 
@@ -59,10 +71,11 @@ public class SessionErrorController implements ErrorController
      */
     @RequestMapping(value = ERROR_PATH)
     @ResponseBody
-    public Map<String, Integer> errorApiHander(HttpServletRequest request)
+    public CustomException errorApiHandler(HttpServletRequest request)
     {
         ServletWebRequest requestAttributes = new ServletWebRequest(request);
-        Map<String, Object> attr = this.errorAttributes.getErrorAttributes(requestAttributes, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.MESSAGE));
-        return new HashMap<>(Collections.singletonMap("status", 400));
+        Throwable t = errorAttributes.getError(requestAttributes);
+        Map<String, Object> attr = errorAttributes.getErrorAttributes(requestAttributes, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.MESSAGE, ErrorAttributeOptions.Include.EXCEPTION));
+        return new CustomException(String.valueOf(attr.getOrDefault("message", "")), HttpStatus.valueOf((int) attr.getOrDefault("status", 500)));
     }
 }

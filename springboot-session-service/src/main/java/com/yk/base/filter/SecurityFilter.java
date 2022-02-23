@@ -14,13 +14,14 @@ import java.io.IOException;
 public class SecurityFilter implements Filter {
     private Logger logger = LoggerFactory.getLogger("base");
 
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public void init(FilterConfig filterConfig) {
 
     }
 
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         logger.info("SecurityFilter doFilter");
         chain.doFilter(request, response);
+//        throw new CustomException("test throw custom exception ", HttpStatus.PAYMENT_REQUIRED);
     }
 
     public void destroy() {

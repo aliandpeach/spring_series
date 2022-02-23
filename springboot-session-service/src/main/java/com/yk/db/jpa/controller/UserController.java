@@ -1,5 +1,6 @@
 package com.yk.db.jpa.controller;
 
+import com.yk.base.exception.CustomException;
 import com.yk.db.jpa.dto.UserDataDTO;
 import com.yk.db.jpa.model.Role;
 import com.yk.db.jpa.model.User;
@@ -16,8 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -65,6 +68,12 @@ public class UserController implements InitializingBean
     {
         LOGGER.error(log);
         return Collections.singletonMap("result", "success");
+    }
+
+    @GetMapping("/log/throw")
+    public Map<String, String> log()
+    {
+        throw new CustomException("test throw custom exception ", HttpStatus.UNAUTHORIZED);
     }
 
     @RequestMapping("/query/user/all")

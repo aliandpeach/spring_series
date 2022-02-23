@@ -1,6 +1,7 @@
 package com.yk.base.web;
 
 import com.yk.base.filter.BaseFilter;
+import com.yk.base.filter.SecurityFilter;
 import com.yk.base.listener.BaseHttpSessionListener;
 import com.yk.base.listener.BaseListener;
 import com.yk.base.servlet.UploadServlet;
@@ -40,6 +41,15 @@ public class WebXmlConfig
         bean.setFilter(new BaseFilter());
         bean.setUrlPatterns(Collections.singletonList("/*"));
 //        bean.setInitParameters();
+        return bean;
+    }
+
+    @Bean
+    public FilterRegistrationBean<SecurityFilter> securityFilter()
+    {
+        FilterRegistrationBean<SecurityFilter> bean = new FilterRegistrationBean<>();
+        bean.setFilter(new SecurityFilter());
+        bean.setUrlPatterns(Collections.singletonList("/*"));
         return bean;
     }
 

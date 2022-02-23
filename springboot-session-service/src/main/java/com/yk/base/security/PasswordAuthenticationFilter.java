@@ -96,12 +96,28 @@ public class PasswordAuthenticationFilter extends UsernamePasswordAuthentication
         chain.doFilter(threadLocal.get(), response);
     }
 
+    /**
+     * 1. 通过验证 spring-security中抛出的异常, 最后不会跳转至ErrorController, 因此在每个可能的异常点进行日志记录外后, 直接使用response 给前端调用者返回数据
+     *
+     * 2. 或者通过 .getRequestDispatcher("/error").forward 跳转至ErrorController, 但需要设置 message exception status
+     *
+     * ①response.sendRedirect(url)-----重定向到指定URL
+     * request.getRequestDispatcher(url).forward(request,response) -----请求转发到指定URL
+     *
+     * ②response.sendRedirect(url)-----是客户端跳转
+     * request.getRequestDispatcher(url).forward(request,response) -----是服务器端跳转
+     */
     @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException
     {
 //        response.setContentType("application/json");
 //        String result = JSONUtil.toJson(new CustomException("用户名或者密码错误", HttpStatus.FORBIDDEN));
 //        response.getWriter().write(result == null ? "{\"message\": \"用户名或者密码错误\"}" : result);
-        throw failed;
+
+        request.setAttribute("javax.servlet.error.status_code", HttpStatus.FORBIDDEN.value());
+        request.setAttribute("javax.servlet.error.exception", failed);
+        request.setAttribute("javax.servlet.error.message", "用户名或者密码错误");
+        request.setAttribute("javax.servlet.error.request_uri", request.getRequestURI());
+        request.getRequestDispatcher("/error").forward(request,response);
     }
 }
