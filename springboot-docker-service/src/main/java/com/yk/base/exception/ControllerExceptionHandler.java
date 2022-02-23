@@ -2,6 +2,10 @@ package com.yk.base.exception;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
+import org.springframework.boot.web.servlet.error.DefaultErrorAttributes;
+import org.springframework.boot.web.servlet.error.ErrorAttributes;
+import org.springframework.context.annotation.Bean;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -17,6 +21,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
@@ -38,7 +43,7 @@ import java.util.Set;
 public class ControllerExceptionHandler
 {
     private static final Logger logger = LoggerFactory.getLogger(ControllerExceptionHandler.class);
-    
+
     @ExceptionHandler(DataIntegrityViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleDataIntegrityViolationException(
@@ -52,7 +57,7 @@ public class ControllerExceptionHandler
         baseResponse.setMessage("字段验证错误，请完善后重试！");
         return baseResponse;
     }
-    
+
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleMissingServletRequestParameterException(
@@ -63,7 +68,7 @@ public class ControllerExceptionHandler
                 String.format("请求字段缺失, 类型为 %s，名称为 %s", e.getParameterType(), e.getParameterName()));
         return baseResponse;
     }
-    
+
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleConstraintViolationException(ConstraintViolationException e)
@@ -74,7 +79,7 @@ public class ControllerExceptionHandler
         baseResponse.setData(mapWithValidError(e.getConstraintViolations()));
         return baseResponse;
     }
-    
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleMethodArgumentNotValidException(
@@ -88,7 +93,7 @@ public class ControllerExceptionHandler
         baseResponse.setData(errMap);
         return baseResponse;
     }
-    
+
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleHttpRequestMethodNotSupportedException(
@@ -98,7 +103,7 @@ public class ControllerExceptionHandler
         baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
         return baseResponse;
     }
-    
+
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     public BaseResponse<?> handleHttpMediaTypeNotAcceptableException(
@@ -108,7 +113,7 @@ public class ControllerExceptionHandler
         baseResponse.setStatus(HttpStatus.NOT_ACCEPTABLE.value());
         return baseResponse;
     }
-    
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleHttpMessageNotReadableException(
@@ -119,7 +124,7 @@ public class ControllerExceptionHandler
         baseResponse.setMessage("缺失请求主体");
         return baseResponse;
     }
-    
+
     @ExceptionHandler(NoHandlerFoundException.class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     public BaseResponse<?> handleNoHandlerFoundException(NoHandlerFoundException e)
@@ -131,7 +136,7 @@ public class ControllerExceptionHandler
         baseResponse.setMessage(status.getReasonPhrase());
         return baseResponse;
     }
-    
+
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleUploadSizeExceededException(MaxUploadSizeExceededException e)
@@ -141,17 +146,17 @@ public class ControllerExceptionHandler
         response.setMessage("当前请求超出最大限制：" + e.getMaxUploadSize() + " bytes");
         return response;
     }
-    
+
     @ExceptionHandler(DockerException.class)
     // @ResponseStatus(HttpStatus.BAD_REQUEST) // http协议返回的status code 就是 @ResponseStatus指定的值, 不指定一律返回 200
-    public BaseResponse<?> blockchainException(DockerException e)
+    public BaseResponse<?> dockerException(DockerException e)
     {
         BaseResponse<Object> baseResponse = handleBaseException(e);
         baseResponse.setStatus(e.getStatus());
-        baseResponse.setData(e.getMessage());
+        baseResponse.setMessage(e.getMessage());
         return baseResponse;
     }
-    
+
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public BaseResponse<?> handleGlobalException(Exception e)
@@ -159,11 +164,10 @@ public class ControllerExceptionHandler
         BaseResponse<?> baseResponse = handleBaseException(e);
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         baseResponse.setStatus(status.value());
-        baseResponse.setStatus(status.value());
         baseResponse.setMessage(status.getReasonPhrase());
         return baseResponse;
     }
-    
+
     /**
      * 将字段验证错误转换为标准的map型，key:value = field:message
      *
@@ -176,30 +180,30 @@ public class ControllerExceptionHandler
         {
             return Collections.emptyMap();
         }
-        
+
         Map<String, String> errMap = new HashMap<>(4);
         fieldErrors.forEach(
                 filedError -> errMap.put(filedError.getField(), filedError.getDefaultMessage()));
         return errMap;
     }
-    
+
     private <T> BaseResponse<T> handleBaseException(Throwable t)
     {
         Assert.notNull(t, "Throwable must not be null");
-        
+
         BaseResponse<T> baseResponse = new BaseResponse<>();
         baseResponse.setMessage(t.getMessage());
-        
+
 //        logger.error("Captured an exception:", t);
-        
+
         if (logger.isDebugEnabled())
         {
             baseResponse.setMessage(getStackTrace(t));
         }
-        
+
         return baseResponse;
     }
-    
+
     public static String getStackTrace(final Throwable throwable)
     {
         final StringWriter sw = new StringWriter();
@@ -207,7 +211,7 @@ public class ControllerExceptionHandler
         throwable.printStackTrace(pw);
         return sw.getBuffer().toString();
     }
-    
+
     /**
      * 将字段验证错误转换为标准的map型，key:value = field:message
      *
@@ -222,7 +226,7 @@ public class ControllerExceptionHandler
         {
             return Collections.emptyMap();
         }
-        
+
         Map<String, String> errMap = new HashMap<>(4);
         // Format the error message
         constraintViolations.forEach(constraintViolation ->

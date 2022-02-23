@@ -12,11 +12,30 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout charset="UTF-8" pattern="%d %-5p (%F:%L) - %m%n"/>
         </Console>
+        <RollingRandomAccessFile name="spring"
+                                 fileName="${LOG_HOME}/logs/spring.log"
+                                 filePattern="${LOG_HOME}/logs/spring/spring.log.%d{yyyy-MM-dd}-%i.gz">
+            <PatternLayout charset="UTF-8" pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p] [%t] {%C:%L} - %m%n%xwEx"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingRandomAccessFile>
+        <RollingRandomAccessFile name="apache"
+                                 fileName="${LOG_HOME}/logs/apache.log"
+                                 filePattern="${LOG_HOME}/logs/apache/spring.log.%d{yyyy-MM-dd}-%i.gz">
+            <PatternLayout charset="UTF-8" pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p] [%t] {%C:%L} - %m%n%xwEx"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingRandomAccessFile>
         <RollingRandomAccessFile name="error"
                                  fileName="${LOG_HOME}/logs/${ERROR_LOG_FILE_NAME}.log"
                                  filePattern="${LOG_HOME}/logs/error/${ERROR_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}-%i.gz">
-            <PatternLayout charset="UTF-8"
-                    pattern="%d %-5p (%F:%L) - %m%n"/>
+            <PatternLayout charset="UTF-8" pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p] [%t] {%C:%L} - %m%n%xwEx"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="5 MB"/>
@@ -26,8 +45,8 @@
         <RollingRandomAccessFile name="demo"
                                  fileName="${LOG_HOME}/logs/demo.log"
                                  filePattern="${LOG_HOME}/logs/demo/demo.log.%d{yyyy-MM-dd}-%i.gz">
-            <PatternLayout charset="UTF-8"
-                    pattern="%d %-5p (%F:%L) - %m%n"/>
+            <PatternLayout charset="UTF-8" pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p] [%t] {%C:%L} - %m%n%xwEx"/>
+                    <!--pattern="%d %-5p (%F:%L) - %m%n"/>-->
             <Policies>
                 <TimeBasedTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="5 MB"/>
@@ -40,8 +59,14 @@
         <logger name="demo" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="demo"/>
         </logger>
-        <logger name="org.springframework" level="info" includeLocation="true" additivity="false">
+        <logger name="error" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="error"/>
+        </logger>
+        <logger name="org.springframework" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="spring"/>
+        </logger>
+        <logger name="org.apache" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="apache"/>
         </logger>
 
         <root level="info" includeLocation="true">

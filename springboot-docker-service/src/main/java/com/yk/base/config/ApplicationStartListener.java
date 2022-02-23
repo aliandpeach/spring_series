@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class ApplicationStartListener implements ServletContextInitializer
 {
     private static final Logger logger = LoggerFactory.getLogger("demo");
+    private static final Logger error = LoggerFactory.getLogger("error");
 
     @Autowired
     private DataSourceProperties dataSourceProperties;
@@ -34,7 +35,11 @@ public class ApplicationStartListener implements ServletContextInitializer
         logger.info("main onStartup starting " + System.currentTimeMillis());
         AtomicInteger integer = new AtomicInteger(0);
         ScheduledExecutorService mainScheduled = Executors.newScheduledThreadPool(1, r -> new Thread(r, "main-listener-" + integer.getAndIncrement()));
-        mainScheduled.scheduleWithFixedDelay(() -> logger.info("spring docker service running \n" + dataSourceProperties.getUrl()), 0, 3, TimeUnit.SECONDS);
+        mainScheduled.scheduleWithFixedDelay(() ->
+        {
+            logger.info("spring docker service running \n" + dataSourceProperties.getUrl());
+            error.error("spring docker service error \n" + dataSourceProperties.getUrl());
+        }, 0, 3, TimeUnit.SECONDS);
         logger.info("main onStartup started " + System.currentTimeMillis());
     }
 }

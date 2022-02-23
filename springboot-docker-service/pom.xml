@@ -101,12 +101,17 @@
             <artifactId>log4j-slf4j-impl</artifactId>
             <version>2.16.0</version>
         </dependency>
+        <!--内置tomcat通过java.util.logging记录日志(DirectJDKLog), 配置该桥接包, 改用log4j2打印-->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>jul-to-slf4j</artifactId>
+        </dependency>
+
         <dependency>
             <groupId>com.yk.spring.pro</groupId>
             <artifactId>commons-utils</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
@@ -231,12 +236,12 @@
                         <imageTag>${project.version}</imageTag>
                     </imageTags>
                     <!--基础镜像jdk 1.8-->
-                    <baseImage>java:8</baseImage>
+                    <baseImage>jdk8:321</baseImage>
                     <!--制作者本人信息-->
                     <maintainer>yk</maintainer>
-                    <workdir>/usr/local/docker1/demo</workdir>
+                    <workdir>/usr/local/docker/demo-1.0-SNAPSHOT</workdir>
                     <cmd>["java", "-version"]</cmd>
-                    <entryPoint>["java", "-jar", "/usr/local/docker1/demo/${project.build.finalName}.jar", "--spring.config.location=/usr/local/docker1/demo/*.yml"]</entryPoint>
+                    <entryPoint>["java", "-jar", "/usr/local/docker/demo-1.0-SNAPSHOT/${project.build.finalName}.jar", "--spring.config.location=/usr/local/docker/demo-1.0-SNAPSHOT/*.yml"]</entryPoint>
                     <!--构建镜像可以使用一下两种方式,第一种是将构建信息指定到 POM中,第二种是使用已存在的 Dockerfile构建
                         第一种方式,支持将 FROM, ENTRYPOINT, CMD, MAINTAINER 以及 ADD 信息配置在 POM 中, 不需要使用 Dockerfile配置.
                         但是如果使用 VOLUME或其他 Dockerfile中的命令的时候, 需要使用第二种方式, 创建一个 Dockerfile, 并在 POM中配置 dockerDirectory来指定路径即可-->
@@ -254,7 +259,7 @@
                             <include>application.yml</include>
                             <include>application-docker.yml</include>
 
-                            <targetPath>/usr/local/docker1/demo</targetPath>
+                            <targetPath>/usr/local/docker/demo-1.0-SNAPSHOT</targetPath>
                         </resource>
                     </resources>
                 </configuration>
@@ -284,6 +289,31 @@
                     <target>1.8</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <copy file="${project.build.directory}/${project.artifactId}-${project.version}.jar"
+                                      tofile="${project.basedir}/../docker-build/service/target/${project.artifactId}-${project.version}.jar"/>
+                                <copy file="${project.build.directory}/application.yml"
+                                      tofile="${project.basedir}/../docker-build/service/target/application.yml"/>
+                                <copy file="${project.build.directory}/application-docker.yml"
+                                      tofile="${project.basedir}/../docker-build/service/target/application-docker.yml"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
         <testResources>

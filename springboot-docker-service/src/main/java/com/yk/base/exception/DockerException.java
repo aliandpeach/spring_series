@@ -10,6 +10,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class DockerException extends RuntimeException
 {
+    private static final long serialVersionUID = 3590874415552570389L;
     /**
      * 错误码
      */
@@ -19,9 +20,24 @@ public class DockerException extends RuntimeException
      */
     protected String message;
 
-    public DockerException()
+    public DockerException(String message)
     {
-        super();
+        super(message);
+        this.message = message;
+    }
+
+    public DockerException(String message, int status)
+    {
+        super(message);
+        this.message = message;
+        this.status = status;
+    }
+
+    public DockerException(String message, int status, Throwable e)
+    {
+        super(message, e);
+        this.message = message;
+        this.status = status;
     }
 
 }
