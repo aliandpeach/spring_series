@@ -14,9 +14,6 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 
 import java.util.Optional;
 
@@ -54,22 +51,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
         // If a user try to access a resource without having enough permissions
         http.exceptionHandling().accessDeniedPage("/login");
 
-//        http.exceptionHandling().authenticationEntryPoint(new AuthenticationEntryPoint()
-//        {
-//            @Override
-//            public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) throws IOException, ServletException
-//            {
-//                System.out.println();
-//            }
-//        });
-//        http.exceptionHandling().accessDeniedHandler(new AccessDeniedHandler()
-//        {
-//            @Override
-//            public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException
-//            {
-//                System.out.println();
-//            }
-//        });
+        http.exceptionHandling().authenticationEntryPoint(new SpringSecurityAuthenticationEntryPoint());
+        http.exceptionHandling().accessDeniedHandler(new SpringSecurityAccessDeniedHandler());
+
 //        http.exceptionHandling(new Customizer<ExceptionHandlingConfigurer<HttpSecurity>>()
 //        {
 //            @Override

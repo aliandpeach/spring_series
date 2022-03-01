@@ -1,6 +1,6 @@
 package com.yk.base.x509;
 
-import com.yk.base.exception.GlobleException;
+import com.yk.base.exception.GlobalException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.AntPathMatcher;
@@ -69,18 +69,18 @@ public class CheckClientTrustedFilter extends OncePerRequestFilter
         {
             logger.error("证书链校验失败, 没有加载本地证书库, {}, {}", uri, listOfVerifyUri);
             response.setStatus(500);
-            throw new GlobleException(500, "证书链校验失败, 没有加载本地证书库");
+            throw new GlobalException(500, "证书链校验失败, 没有加载本地证书库");
         }
         if (null == certs)
         {
             logger.error("客户端证书链校验失败, 客户端证书不存在, {}, {}", uri, listOfVerifyUri);
             response.setStatus(500);
-            throw new GlobleException(500, "客户端证书链校验失败, 证书链不存在");
+            throw new GlobalException(500, "客户端证书链校验失败, 证书链不存在");
         }
         if (root == null)
         {
             response.setStatus(500);
-            throw new GlobleException(500, "客户端证书链校验失败.");
+            throw new GlobalException(500, "客户端证书链校验失败.");
         }
         for (X509Certificate client : certs)
         {
@@ -93,7 +93,7 @@ public class CheckClientTrustedFilter extends OncePerRequestFilter
             {
                 logger.error("客户端证书链校验失败, 公钥签名验证失败", e);
                 response.setStatus(500);
-                throw new GlobleException(500, "客户端证书链校验失败, 公钥签名验证失败");
+                throw new GlobalException(500, "客户端证书链校验失败, 公钥签名验证失败");
             }
         }
         for (X509TrustManager manager : x509TrustManagerList)
@@ -106,7 +106,7 @@ public class CheckClientTrustedFilter extends OncePerRequestFilter
             {
                 logger.error("客户端证书链校验失败", e);
                 response.setStatus(500);
-                throw new GlobleException(500, "客户端证书链校验失败");
+                throw new GlobalException(500, "客户端证书链校验失败");
             }
         }
         filterChain.doFilter(request, response);

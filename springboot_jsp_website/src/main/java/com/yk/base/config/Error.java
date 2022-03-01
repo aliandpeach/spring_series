@@ -17,7 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * BasicErrorController 默认会返回new ModelAndView("error") （页面需要放入view目录下）
+ * BasicErrorController 默认会返回new ModelAndView("error/xxx") （页面需要放入view目录下）
  *
  * DefaultErrorViewResolver默认会返回 /error/4xx.jsp /error/5xx.jsp （页面就需要放入 views (BaseWebMvcConfiguration中配置) 目录下面的error目录）
  *

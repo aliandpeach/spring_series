@@ -19,17 +19,17 @@ import java.util.List;
  */
 @ControllerAdvice
 @ResponseBody
-public class GlobleExceptionHandler
+public class GlobalExceptionHandler
 {
 
-    private static Logger logger = LoggerFactory.getLogger(GlobleExceptionHandler.class);
+    private static Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(value = Exception.class)
     public ResultEntity<String> exceptionHandler(HttpServletRequest request, Exception e)
     {
-        if (e instanceof GlobleException)
+        if (e instanceof GlobalException)
         {
-            GlobleException ex = (GlobleException) e;
+            GlobalException ex = (GlobalException) e;
             return ResultEntity.error(ex.getStatus());
         }
         else if (e instanceof BindException)
