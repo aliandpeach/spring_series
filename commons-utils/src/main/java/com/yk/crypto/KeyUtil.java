@@ -30,6 +30,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -50,6 +51,8 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.RSAPrivateKeySpec;
+import java.security.spec.RSAPublicKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Enumeration;
 
@@ -149,11 +152,14 @@ public class KeyUtil
         return new KeyPair(pub, (PrivateKey) key);
     }
 
-    public static PublicKey exportPublickey(PrivateKey key) throws NoSuchAlgorithmException, InvalidKeySpecException
+    public static PublicKey exportPublicKey(PrivateKey key) throws NoSuchAlgorithmException, InvalidKeySpecException
     {
-        PKCS8EncodedKeySpec pk8 = new PKCS8EncodedKeySpec(key.getEncoded());
-        PublicKey pub = KeyFactory.getInstance("RSA").generatePublic(pk8);
-        return pub;
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        RSAPrivateKeySpec privateKeySpec = kf.getKeySpec(key, RSAPrivateKeySpec.class);
+
+        RSAPublicKeySpec keySpec = new RSAPublicKeySpec(privateKeySpec.getModulus(), BigInteger.valueOf(65537));
+
+        return kf.generatePublic(keySpec);
     }
 
     public static PrivateKey readEncryptedKey(InputStream input, String keyPasswd) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchPaddingException, InvalidAlgorithmParameterException, InvalidKeyException
