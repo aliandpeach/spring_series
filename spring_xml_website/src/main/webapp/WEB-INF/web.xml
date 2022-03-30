@@ -117,6 +117,7 @@
     </session-config>
 
     <login-config>
+        <!--BASIC：HTTP规范,Base64;  DIGEST:HTTP规范，数据完整性强一些，但不是SSL;  FORM; CLIENT-CERT: J2EE规范,数据完整性很强,公共钥匙(PKC)-->
         <auth-method>CLIENT-CERT</auth-method>
         <realm-name>Client Cert Users-only Area</realm-name>
     </login-config>

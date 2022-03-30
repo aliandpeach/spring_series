@@ -117,7 +117,12 @@ public class DateTimeUtils
     {
         return LocalDateTime.now(zoneId);
     }
-    
+
+    public static LocalDateTime parse(long millis)
+    {
+        return LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault());
+    }
+
     /**
      * 按 yyyyMMdd 格式化
      *
