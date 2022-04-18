@@ -1,7 +1,13 @@
 package com.yk.io;
 
+import org.apache.commons.io.IOUtils;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -87,6 +93,114 @@ public class FileUtil
             {
                 out.write(buffer, 0, len);
             }
+        }
+    }
+
+    public static byte[] readLessThan(File file, long length)
+    {
+        try (InputStream input = new FileInputStream(file);
+             ByteArrayOutputStream out = new ByteArrayOutputStream())
+        {
+            long _length = Math.min(length, file.length());
+            byte[] buf = new byte[8192];
+            long size = _length % 8192 == 0 ? _length / 8192 : _length / 8192 + 1;
+            int len;
+            for (int i = 0; i < size; i++)
+            {
+                if (size - 1 == i)
+                {
+                    buf = new byte[Math.abs((int) (8192 * i - _length))];
+                }
+                len = input.read(buf);
+                out.write(buf, 0, len);
+            }
+            return out.toByteArray();
+        }
+        catch (IOException e)
+        {
+            return new byte[0];
+        }
+    }
+
+    public static byte[] readLessThan(byte[] file, long length)
+    {
+        try (InputStream input = new ByteArrayInputStream(file);
+             ByteArrayOutputStream out = new ByteArrayOutputStream())
+        {
+            long _length = Math.min(length, file.length);
+            byte[] buf = new byte[8192];
+            long size = _length % 8192 == 0 ? _length / 8192 : _length / 8192 + 1;
+            int len;
+            for (int i = 0; i < size; i++)
+            {
+                if (size - 1 == i)
+                {
+                    buf = new byte[Math.abs((int) (8192 * i - _length))];
+                }
+                len = input.read(buf);
+                out.write(buf, 0, len);
+            }
+            return out.toByteArray();
+        }
+        catch (IOException e)
+        {
+            return new byte[0];
+        }
+    }
+
+    public static byte[] readLessThan2(File file, int length)
+    {
+        try (InputStream input = new FileInputStream(file))
+        {
+            int _length = Math.min(length, (int) file.length());
+            return IOUtils.toByteArray(input, _length);
+        }
+        catch (IOException e)
+        {
+            return new byte[0];
+        }
+    }
+
+    public static byte[] readLessThan3(File file, int length)
+    {
+        try (InputStream input = new FileInputStream(file))
+        {
+            int _length = Math.min(length, (int) file.length());
+            byte[] buf = new byte[_length];
+            IOUtils.read(input, buf, 0, _length);
+            return buf;
+        }
+        catch (IOException e)
+        {
+            return new byte[0];
+        }
+    }
+
+    public static byte[] readLessThan(InputStream input, int length)
+    {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream())
+        {
+            byte[] buf = new byte[8192];
+            long size = length % 8192 == 0 ? length / 8192 : length / 8192 + 1;
+            int len;
+            for (int i = 0; i < size; i++)
+            {
+                if (size - 1 == i)
+                {
+                    buf = new byte[Math.abs((int) (8192 * i - length))];
+                }
+                len = input.read(buf);
+                if (len == -1)
+                {
+                    break;
+                }
+                out.write(buf, 0, len);
+            }
+            return out.toByteArray();
+        }
+        catch (IOException e)
+        {
+            return new byte[0];
         }
     }
 }

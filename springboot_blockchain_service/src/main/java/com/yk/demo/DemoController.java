@@ -35,24 +35,41 @@ public class DemoController
 {
     @Autowired
     private DemoDAO demoDAO;
-    
+
     @Autowired(required = false)
     private IOtherDAO otherDAO;
-    
+
     @Autowired
     private DemoService demoService;
 
     /**
-     *               $.ajax({
-     *                  type: "get",
-     *                  contentType: "application/x-www-form-urlencoded",
-     *                  url: "/demo/fileInfoParam",
-     *                  data: 'id=1&name=2',
-     *                   async: true,
-     *                   success: function (result) {
-     *                       debugger
-     *                   }
-     *               });
+     * ajax默认是以application/x-www-form-urlencoded方式提交。也就是常见的表单提交方式。
+     * ajax中 data可以写成以下两种方式, contentType可以写成application/x-www-form-urlencoded或者application/json
+     * ( contentType为application/x-www-form-urlencoded, ajax会自动将json对象转化为&连接的key=value格式的数据 )
+
+        $.ajax({
+           type: "get",
+           contentType: "application/x-www-form-urlencoded",
+           url: "/demo/fileInfoParam",
+           data: 'id=1&name=2',
+            async: true,
+            success: function (result) {
+                debugger
+            }
+        });
+
+        $.ajax({
+             type: "get",
+             contentType: "application/json",
+             url: "/demo/fileInfoParam",
+             data: {"id": "1", "name": "2"},
+              async: true,
+              success: function (result) {
+                  debugger
+              }
+        });
+
+        GET 方法在最新的标准中可以向body中增加数据， springboot获取参数，目前只支持url拼接的params和form-data, 但不支持 x-www-form-urlencoded和raw
      */
     @GetMapping("/fileInfoParam")
     @ResponseBody
@@ -62,16 +79,33 @@ public class DemoController
     }
 
     /**
-     *               $.ajax({
-     *                  type: "get",
-     *                  contentType: "application/x-www-form-urlencoded",
-     *                  url: "/demo/map",
-     *                  data: 'id=1&name=2',
-     *                   async: true,
-     *                   success: function (result) {
-     *                       debugger
-     *                   }
-     *               });
+     * ajax默认是以application/x-www-form-urlencoded方式提交。也就是常见的表单提交方式。
+     * ajax中 data可以写成以下两种方式, contentType可以写成application/x-www-form-urlencoded或者application/json
+     * ( contentType为application/x-www-form-urlencoded, ajax会自动将json对象转化为&连接的key=value格式的数据 )
+
+        $.ajax({
+           type: "get",
+           contentType: "application/x-www-form-urlencoded",
+           url: "/demo/map",
+           data: 'id=1&name=2',
+            async: true,
+            success: function (result) {
+                debugger
+            }
+        });
+
+         $.ajax({
+             type: "get",
+             contentType: "application/x-www-form-urlencoded",
+             url: "/demo/map",
+             data: {"id": "1", "name": "2"},
+              async: true,
+              success: function (result) {
+                  debugger
+              }
+         });
+
+         GET 方法在最新的标准中可以向body中增加数据， springboot获取参数，目前只支持url拼接的params和form-data, 但不支持 x-www-form-urlencoded和raw
      */
     @GetMapping("/map")
     @ResponseBody
@@ -80,6 +114,9 @@ public class DemoController
         return map;
     }
 
+    /**
+     * GET 方法在最新的标准中可以向body中增加数据， springboot获取参数，目前只支持url拼接的params和form-data, 但不支持 x-www-form-urlencoded和raw
+     */
     @GetMapping("/query")
     @ResponseBody
     public List<DemoModel> queryByName(@RequestParam String name)
@@ -88,14 +125,70 @@ public class DemoController
         list2 = otherDAO.queryBy(name);
         return demoDAO.queryByName(name);
     }
-    
+
+    /**
+     *  application/x-www-form-urlencoded，表单格式数据，实际上就是&连接的key=value格式的数据
+     *  multipart/form-data，一般用作文件上传，也就是说当文件上传和普通请求参数混合一起的时候使用这种格式提交表单
+     *  application/json，发送的数据格式为json字符串
+     *
+     *  1. &连接的key=value，适用于GET和POST请求，此时contentType必须为application/x-www-form-urlencoded，后端不能使用@RequestBody注解
+     *  2. json对象，适用于GET和POST请求，且此时contentType必须为application/x-www-form-urlencoded，
+     *     ajax会自动将json对象转化为&连接的key=value格式的数据，GET请求就拼接在url后面，POST请求就放入post请求体中，后端不能使用@RequestBody注解
+     *  3. json字符串，只适用于POST请求，且此时contentType必须为application/json，后端必须使用@RequestBody注解
+     *
+     *
+     *
+     *  ajax默认是以application/x-www-form-urlencoded方式提交。也就是常见的表单提交方式。
+     *  如果使用ajax指定application/json方式，data参数则是字符串类型的。使用JSON.stringify()转换一下
+
+          $.ajax({
+             type: "post",
+             contentType: "application/json",
+             url: "/demo/fileInfoParam/2",
+             data: JSON.stringify({"id": "1", "name": "2"}),
+              async: true,
+              success: function (result) {
+                 // debugger
+              }
+          });
+     */
+    @PostMapping("/fileInfoParam/2")
+    @ResponseBody
+    public FileInfoParam fileInfoParam2(@Validated @RequestBody FileInfoParam fileInfoParam)
+    {
+        return fileInfoParam;
+    }
+
+    /**
+     *  ( contentType为application/x-www-form-urlencoded, ajax会自动将json对象转化为&连接的key=value格式的数据 )
+     *  后端不能使用@RequestBody注解
+     *
+           $.ajax({
+               type: "post",
+               dataType: "json",
+               contentType: "application/x-www-form-urlencoded",
+               url: "/demo/fileInfoParam/3",
+               data: {"id": "1", "name": "2"},
+                async: true,
+                success: function (result) {
+                   // debugger
+                }
+           });
+     */
+    @PostMapping(value = "/fileInfoParam/3", consumes = "application/x-www-form-urlencoded")
+    @ResponseBody
+    public FileInfoParam fileInfoParam3(@Validated FileInfoParam fileInfoParam)
+    {
+        return fileInfoParam;
+    }
+
     @GetMapping("/query/redis")
     @ResponseBody
     public Map<Object, Object> queryRedis(@RequestParam String name)
     {
         return demoDAO.queryRedis(name);
     }
-    
+
     /**
      * 注解@Validated 配合@NotNull 等注解 进行验证。
      * <p>
@@ -108,7 +201,7 @@ public class DemoController
         Map<String, String> result = new HashMap<>();
         return result;
     }
-    
+
     /**
      * 注解@Valid 配合@NotNull 等注解 进行验证。
      */

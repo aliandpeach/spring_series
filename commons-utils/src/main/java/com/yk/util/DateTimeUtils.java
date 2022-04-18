@@ -58,45 +58,45 @@ public class DateTimeUtils
      * 标准日期格式：HH:mm
      */
     public static final String NORM_TIME_PATTERN = "HH:mm";
-    
+
     /**
      * 标准日期格式 {@link DateTimeFormatter} HH:mm
      */
     public static final DateTimeFormatter NORM_TIME_FORMATTER =
             DateTimeFormatter.ofPattern(NORM_TIME_PATTERN);
-    
+
     /**
      * 标准日期时间格式，精确到秒 {@link DateTimeFormatter}：yyyy-MM-dd HH:mm:ss
      */
     public static final DateTimeFormatter NORM_DATETIME_FORMATTER =
             DateTimeFormatter.ofPattern(NORM_DATETIME_PATTERN);
-    
+
     /**
      * 横线分隔日期时间格式：yyyy-MM-dd-HH-mm-ss-
      */
     public static final String HORIZONTAL_LINE_PATTERN = "yyyy-MM-dd-HH-mm-ss-";
-    
+
     /**
      * 横线分隔日期时间格式，精确到秒 {@link DateTimeFormatter}：yyyy-MM-dd-HH-mm-ss-
      */
     public static final DateTimeFormatter HORIZONTAL_LINE_DATETIME_FORMATTER =
             DateTimeFormatter.ofPattern(HORIZONTAL_LINE_PATTERN);
-    
+
     /**
      * 上海时区格式
      */
     public static final String CTT = ZoneId.SHORT_IDS.get("CTT");
-    
+
     /**
      * 上海时区
      */
     public static final ZoneId CTT_ZONE_ID = ZoneId.of(CTT);
-    
-    
+
+
     private DateTimeUtils()
     {
     }
-    
+
     /**
      * 获取当前时间，默认为上海时区
      *
@@ -106,7 +106,7 @@ public class DateTimeUtils
     {
         return now(CTT_ZONE_ID);
     }
-    
+
     /**
      * 根据时区获取当前时间
      *
@@ -118,117 +118,44 @@ public class DateTimeUtils
         return LocalDateTime.now(zoneId);
     }
 
-    public static LocalDateTime parse(long millis)
-    {
-        return LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault());
-    }
-
     /**
-     * 按 yyyyMMdd 格式化
-     *
-     * @param localDateTime 日期时间
-     * @return Result
-     */
-    public static String formatDate(LocalDateTime localDateTime)
-    {
-        return format(localDateTime, PURE_DATE_FORMATTER);
-    }
-    
-    /**
-     * 按 yyyyMMdd 格式化
-     *
-     * @param localDate 日期
-     * @return Result
-     */
-    public static String formatDate(LocalDate localDate)
-    {
-        return format(localDate, PURE_DATE_FORMATTER);
-    }
-    
-    /**
-     * 按 HHmm 格式化
-     *
-     * @param localDateTime 时间
-     * @return Result
-     */
-    public static String formatTime(LocalDateTime localDateTime)
-    {
-        return format(localDateTime, TIME_FORMATTER);
-    }
-    
-    /**
-     * 按 HHmm 格式化
-     *
-     * @param localTime 时间
-     * @return Result
-     */
-    public static String formatTime(LocalTime localTime)
-    {
-        return format(localTime, TIME_FORMATTER);
-    }
-    
-    /**
-     * 按 yyyy-MM-dd HH:mm:ss 格式格式化
-     *
-     * @param localDateTime 时间
-     * @return Result
-     */
-    public static String formatDateTime(LocalDateTime localDateTime)
-    {
-        return format(localDateTime, NORM_DATETIME_FORMATTER);
-    }
-    
-    /**
-     * 根据日期格式化时间
+     * LocalDateTime 格式化为字符串日期
      *
      * @param localDateTime 时间
      * @param formatter     时间格式
-     * @return Result
+     * @return String
      */
     public static String format(LocalDateTime localDateTime, DateTimeFormatter formatter)
     {
         return localDateTime.format(formatter);
     }
-    
+
     /**
-     * 根据时间格式，格式化时间
+     * LocalTime 格式化为字符串日期
      *
      * @param localTime 时间
      * @param formatter 时间格式
-     * @return Result
+     * @return String
      */
     public static String format(LocalTime localTime, DateTimeFormatter formatter)
     {
         return localTime.format(formatter);
     }
-    
+
     /**
-     * 根据日期格式，格式化日期
+     * LocalDate 格式化为字符串日期
      *
      * @param localDate 日期
      * @param formatter 日期格式
-     * @return Result
+     * @return String
      */
     public static String format(LocalDate localDate, DateTimeFormatter formatter)
     {
         return localDate.format(formatter);
     }
-    
+
     /**
-     * 按照上海时区，解析香港格式的时间
-     * <p>
-     * 时间格式 yyyyMMddHHmmssSSS
-     *
-     * @param time 时间
-     * @return LocalDateTime
-     */
-    public static LocalDateTime parseCttDateTime(String time)
-    {
-        return parse(time, PURE_DATETIME_MS_FORMATTER);
-    }
-    
-    /**
-     * 根据日期格式解析时间
+     * 字符串日期解析为 LocalDateTime
      *
      * @param formatter 时间格式
      * @param time      时间
@@ -238,7 +165,75 @@ public class DateTimeUtils
     {
         return LocalDateTime.parse(time, formatter);
     }
-    
+
+    /**
+     * 字符串日期解析为 LocalDate
+     *
+     * @param formatter 时间格式
+     * @param time      时间
+     * @return LocalDate
+     */
+    public static LocalDate parseLocalDate(String time, DateTimeFormatter formatter)
+    {
+        return LocalDateTime.parse(time, formatter).toLocalDate();
+    }
+
+    /**
+     * 字符串日期解析为 LocalTime
+     *
+     * @param formatter 时间格式
+     * @param time      时间
+     * @return LocalTime
+     */
+    public static LocalTime parseLocalTime(String time, DateTimeFormatter formatter)
+    {
+        return LocalDateTime.parse(time, formatter).toLocalTime();
+    }
+
+    /**
+     * LocalDateTime转换 Date
+     *
+     * @param localDateTime localDateTime
+     * @return Date
+     */
+    public static Date from(LocalDateTime localDateTime)
+    {
+        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    /**
+     * Date转换 LocalDateTime
+     *
+     * @param date date
+     * @return LocalDateTime
+     */
+    public static LocalDateTime toLocalDateTime(Date date)
+    {
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+
+    /**
+     * 转换long型日期为 LocalDateTime
+     *
+     * @param millis millis
+     * @return LocalDateTime
+     */
+    public static LocalDateTime parse(long millis)
+    {
+        return LocalDateTime.ofInstant(Instant.ofEpochMilli(millis), ZoneId.systemDefault());
+    }
+
+    /**
+     * 转换LocalDateTime 为long型日期
+     *
+     * @param localDateTime localDateTime
+     * @return long
+     */
+    public static long parse(LocalDateTime localDateTime)
+    {
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+    }
+
     /**
      * to instant by default zoneId(Shanghai)
      *
@@ -249,7 +244,7 @@ public class DateTimeUtils
     {
         return toInstant(localDateTime, CTT_ZONE_ID);
     }
-    
+
     /**
      * To instant by zoneId
      *
@@ -260,7 +255,7 @@ public class DateTimeUtils
     {
         return localDateTime.atZone(zoneId).toInstant();
     }
-    
+
     /**
      * 将 localDateTime 转为秒
      *
@@ -271,7 +266,7 @@ public class DateTimeUtils
     {
         return toInstant(localDateTime).getEpochSecond();
     }
-    
+
     /**
      * 将localDateTime 转为时间戳
      *
@@ -282,7 +277,7 @@ public class DateTimeUtils
     {
         return toInstant(localDateTime).toEpochMilli();
     }
-    
+
     /**
      * 将秒和毫秒设为0
      *
@@ -293,7 +288,7 @@ public class DateTimeUtils
     {
         return localDateTime.withSecond(0).withNano(0);
     }
-    
+
     /**
      * 增加一天时间
      *
@@ -304,7 +299,7 @@ public class DateTimeUtils
     {
         return plusDays(localDateTime, 1);
     }
-    
+
     /**
      * 增加一天时间
      *
@@ -316,7 +311,7 @@ public class DateTimeUtils
     {
         return plusOneDay(localDateTime.toLocalDate(), localTime);
     }
-    
+
     /**
      * 增加一天时间
      *
@@ -329,8 +324,8 @@ public class DateTimeUtils
         final LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
         return plusDays(localDateTime, 1);
     }
-    
-    
+
+
     /**
      * 增加一天时间
      *
@@ -341,7 +336,7 @@ public class DateTimeUtils
     {
         return plusDays(localDateTime, 1).toLocalDate();
     }
-    
+
     /**
      * 新增一天
      *
@@ -352,7 +347,7 @@ public class DateTimeUtils
     {
         return plusDays(localDate, 1);
     }
-    
+
     /**
      * 根据days新增天数
      *
@@ -364,7 +359,7 @@ public class DateTimeUtils
     {
         return localDateTime.plusDays(days);
     }
-    
+
     /**
      * 根据days新增天数
      *
@@ -376,7 +371,7 @@ public class DateTimeUtils
     {
         return localDate.plusDays(days);
     }
-    
+
     /**
      * 增加1分钟
      *
@@ -387,7 +382,7 @@ public class DateTimeUtils
     {
         return plusOneMinute(localDateTime.toLocalDate(), localTime);
     }
-    
+
     /**
      * 增加1分钟
      *
@@ -400,8 +395,8 @@ public class DateTimeUtils
         final LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
         return plusMinutes(localDateTime, 1);
     }
-    
-    
+
+
     /**
      * 增加1分钟
      *
@@ -412,7 +407,7 @@ public class DateTimeUtils
     {
         return plusMinutes(localDateTime, 1);
     }
-    
+
     /**
      * 新增1分钟
      *
@@ -423,7 +418,7 @@ public class DateTimeUtils
     {
         return plusMinutes(localTime, 1);
     }
-    
+
     /**
      * 增加30分钟
      *
@@ -434,8 +429,8 @@ public class DateTimeUtils
     {
         return plusMinutes(localDateTime, 30);
     }
-    
-    
+
+
     /**
      * 增加30分钟
      *
@@ -446,7 +441,7 @@ public class DateTimeUtils
     {
         return plusMinutes(localTime, 30);
     }
-    
+
     /**
      * 新增1分钟
      *
@@ -457,7 +452,7 @@ public class DateTimeUtils
     {
         return plusMinutes(localDateTime, 1).toLocalTime();
     }
-    
+
     /**
      * 根据 minutes 新增分钟
      *
@@ -469,7 +464,7 @@ public class DateTimeUtils
     {
         return localDateTime.plusMinutes(minutes);
     }
-    
+
     /**
      * 根据 minutes 新增分钟
      *
@@ -481,7 +476,7 @@ public class DateTimeUtils
     {
         return localTime.plusMinutes(minutes);
     }
-    
+
     /**
      * 减少 1 分钟
      *
@@ -493,8 +488,8 @@ public class DateTimeUtils
     {
         return minusOneMinutes(localDateTime.toLocalDate(), localTime);
     }
-    
-    
+
+
     /**
      * 减少 1 分钟
      *
@@ -507,7 +502,7 @@ public class DateTimeUtils
         final LocalDateTime localDateTime = LocalDateTime.of(localDate, localTime);
         return minusMinutes(localDateTime, 1);
     }
-    
+
     /**
      * 减少 1 分钟
      *
@@ -518,7 +513,7 @@ public class DateTimeUtils
     {
         return minusMinutes(localDateTime, 1);
     }
-    
+
     /**
      * 根据 minutes 减少分钟
      *
@@ -530,7 +525,7 @@ public class DateTimeUtils
     {
         return localDateTime.minusMinutes(minutes);
     }
-    
+
     /**
      * 根据 minutes 减少分钟
      *
@@ -542,7 +537,7 @@ public class DateTimeUtils
     {
         return localTime.minusMinutes(minutes);
     }
-    
+
     /**
      * 判断是否是中午
      *
@@ -554,7 +549,7 @@ public class DateTimeUtils
         LocalDateTime noonDateTime = LocalDateTime.of(startInclusive.toLocalDate(), LocalTime.NOON);
         return Duration.between(startInclusive, noonDateTime).isZero();
     }
-    
+
     /**
      * 判断是否是中午
      *
@@ -565,7 +560,7 @@ public class DateTimeUtils
     {
         return Duration.between(startInclusive, LocalTime.NOON).isZero();
     }
-    
+
     /**
      * 是否是负数，startInclusive 大于 endInclusive 就是负数
      *
@@ -577,7 +572,7 @@ public class DateTimeUtils
     {
         return Duration.between(startInclusive, endInclusive).isNegative();
     }
-    
+
     /**
      * 相比是否是0，两个时间一致就是0
      *
@@ -589,7 +584,7 @@ public class DateTimeUtils
     {
         return Duration.between(startInclusive, endInclusive).isZero();
     }
-    
+
     /**
      * endInclusive 大于或等于 startInclusive
      *
@@ -601,7 +596,7 @@ public class DateTimeUtils
     {
         return Duration.between(startInclusive, endInclusive).toNanos() >= 0;
     }
-    
+
     /**
      * endInclusive 大于 startInclusive
      *
@@ -613,7 +608,7 @@ public class DateTimeUtils
     {
         return Duration.between(startInclusive, endInclusive).toNanos() > 0;
     }
-    
+
     /**
      * endInclusive 小或等于 startInclusive
      *
@@ -627,24 +622,70 @@ public class DateTimeUtils
     }
 
     /**
-     * LocalDateTime转换 Date
+     * 按 yyyyMMdd 格式化
      *
-     * @param localDateTime
-     * @return Date
+     * @param localDateTime 日期时间
+     * @return Result
      */
-    public static Date from(LocalDateTime localDateTime)
+    public static String formatDate(LocalDateTime localDateTime)
     {
-        return Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        return format(localDateTime, PURE_DATE_FORMATTER);
     }
 
     /**
-     * Date转换 LocalDateTime
+     * 按 yyyyMMdd 格式化
      *
-     * @param date
-     * @return
+     * @param localDate 日期
+     * @return Result
      */
-    public static LocalDateTime toLocalDateTime(Date date)
+    public static String formatDate(LocalDate localDate)
     {
-        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+        return format(localDate, PURE_DATE_FORMATTER);
+    }
+
+    /**
+     * 按 HHmm 格式化
+     *
+     * @param localDateTime 时间
+     * @return Result
+     */
+    public static String formatTime(LocalDateTime localDateTime)
+    {
+        return format(localDateTime, TIME_FORMATTER);
+    }
+
+    /**
+     * 按 HHmm 格式化
+     *
+     * @param localTime 时间
+     * @return Result
+     */
+    public static String formatTime(LocalTime localTime)
+    {
+        return format(localTime, TIME_FORMATTER);
+    }
+
+    /**
+     * 按 yyyy-MM-dd HH:mm:ss 格式格式化
+     *
+     * @param localDateTime 时间
+     * @return Result
+     */
+    public static String formatDateTime(LocalDateTime localDateTime)
+    {
+        return format(localDateTime, NORM_DATETIME_FORMATTER);
+    }
+
+    /**
+     * 按照上海时区，解析香港格式的时间
+     * <p>
+     * 时间格式 yyyyMMddHHmmssSSS
+     *
+     * @param time 时间
+     * @return LocalDateTime
+     */
+    public static LocalDateTime parseCttDateTime(String time)
+    {
+        return parse(time, PURE_DATETIME_MS_FORMATTER);
     }
 }
