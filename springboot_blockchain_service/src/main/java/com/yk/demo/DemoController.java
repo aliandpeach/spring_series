@@ -163,6 +163,11 @@ public class DemoController
      *  ( contentType为application/x-www-form-urlencoded, ajax会自动将json对象转化为&连接的key=value格式的数据 )
      *  后端不能使用@RequestBody注解
      *
+     *   RequestMethod.POST 参数为 @RequestParam， 请求体中需要传入的格式为 key1=value1&key2=value2
+     *   或者使用form-data ( 不指定consumes)
+     *
+     *   这里的参数不同于 @RequestParam Map<String, Object> param 对象前面不能加 @RequestParam
+     *
            $.ajax({
                type: "post",
                dataType: "json",
@@ -174,8 +179,20 @@ public class DemoController
                    // debugger
                 }
            });
+
+           $.ajax({
+               type: "post",
+               dataType: "json",
+               contentType: "application/x-www-form-urlencoded",
+               url: "/demo/fileInfoParam/3",
+               data: 'id=7&name=8',
+               async: true,
+               success: function (result) {
+                  // debugger
+               }
+           });
      */
-    @PostMapping(value = "/fileInfoParam/3", consumes = "application/x-www-form-urlencoded")
+    @PostMapping(value = "/fileInfoParam/3")
     @ResponseBody
     public FileInfoParam fileInfoParam3(@Validated FileInfoParam fileInfoParam)
     {

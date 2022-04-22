@@ -82,6 +82,9 @@ public class UserController implements InitializingBean
         return roles;
     }
 
+    /**
+     * 登录
+     */
     @PostMapping("/signin")
     @ApiOperation(value = "${UserController.signin}")
     @ApiResponses(value = {
@@ -92,6 +95,9 @@ public class UserController implements InitializingBean
         return userService.signin(user.getName(), user.getPasswd());
     }
 
+    /**
+     * 注册
+     */
     @PostMapping("/signup")
     @ApiOperation(value = "${UserController.signup}")
     @ApiResponses(value = {
@@ -100,7 +106,6 @@ public class UserController implements InitializingBean
             @ApiResponse(code = 422, message = "name is already in use")})
     // MyBatisConfiguration 的DataSourceTransactionManager 默认使用在JPA上会无法生效， 所以这里需要特别指定JPA自己的自定义事务名
     // 不指定事务的时候，JPA会默认使用 transactionManager bean
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String signup(@ApiParam("Signup User") @RequestBody UserDataDTO userDataDTO)
     {
         User user = new User();

@@ -32,10 +32,14 @@ public class DemoProductController
     }
 
     /**
-     * 使用@ResponseBody 用于处理非view的响应，所以produces不能设置为x-www-form-urlencoded (也不是完全不行，字符串可以被返回)
+     * 使用@ResponseBody 用于处理非view的响应
      * 不加@ResponseBody的情况是响应页面
+     *
+     * 接收格式设置 consumes = "application/x-www-form-urlencoded" 则postman必须设置相应格式, 但参数仍然从url拼接的获取
+     *
+     * 不设置接收格式, 可以从url拼接获取参数或者使用form-data获取参数
      */
-    @RequestMapping(method = RequestMethod.GET, value = "/get1", produces = "application/json")
+    @RequestMapping(method = RequestMethod.GET, value = "/get1")
     @ResponseBody
     public List<DemoModel> get1(@RequestParam Map<String, String> params)
     {
@@ -46,8 +50,10 @@ public class DemoProductController
 
     /**
      * RequestMethod.POST 参数为 @RequestParam， 请求体中需要传入的格式为 key1=value1&key2=value2
+     * 或者使用form-data
+     * 或者使用url拼接的参数
      */
-    @RequestMapping(method = RequestMethod.POST, value = "/post1", produces = "application/json")
+    @RequestMapping(method = RequestMethod.POST, value = "/post1")
     @ResponseBody
     public List<DemoModel> post1(@RequestParam Map<String, String> params)
     {
@@ -56,7 +62,7 @@ public class DemoProductController
         return params.entrySet().stream().map(entry -> new DemoModel(entry.getKey(), entry.getValue())).collect(Collectors.toList());
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/post2", produces = "application/json")
+    @RequestMapping(method = RequestMethod.POST, value = "/post2", consumes = "application/json")
     @ResponseBody
     public MultiValueMap<String, String> post2(@RequestBody MultiValueMap<String, String> params)
     {
@@ -69,7 +75,7 @@ public class DemoProductController
      * 可不指定consumes, 客户端随意可指定Content-Type为 form-data x-www-form-urlencoded json text/plain application/xml等
      * springboot内部使用 MultiValueMap
      */
-    @RequestMapping(method = RequestMethod.POST, value = "/post3", produces = "application/json")
+    @RequestMapping(method = RequestMethod.POST, value = "/post3", consumes = "application/json")
     @ResponseBody
     public DemoModel post3(BindingAwareModelMap params)
     {
@@ -79,7 +85,12 @@ public class DemoProductController
         return demoModel;
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/post4", consumes = "application/json", produces = "application/json")
+
+    /**
+     * consumes = "application/x-www-form-urlencoded" postman设置相应格式, 这里获得的就是key=value1%ke2=value2字符串
+     * consumes = "application/json" postman设置相应格式, 这里获得的就是{"key1": "value1", "ke2": "value2"}字符串
+     */
+    @RequestMapping(method = RequestMethod.POST, value = "/post4", produces = "application/json")
     @ResponseBody
     public String post4(@RequestBody String params)
     {

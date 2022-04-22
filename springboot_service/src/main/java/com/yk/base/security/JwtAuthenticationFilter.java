@@ -49,8 +49,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     protected boolean requiresAuthentication(HttpServletRequest request,
                                              HttpServletResponse response)
     {
-        return new AntPathRequestMatcher("/api/signin").matches(request)
-                || new AntPathRequestMatcher("/api/signup").matches(request);
+        return new AntPathRequestMatcher("/api/signin").matches(request);
     }
 
     @Override
