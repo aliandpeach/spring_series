@@ -54,7 +54,7 @@ public class DemoController
            data: 'id=1&name=2',
             async: true,
             success: function (result) {
-                debugger
+                // debugger
             }
         });
 
@@ -65,7 +65,7 @@ public class DemoController
              data: {"id": "1", "name": "2"},
               async: true,
               success: function (result) {
-                  debugger
+                  // debugger
               }
         });
 
@@ -90,7 +90,7 @@ public class DemoController
            data: 'id=1&name=2',
             async: true,
             success: function (result) {
-                debugger
+                // debugger
             }
         });
 
@@ -101,7 +101,7 @@ public class DemoController
              data: {"id": "1", "name": "2"},
               async: true,
               success: function (result) {
-                  debugger
+                  // debugger
               }
          });
 
