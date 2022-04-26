@@ -221,12 +221,15 @@ public class HttpFormDataTest
         String url = "https://192.190.10.122:21111/import/upload/multiple/json5";
         Map<String, String> filePathMap = new HashMap<>();
 
-        String fileId = UUID.randomUUID().toString().replace("-", "");
+        String fileId1 = UUID.randomUUID().toString().replace("-", "");
 
-        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\spinfossl\\sdk_pub.pem");
+        filePathMap.put(fileId1, "C:\\Users\\yk\\Desktop\\1.txt");
+        String fileId2 = UUID.randomUUID().toString().replace("-", "");
+
+        filePathMap.put(fileId2, "C:\\Users\\yk\\Desktop\\2.txt");
 
         Map<String, String> map = new HashMap<String, String>(Collections.singletonMap("name", "sdk_pub.txt"));
-        map.put("value", fileId);
+        map.put("value", fileId1);
         String str = JSONUtil.toJson(map);
 
         String boundary = UUID.randomUUID().toString().replace("-", "");

@@ -1,15 +1,14 @@
 spring:
   security:
     user:
-      name: user
-      password: Admin@123
+      name: user1
+      password: 123456
   servlet:
     multipart:
       enabled: true
       max-file-size: 1073741824
       max-request-size: 1073741824
 trust:
-  trust-store: ${catalina.base}/conf/ssl/broker.ts
-  trust-store-passwd: Spinfo@1234
+  trust-store: ${catalina.base}/conf/ssl/website.ts
+  trust-store-passwd: Admin@123
   verify-uri: /xxxxxx/*
-  root-ca-alias: broker

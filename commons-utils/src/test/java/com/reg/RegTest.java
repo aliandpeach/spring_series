@@ -26,7 +26,7 @@ public class RegTest
             System.out.println(matcher1.group());
         }
 
-        Matcher matcher2 = Pattern.compile("(^1[3|4|5|7|8][0-9]{9}\\D+)").matcher("测试18729256151测试");
+        Matcher matcher2 = Pattern.compile("((?<=\\D)|(^))1[3|4|5|7|8][0-9]{9}((?=\\D+)|($))").matcher("测试18729256151测试");
         while (matcher2.find())
         {
             System.out.println(matcher2.group());

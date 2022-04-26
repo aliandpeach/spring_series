@@ -118,5 +118,12 @@ public class BinHexSHAUtilTest
         String _bnum = "100110";
         System.out.println("二进制转换十进制：" + Integer.parseInt(_bnum, 2));
         System.out.println("二进制转换十进制：" + Integer.valueOf(_bnum, 2));
+
+
+        System.out.println("Double转十六进制：" + Double.toHexString(0.1527049328));
+        System.out.println("Double转longBits： " + Double.doubleToLongBits(0.1527049328));
+        System.out.println("Double转longBits： " + Long.toBinaryString(Double.doubleToLongBits(0.1527049328)));
+
+        System.out.println(Long.toBinaryString(Double.doubleToRawLongBits(0.1527049328)));
     }
 }

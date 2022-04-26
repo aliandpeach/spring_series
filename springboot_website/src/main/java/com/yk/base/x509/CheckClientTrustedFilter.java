@@ -14,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,15 +31,9 @@ public class CheckClientTrustedFilter extends OncePerRequestFilter
 
     private HashSet<String> listOfVerifyUri = new HashSet<>();
 
-    private X509Certificate root;
-
-    public CheckClientTrustedFilter(TrustManager[] trustManagers, Certificate root, String verifyUri)
+    public CheckClientTrustedFilter(TrustManager[] trustManagers, String verifyUri)
     {
         Optional.ofNullable(verifyUri).ifPresent(u -> this.listOfVerifyUri.addAll(Arrays.stream(u.split(",")).collect(Collectors.toList())));
-        if (root instanceof X509Certificate)
-        {
-            this.root = (X509Certificate) root;
-        }
         if (null == trustManagers)
         {
             return;
@@ -49,7 +42,7 @@ public class CheckClientTrustedFilter extends OncePerRequestFilter
         {
             if (trustManager instanceof X509TrustManager)
             {
-                x509TrustManagerList.add((X509TrustManager) trustManager);
+                this.x509TrustManagerList.add((X509TrustManager) trustManager);
             }
         }
     }
@@ -65,7 +58,7 @@ public class CheckClientTrustedFilter extends OncePerRequestFilter
             return;
         }
         X509Certificate[] certs = (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
-        if (x509TrustManagerList.size() == 0)
+        if (this.x509TrustManagerList.size() == 0)
         {
             logger.error("证书链校验失败, 没有加载本地证书库, {}, {}", uri, listOfVerifyUri);
             response.setStatus(500);
@@ -77,12 +70,7 @@ public class CheckClientTrustedFilter extends OncePerRequestFilter
             response.setStatus(500);
             throw new GlobalException(500, "客户端证书链校验失败, 证书链不存在");
         }
-        if (root == null)
-        {
-            response.setStatus(500);
-            throw new GlobalException(500, "客户端证书链校验失败.");
-        }
-        for (X509Certificate client : certs)
+        /*for (X509Certificate client : certs)
         {
             try
             {
@@ -95,7 +83,7 @@ public class CheckClientTrustedFilter extends OncePerRequestFilter
                 response.setStatus(500);
                 throw new GlobalException(500, "客户端证书链校验失败, 公钥签名验证失败");
             }
-        }
+        }*/
         for (X509TrustManager manager : x509TrustManagerList)
         {
             try

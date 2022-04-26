@@ -44,7 +44,7 @@ import java.util.Set;
  * clientAuth="want"
  * allowTrace="false"
  * keystoreFile="key.keystore"
- * keystorePass="pwd"
+ * keystorePass="pwd" keyPass="pwd"
  * truststoreFile="trust.keystore"
  * truststorePass="pwd"
  * ciphers="TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384,TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_256_GCM_SHA384,TLS_RSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_256_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256"
@@ -66,12 +66,19 @@ public class ServerX509TrustManager implements X509TrustManager
 {
     private Logger logger = LoggerFactory.getLogger("base");
 
+    private X509TrustManager x509TrustManager;
+
     @Override
     public void checkClientTrusted(X509Certificate[] x509Certificates, String s) throws CertificateException
     {
         logger.info("checkClientTrusted...");
         logger.info(s);
         logger.info(Arrays.toString(x509Certificates));
+        if (null == x509TrustManager)
+        {
+            return;
+        }
+        x509TrustManager.checkClientTrusted(x509Certificates, s);
     }
 
     @Override

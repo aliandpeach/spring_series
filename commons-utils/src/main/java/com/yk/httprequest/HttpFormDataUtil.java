@@ -2,6 +2,7 @@ package com.yk.httprequest;
 
 import cn.hutool.core.io.IoUtil;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -113,9 +114,9 @@ public class HttpFormDataUtil
         return getHttpResponse(conn);
     }
 
-    private static RequestConfig REQUEST_CONFIG = RequestConfig.custom()
+    private static RequestConfig.Builder REQUEST_CONFIG_BUILDER = RequestConfig.custom()
             .setConnectTimeout(30 * 1000).setConnectionRequestTimeout(30 * 1000)
-            .setSocketTimeout(650 * 1000).build();
+            .setSocketTimeout(650 * 1000);
 
     public static HttpResponse postFormDataByHttpClient(String urlStr,
                                                         Map<String, String> filePathMap,
@@ -130,8 +131,9 @@ public class HttpFormDataUtil
         HttpPost post = new HttpPost(urlStr);
         try
         {
-            post.setConfig(REQUEST_CONFIG);
-            CloseableHttpClient client = HttpClientUtil.getClient(new HttpClientUtil.Config().ofProxy(proxyInfo));
+            HttpClientUtil util = new HttpClientUtil(new HttpClientUtil.Config().ofProxy(proxyInfo));
+            // 如果new HttpClientUtil不传入proxy信息, 也可以在这里传入requestConfig（前提是requestConfig.setProxy）
+//            post.setConfig(REQUEST_CONFIG_BUILDER.setProxy(new HttpHost(proxyInfo.getHostname(), proxyInfo.getPort(), proxyInfo.getScheme())).build());
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
             builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
 
@@ -156,7 +158,7 @@ public class HttpFormDataUtil
                 {
                     File f = new File(entry.getValue());
                     InputStream input = new FileInputStream(f);
-                    builder.addBinaryBody(entry.getKey(), IoUtil.readBytes(input), ContentType.create("application/octet-stream"), f.getName());
+                    builder.addBinaryBody(entry.getKey(), input, ContentType.create("application/octet-stream"), f.getName());
                 }
             }
             builder.setCharset(StandardCharsets.UTF_8);
@@ -166,7 +168,9 @@ public class HttpFormDataUtil
             builder.setBoundary(boundary);
 
             post.setEntity(builder.build());
-            CloseableHttpResponse httpResponse = client.execute(post);
+            CloseableHttpResponse httpResponse =
+                    // // 如果new HttpClientUtil不传入proxy信息, 也可以在这里传入requestConfig（前提是requestConfig.setProxy）
+                    util.httpClient.execute(post/*, util.createHttpClientContext(REQUEST_CONFIG_BUILDER.setProxy(new HttpHost(proxyInfo.getHostname(), proxyInfo.getPort(), proxyInfo.getScheme())).build(), null, null)*/);
             int responseCode = httpResponse.getStatusLine().getStatusCode();
             HttpEntity httpEntity = httpResponse.getEntity();
             try (InputStream input = httpEntity.getContent();

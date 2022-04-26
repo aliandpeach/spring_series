@@ -21,7 +21,6 @@ import java.net.URL;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.EnumSet;
 
@@ -39,14 +38,8 @@ public class CheckClientTrustedConfig implements ServletContextInitializer
     @Value("${trust.verify-uri}")
     private String verifyUri;
 
-    @Value("${trust.root-ca-alias}")
-    private String rootCAAlias;
-
     @Getter
     private TrustManager[] trustManagers;
-
-    @Getter
-    private Certificate root;
 
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException
@@ -55,7 +48,7 @@ public class CheckClientTrustedConfig implements ServletContextInitializer
         if (null == trustStore || null == trustStorePasswd)
         {
             logger.error("trust store path or passwd is null");
-            FilterRegistration.Dynamic filter = servletContext.addFilter("checkClientTrustedFilter", new CheckClientTrustedFilter(trustManagers, root, verifyUri));
+            FilterRegistration.Dynamic filter = servletContext.addFilter("checkClientTrustedFilter", new CheckClientTrustedFilter(trustManagers, verifyUri));
             filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC), false, "/*");
             return;
         }
@@ -64,7 +57,6 @@ public class CheckClientTrustedConfig implements ServletContextInitializer
             TrustManagerFactory trustFactory = TrustManagerFactory.getInstance("SunX509");
             KeyStore trust = KeyStore.getInstance("JKS");
             trust.load(input, trustStorePasswd.toCharArray());
-            root = trust.getCertificate(rootCAAlias);
             trustFactory.init(trust);
             trustManagers = trustFactory.getTrustManagers();
         }
@@ -73,7 +65,7 @@ public class CheckClientTrustedConfig implements ServletContextInitializer
             trustManagers = null;
             logger.error("load client trust store error", e);
         }
-        FilterRegistration.Dynamic filter = servletContext.addFilter("checkClientTrustedFilter", new CheckClientTrustedFilter(trustManagers, root, verifyUri));
+        FilterRegistration.Dynamic filter = servletContext.addFilter("checkClientTrustedFilter", new CheckClientTrustedFilter(trustManagers, verifyUri));
         filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), false, "/*");
     }
 

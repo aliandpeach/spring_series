@@ -81,17 +81,14 @@ public class HttpClientUtil
     //setConnectionRequestTimeout：设置从connect Manager获取Connection 超时时间，单位毫秒。这个属性是新加的属性，因为目前版本是可以共享连接池的。
     //setSocketTimeout：请求获取数据的超时时间，单位毫秒。 如果访问一个接口，多少时间内无法返回数据，就直接放弃此次调用， 下载一个大文件的时候，只要有持续响应，文件流就不会中断直到结束传输(除非中间有网络问题导致的超过SocketTimeout的时间)。
 
-    private CloseableHttpClient httpClient;
+    public final CloseableHttpClient httpClient;
 
-    private AuthCache authCache;
+    public final RequestConfig requestConfig;
 
-    private CredentialsProvider credentialsProvider;
-
-    private DefaultProxyRoutePlanner routePlanner;
-
-    private HttpHost httpProxy;
-
-    private RequestConfig requestConfig;
+    public HttpClientUtil() throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, UnrecoverableKeyException, KeyManagementException
+    {
+        this(new Config());
+    }
 
     public HttpClientUtil(Config config) throws NoSuchAlgorithmException, KeyStoreException, IOException, CertificateException, UnrecoverableKeyException, KeyManagementException
     {
@@ -148,29 +145,36 @@ public class HttpClientUtil
         // 服务器认证: Basic, Digest and NTLM. 主要用于soap-webservice的登录验证
         if (null != config.getCredentials() && null != config.getCredentials().getUsername() && null != config.getCredentials().getPasswd())
         {
-            credentialsProvider = new BasicCredentialsProvider();
+
+            CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
             UsernamePasswordCredentials usernamePasswordCredentials = new UsernamePasswordCredentials(config.getCredentials().getUsername(), config.getCredentials().getPasswd());
             NTCredentials ntCredentials = new NTCredentials(config.getCredentials().getUsername(), config.getCredentials().getPasswd(), "", "");
             credentialsProvider.setCredentials(new AuthScope(AuthScope.ANY), ntCredentials);
-//            httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
+
+            httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider);
         }
 
         // 服务器代理
         if (null != config.getProxyInfo() && config.getProxyInfo().isProxy())
         {
-            httpProxy = new HttpHost(config.getProxyInfo().getHostname(), config.getProxyInfo().getPort(), config.getProxyInfo().getScheme());
-            this.authCache = new BasicAuthCache();
-            authCache.put(httpProxy, new BasicScheme());
+            HttpHost httpProxy = new HttpHost(config.getProxyInfo().getHostname(), config.getProxyInfo().getPort(), config.getProxyInfo().getScheme());
+            DefaultProxyRoutePlanner routePlanner = new DefaultProxyRoutePlanner(httpProxy);
 
-            routePlanner = new DefaultProxyRoutePlanner(httpProxy);
-            // setProxy  setRoutePlanner最终都是为了生成 DefaultProxyRoutePlanner, 二者使用一个即可
-            // RequestConfig.Builder 的 setProxy() 也一样最后都是用于生成 DefaultProxyRoutePlanner (RequestConfig的方式可以灵活的使 CloseableHttpClient 发送请求的时候使用或者不使用代理)
-//            httpClientBuilder.setRoutePlanner(routePlanner).setProxy(httpProxy);
+            // 这里设置的proxy不受requestConfig.setProxy影响, setProxy  setRoutePlanner最终都是为了生成 DefaultProxyRoutePlanner, 二者使用一个即可
+            httpClientBuilder.setRoutePlanner(routePlanner).setProxy(httpProxy);
+
+            // RequestConfig.Builder 的 setProxy() 也一样最后都是用于生成 DefaultProxyRoutePlanner
+            // (RequestConfig的方式可以灵活的使 CloseableHttpClient 发送请求的时候使用或者不使用代理)
+
+            // 注意：在InternalHttpClient类, 优先使用的是HttpPost/HttpGet等设置的RequestConfig
+            // 如果没有, 才会使用HttpClientContext中设置的 RequestConfig
+            // 这里配置的httpProxy只是为了组装requestConfig, 想要proxy生效, 在execute前,调用httpPost.setConfig或者HttpClientContext.setRequestConfig或者httpClientBuilder.setDefaultRequestConfig(requestConfig)
             requestConfigBuilder.setProxy(httpProxy);
         }
 
         requestConfig = requestConfigBuilder.build();
-        httpClient = httpClientBuilder.build();
+        // 这里的requestConfig中设置的proxy 受到httpPost.setConfig或者HttpClientContext.setRequestConfig的影响
+        httpClient = httpClientBuilder.setDefaultRequestConfig(requestConfig).build();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() ->
         {
@@ -187,10 +191,20 @@ public class HttpClientUtil
         }));
     }
 
-    public static CloseableHttpClient getClient(Config config) throws UnrecoverableKeyException, CertificateException, NoSuchAlgorithmException, KeyStoreException, IOException, KeyManagementException
+    public HttpClientContext createHttpClientContext(RequestConfig requestConfig, HttpHost target, CredentialsProvider credentialsProvider)
     {
-        HttpClientUtil httpClientUtil = new HttpClientUtil(config);
-        return httpClientUtil.httpClient;
+        HttpClientContext httpContext = HttpClientContext.create();
+        if (null != requestConfig)
+            httpContext.setRequestConfig(requestConfig);
+        if (null != target)
+        {
+            AuthCache authCache = new BasicAuthCache();
+            authCache.put(target, new BasicScheme());
+            httpContext.setAuthCache(authCache);
+        }
+        if (null != credentialsProvider)
+            httpContext.setCredentialsProvider(credentialsProvider);
+        return httpContext;
     }
 
     public String getBytes(String url, Map<String, String> headers, Map<String, String> params, String fileName, String dir, String rootDir)
@@ -202,8 +216,9 @@ public class HttpClientUtil
             url = initUrlParams(url, params);
             httpGet = new HttpGet(url);
             initHeader(httpGet, headers);
-            HttpClientContext httpContext = createHttpClientContext();
-            return httpClient.execute(httpGet, new CurResponseHandlerBytes(fileName, dir, rootDir), httpContext);
+
+            httpGet.setConfig(requestConfig);
+            return httpClient.execute(httpGet, new CurResponseHandlerBytes(fileName, dir, rootDir));
         }
         catch (Exception e)
         {
@@ -214,18 +229,6 @@ public class HttpClientUtil
             if (null != httpGet)
                 httpGet.releaseConnection();
         }
-    }
-
-    private HttpClientContext createHttpClientContext()
-    {
-        HttpClientContext httpContext = HttpClientContext.create();
-        httpContext.setRequestConfig(requestConfig);
-        if (null != credentialsProvider)
-        {
-            httpContext.setAuthCache(authCache);
-            httpContext.setCredentialsProvider(credentialsProvider);
-        }
-        return httpContext;
     }
 
     public <T> T post(String url, Map<String, String> headers, Map<String, String> body, final TypeReference<T> typeReference)
@@ -242,8 +245,8 @@ public class HttpClientUtil
             builder.setContentEncoding(StandardCharsets.UTF_8.name());
             httpPost.setEntity(builder.build());
 
-            HttpClientContext httpContext = createHttpClientContext();
-            return httpClient.execute(httpPost, new CurResponseHandler<T>(typeReference), httpContext);
+            httpPost.setConfig(requestConfig);
+            return httpClient.execute(httpPost, new CurResponseHandler<T>(typeReference));
         }
         catch (Exception e)
         {
@@ -270,8 +273,8 @@ public class HttpClientUtil
             builder.setContentEncoding(StandardCharsets.UTF_8.name());
             httpPost.setEntity(builder.build());
 
-            HttpClientContext httpContext = createHttpClientContext();
-            return httpClient.execute(httpPost, new CurResponseHandler<T>(typeReference), httpContext);
+            httpPost.setConfig(requestConfig);
+            return httpClient.execute(httpPost, new CurResponseHandler<T>(typeReference));
         }
         catch (Exception e)
         {
@@ -297,8 +300,9 @@ public class HttpClientUtil
             url = initUrlParams(url, params);
             httpGet = new HttpGet(url);
             initHeader(httpGet, headers);
-            HttpClientContext httpContext = createHttpClientContext();
-            return httpClient.execute(httpGet, new CurResponseHandler<>(tTypeReference), httpContext);
+
+            httpGet.setConfig(requestConfig);
+            return httpClient.execute(httpGet, new CurResponseHandler<>(tTypeReference));
         }
         catch (IOException e)
         {
@@ -331,8 +335,9 @@ public class HttpClientUtil
             url = initUrlParams(url, params);
             httpGet = new HttpGet(url);
             initHeader(httpGet, headers);
-            HttpClientContext httpContext = createHttpClientContext();
-            return httpClient.execute(httpGet, new CurResponseHandlerString(), httpContext);
+
+            httpGet.setConfig(requestConfig);
+            return httpClient.execute(httpGet, new CurResponseHandlerString());
         }
         catch (IOException e)
         {
