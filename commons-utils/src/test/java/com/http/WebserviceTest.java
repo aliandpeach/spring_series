@@ -58,7 +58,7 @@ public class WebserviceTest
         HttpClientUtil.Config config = new HttpClientUtil.Config();
         URL url = new URL("https://192.168.37.104/ews/Exchange.asmx");
         config.ofCredentials(new HttpClientUtil.Credentials("administrator", "Spinfo0123", url.getProtocol()));
-        CloseableHttpClient client = HttpClientUtil.getClient(config);
+        CloseableHttpClient client = new HttpClientUtil(config).httpClient;
         HttpPost httpPost = new HttpPost("https://192.168.37.104/ews/Exchange.asmx");
 
 //        HttpHost proxyHost = new HttpHost("127.0.0.1", 8080);

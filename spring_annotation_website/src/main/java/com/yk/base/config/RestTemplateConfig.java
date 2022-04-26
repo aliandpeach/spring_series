@@ -34,7 +34,7 @@ public class RestTemplateConfig
         try
         {
             // 使用 http-client组件
-            httpRequestFactory = new HttpComponentsClientHttpRequestFactory(HttpClientUtil.getClient(new HttpClientUtil.Config()));
+            httpRequestFactory = new HttpComponentsClientHttpRequestFactory(new HttpClientUtil().httpClient);
             httpRequestFactory.setConnectTimeout(15000);
             httpRequestFactory.setReadTimeout(5000);
             return httpRequestFactory;

@@ -48,7 +48,7 @@ public class BaseWebMvcConfiguration implements WebMvcConfigurer
     @Bean
     public CloseableHttpClient httpClient() throws GeneralSecurityException, IOException
     {
-        return HttpClientUtil.getClient(new HttpClientUtil.Config());
+        return new HttpClientUtil().httpClient;
     }
 
     @Bean
