@@ -1,6 +1,7 @@
 package com.yk.httprequest;
 
 import cn.hutool.core.io.IoUtil;
+import cn.hutool.json.JSONUtil;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.client.config.RequestConfig;
@@ -8,6 +9,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.FormBodyPart;
+import org.apache.http.entity.mime.FormBodyPartBuilder;
 import org.apache.http.entity.mime.Header;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MIME;
@@ -150,6 +152,16 @@ public class HttpFormDataUtil
             header.addField(new MinimalField(MIME.CONTENT_TYPE, contentType));
             header.addField(new MinimalField(MIME.CONTENT_TRANSFER_ENC, "binary"));
             FormBodyPart bodyPart = (FormBodyPart) constructor.newInstance(paramName, new ByteArrayBody(content.getBytes(StandardCharsets.UTF_8), ContentType.create(contentType), null), header);
+
+            FormBodyPartBuilder formBodyPartBuilder = FormBodyPartBuilder.create();
+            formBodyPartBuilder.addField(MIME.CONTENT_DISPOSITION, "form-data; name=\"params\"\r\nContent-Type: " + contentType);
+            formBodyPartBuilder.addField(MIME.CONTENT_TYPE, contentType);
+            formBodyPartBuilder.addField(MIME.CONTENT_TRANSFER_ENC, "binary");
+            formBodyPartBuilder.setName(paramName);
+            formBodyPartBuilder.setBody(new ByteArrayBody(content.getBytes(StandardCharsets.UTF_8), ContentType.create(contentType), null));
+            FormBodyPart formBodyPart = formBodyPartBuilder.build();
+
+
             builder.addPart(bodyPart);
 
             if (filePathMap != null && !filePathMap.isEmpty())
@@ -289,7 +301,7 @@ public class HttpFormDataUtil
         return conn;
     }
 
-    private static HttpResponse getHttpResponse(HttpURLConnection conn)
+    public static HttpResponse getHttpResponse(HttpURLConnection conn)
     {
         HttpResponse response;
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)))
@@ -387,7 +399,7 @@ public class HttpFormDataUtil
         conn.setConnectTimeout(30 * 1000);
         conn.setReadTimeout(30 * 1000);
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream()));
+        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8));
              StringReader reader = new StringReader(content))
         {
             char[] buffer = new char[4096];
