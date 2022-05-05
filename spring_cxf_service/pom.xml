@@ -92,11 +92,11 @@
             <artifactId>druid</artifactId>
             <version>1.0.13</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>activemq-all</artifactId>
             <version>5.15.2</version>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>ant</groupId>
             <artifactId>ant</artifactId>
@@ -184,6 +184,16 @@
             <artifactId>junit</artifactId>
             <version>RELEASE</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.12</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yk.spring.pro</groupId>
+            <artifactId>commons-utils</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
