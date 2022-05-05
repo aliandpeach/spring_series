@@ -1,12 +1,12 @@
 package com.yk.test.activemq.topic;
 
+import com.yk.activemq.service.MessageCenter;
+import com.yk.activemq.service.MessageForm;
+import com.yk.activemq.service.MessageTaskManager;
+import com.yk.activemq.service.MessageTopic;
 import com.yk.demo.activemq.demo.topic.TopicConsumer;
 import com.yk.demo.activemq.demo.topic.TopicConsumer2;
 import com.yk.demo.activemq.demo.topic.TopicProducer;
-import com.yk.demo.activemq.service.MessageCenter;
-import com.yk.demo.activemq.service.MessageForm;
-import com.yk.demo.activemq.service.MessageTaskManager;
-import com.yk.demo.activemq.service.MessageTopic;
 import com.yk.demo.event.demo.ApplicationContext;
 import com.yk.demo.event.demo.ApplicationEvent;
 import com.yk.demo.event.demo.EventType;
@@ -21,7 +21,6 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 public class ActiveMQMainTopic
@@ -53,25 +52,32 @@ public class ActiveMQMainTopic
     public void testMQ() throws InterruptedException
     {
         System.setProperty("catalina.home", "D:\\logs\\");
-        MessageCenter<Map<String, String>> center = MessageCenter.<Map<String, String>>newInstance(true, 0);
-        center.addSubscribes(new MessageTaskManager<Map<String, String>>()
+        MessageCenter center = MessageCenter.newInstance(true, 0);
+        center.addSubscribes(new MessageTaskManager()
         {
             @Override
-            public void onMessageTask(MessageForm<Map<String, String>> messageForm)
+            public void onMessageTask(MessageForm messageForm)
             {
                 Assert.assertTrue(true);
             }
 
             @Override
-            public void replay(Session session, Message message, MessageForm<Map<String, String>> form) throws JMSException
+            public void replay(Session session, Message message)
             {
                 if (null == session)
                 {
                     return;
                 }
-                TextMessage replayText = session.createTextMessage("replay..." + MessageTopic.MODIFY.name());
-                MessageProducer replay = session.createProducer(message.getJMSReplyTo());
-                replay.send(replayText);
+                try
+                {
+                    TextMessage replayText = session.createTextMessage("replay..." + MessageTopic.MODIFY.name());
+                    MessageProducer replay = session.createProducer(message.getJMSReplyTo());
+                    replay.send(replayText);
+                }
+                catch (JMSException e)
+                {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -80,24 +86,32 @@ public class ActiveMQMainTopic
                 return MessageTopic.MODIFY;
             }
         });
-        center.addSubscribes(new MessageTaskManager<Map<String, String>>()
+        center.addSubscribes(new MessageTaskManager()
         {
             @Override
-            public void onMessageTask(MessageForm<Map<String, String>> messageForm)
+            public void onMessageTask(MessageForm messageForm)
             {
                 Assert.assertTrue(true);
             }
 
             @Override
-            public void replay(Session session, Message message, MessageForm<Map<String, String>> form) throws JMSException
+            public void replay(Session session, Message message)
             {
                 if (null == session)
                 {
                     return;
                 }
-                TextMessage replayText = session.createTextMessage("replay..." + MessageTopic.ADD.name());
-                MessageProducer replay = session.createProducer(message.getJMSReplyTo());
-                replay.send(replayText);
+
+                try
+                {
+                    TextMessage replayText = session.createTextMessage("replay..." + MessageTopic.ADD.name());
+                    MessageProducer replay = session.createProducer(message.getJMSReplyTo());
+                    replay.send(replayText);
+                }
+                catch (JMSException e)
+                {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -107,13 +121,15 @@ public class ActiveMQMainTopic
             }
         });
 
-        MessageForm<Map<String, String>> form = new MessageForm<>().ofTopic(MessageTopic.ADD);
+        MessageForm form = new MessageForm().ofTopic(MessageTopic.ADD);
         form.setSource(new HashMap<>(Collections.singletonMap("info", "success")));
         String replay = center.sendMessage(form);
         System.out.println(replay);
 
         Semaphore semaphore = new Semaphore(1);
-        Runnable toRelease = () -> {};
+        Runnable toRelease = () ->
+        {
+        };
         semaphore.acquire();
         toRelease = semaphore::release;
     }
