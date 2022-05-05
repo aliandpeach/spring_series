@@ -90,11 +90,11 @@
             <artifactId>druid</artifactId>
             <version>1.0.13</version>
         </dependency>
-        <dependency>
+        <!--<dependency>
             <groupId>org.apache.activemq</groupId>
             <artifactId>activemq-client</artifactId>
             <version>5.15.0</version>
-        </dependency>
+        </dependency>-->
 
         <dependency>
             <groupId>com.fasterxml.jackson.jaxrs</groupId>
@@ -157,6 +157,11 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.12</version>
+        </dependency>
+        <dependency>
+            <groupId>com.yk.spring.pro</groupId>
+            <artifactId>commons-utils</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
