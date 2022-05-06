@@ -17,7 +17,7 @@ public class DemoEventSubscriberDelete extends MessageTaskManager implements Ini
     @Override
     protected void onMessage(MessageForm form)
     {
-        System.out.println(form);
+        System.out.println(form + " " + DemoEventSubscriberDelete.class.getName());
     }
 
     @Override

@@ -4,12 +4,6 @@ import com.yk.activemq.service.MessageCenter;
 import com.yk.activemq.service.MessageForm;
 import com.yk.activemq.service.MessageTaskManager;
 import com.yk.activemq.service.MessageTopic;
-import com.yk.demo.activemq.demo.topic.TopicConsumer;
-import com.yk.demo.activemq.demo.topic.TopicConsumer2;
-import com.yk.demo.activemq.demo.topic.TopicProducer;
-import com.yk.demo.event.demo.ApplicationContext;
-import com.yk.demo.event.demo.ApplicationEvent;
-import com.yk.demo.event.demo.EventType;
 import org.apache.activemq.broker.BrokerService;
 import org.junit.Assert;
 import org.junit.Test;
@@ -23,9 +17,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.Semaphore;
 
-public class ActiveMQMainTopic
+/**
+ * 描述
+ *
+ * @author yangk
+ * @version 1.0
+ * @since 2022/05/06 10:31:23
+ */
+public class ActivemqTopicTest
 {
-
     public static void main(String args[]) throws Exception
     {
         System.setProperty("catalina.home", "D:\\logs\\");
@@ -41,9 +41,9 @@ public class ActiveMQMainTopic
         service.start();
 
 
-        new TopicConsumer();
-        new TopicConsumer2();
-        TopicProducer producer = new TopicProducer();
+        new com.yk.demo.activemq.demo.topic.TopicConsumer();
+        new com.yk.demo.activemq.demo.topic.TopicConsumer2();
+        com.yk.demo.activemq.demo.topic.TopicProducer producer = new com.yk.demo.activemq.demo.topic.TopicProducer();
         producer.publishMessages();
         Thread.sleep(1000);
     }
@@ -132,32 +132,5 @@ public class ActiveMQMainTopic
         };
         semaphore.acquire();
         toRelease = semaphore::release;
-    }
-
-    @Test
-    public void testEvent() throws InterruptedException
-    {
-        com.yk.demo.event.demo.MessageCenter center = new com.yk.demo.event.demo.MessageCenter();
-        center.contextInitialized(null);
-
-        com.yk.demo.event.demo.MessageCenter.addSubscribes(new com.yk.demo.event.demo.MessageTaskManager()
-        {
-            @Override
-            protected String getTopic()
-            {
-                return EventType.ADD.name();
-            }
-
-            @Override
-            protected void onMessage(com.yk.demo.event.demo.MessageForm form)
-            {
-                System.out.println(form);
-            }
-        });
-
-        com.yk.demo.event.demo.MessageForm form = new com.yk.demo.event.demo.MessageForm();
-        form.setSource(new HashMap<>(Collections.singletonMap("info", "success")));
-        ApplicationContext.getInstance().publishEvent(new ApplicationEvent(form).ofEventType(EventType.ADD.name()));
-        Thread.currentThread().join();
     }
 }

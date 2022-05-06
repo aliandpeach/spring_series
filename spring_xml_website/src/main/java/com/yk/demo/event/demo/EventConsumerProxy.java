@@ -14,52 +14,67 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class EventConsumerProxy implements ApplicationListener
 {
 
-    private String topic;
+    private final String topic;
 
-    private ExecutorService executor = Executors.newFixedThreadPool(3);
+    private final ExecutorService executor = Executors.newFixedThreadPool(3);
 
-    private BlockingQueue<MessageTaskManager> proxys = new LinkedBlockingQueue<>();
+    private final BlockingQueue<MessageTaskManager> managers = new LinkedBlockingQueue<>();
 
     public EventConsumerProxy(String topic)
     {
         this.topic = topic;
     }
 
+    @Override
     public synchronized void addSubscribes(MessageTaskManager task)
     {
-        if (!task.getTopic().equalsIgnoreCase(topic))
-        {
-            return;
-        }
-        proxys.offer(task);
-    }
-
-    public synchronized void delSubscribes(MessageTaskManager task)
-    {
-        if (!task.getTopic().equalsIgnoreCase(topic))
-        {
-            return;
-        }
-        proxys.remove(task);
+        managers.offer(task);
     }
 
     @Override
-    public void onApplicationEvent(ApplicationEvent e)
+    public synchronized void delSubscribes(MessageTaskManager task)
     {
-        Runnable runnable = () ->
-        {
-            MessageForm form = e.getMessageForm();
-            for (MessageTaskManager task : proxys)
-            {
-                task.readyMessageHandleThread(form);
-            }
-        };
-        executor.submit(runnable);
+        managers.remove(task);
     }
 
     @Override
     public String getEventType()
     {
         return topic;
+    }
+
+    @Override
+    public void onApplicationEvent(ApplicationEvent e)
+    {
+        MessageForm form = e.getMessageForm();
+        for (MessageTaskManager task : managers)
+        {
+            readyMessageHandleThread(task, form);
+        }
+    }
+
+    private static class MessageHandleThread extends Thread
+    {
+        private final MessageForm messageForm;
+
+        private final MessageTaskManager task;
+
+        public MessageHandleThread(MessageTaskManager task, MessageForm messageForm)
+        {
+            this.messageForm = messageForm;
+            this.task = task;
+        }
+
+        @Override
+        public void run()
+        {
+            this.task.onMessage(messageForm);
+        }
+    }
+
+    private void readyMessageHandleThread(MessageTaskManager task, MessageForm form)
+    {
+        MessageHandleThread thread = new MessageHandleThread(task, form);
+        executor.submit(thread);
     }
 }

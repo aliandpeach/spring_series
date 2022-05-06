@@ -5,6 +5,7 @@ import org.springframework.context.event.ApplicationContextEvent;
 
 public class MailSendEvent extends ApplicationContextEvent {
 
+    private static final long serialVersionUID = -216653010452814837L;
     private String to;
 
     /**

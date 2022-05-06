@@ -10,4 +10,8 @@ public interface ApplicationListener extends EventListener
     void onApplicationEvent(ApplicationEvent e);
 
     String getEventType();
+
+    void addSubscribes(MessageTaskManager task);
+
+    void delSubscribes(MessageTaskManager task);
 }

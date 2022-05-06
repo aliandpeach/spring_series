@@ -11,35 +11,11 @@ import java.util.concurrent.Executors;
  */
 public abstract class MessageTaskManager
 {
-    private String id = UUID.randomUUID().toString();
-
-    private ExecutorService executor = Executors.newFixedThreadPool(3);
+    private final String id = UUID.randomUUID().toString();
 
     protected abstract String getTopic();
 
     protected abstract void onMessage(MessageForm form);
-
-    public void readyMessageHandleThread(MessageForm form)
-    {
-        MessageHandleThread thread = new MessageHandleThread(form);
-        executor.submit(thread);
-    }
-
-    private class MessageHandleThread extends Thread
-    {
-        private MessageForm messageForm;
-
-        public MessageHandleThread(MessageForm messageForm)
-        {
-            this.messageForm = messageForm;
-        }
-
-        @Override
-        public void run()
-        {
-            onMessage(messageForm);
-        }
-    }
 
     @Override
     public boolean equals(Object o)

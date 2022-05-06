@@ -4,9 +4,10 @@ import java.util.EventObject;
 
 public class ApplicationEvent extends EventObject
 {
+    private static final long serialVersionUID = 8326864135785143637L;
     private String eventType;
 
-    private MessageForm messageForm;
+    private final MessageForm messageForm;
 
     /**
      * Constructs a prototypical Event.

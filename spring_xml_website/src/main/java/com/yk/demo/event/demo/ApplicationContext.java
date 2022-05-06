@@ -1,14 +1,19 @@
 package com.yk.demo.event.demo;
 
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ApplicationContext
 {
+    private final ExecutorService executor = Executors.newFixedThreadPool(30);
+
     /**
      * 存放所有的监听器
      */
-    private Map<String, ApplicationListener> listeners;
+    private final Map<String, ApplicationListener> listeners;
 
     private ApplicationContext()
     {
@@ -20,9 +25,10 @@ public class ApplicationContext
      *
      * @param listener 监听器
      */
-    public void addApplicationListener(ApplicationListener listener)
+    public ApplicationListener addApplicationListener(ApplicationListener listener)
     {
-        this.listeners.put(listener.getEventType(), listener);
+        // 有就不插入数据, 返回已有数据
+        return this.listeners.computeIfAbsent(listener.getEventType(), t -> listener);
     }
 
     /**
@@ -44,7 +50,7 @@ public class ApplicationContext
 //            }
 //            listenerEntry.getValue().onApplicationEvent(event);
 //        }
-        listeners.get(event.getEventType()).onApplicationEvent(event);
+        CompletableFuture.runAsync(() -> listeners.computeIfAbsent(event.getEventType(), t -> new EventConsumerProxy(event.getEventType())).onApplicationEvent(event), executor);
     }
 
     public static ApplicationContext getInstance()

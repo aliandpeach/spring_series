@@ -6,20 +6,11 @@ import javax.servlet.annotation.WebListener;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Collectors;
 
 @WebListener
 public class MessageCenter implements ServletContextListener
 {
-
-    private List<String> topics = new CopyOnWriteArrayList<>();
-
-    private static Map<String, EventConsumerProxy> proxyMap = new ConcurrentHashMap<>();
 
     @Override
     public void contextInitialized(ServletContextEvent sce)
@@ -27,13 +18,8 @@ public class MessageCenter implements ServletContextListener
         /**
          * 初始化 EventListener
          */
-        topics.addAll(Arrays.stream(EventType.values()).map(Enum::name).collect(Collectors.toList()));
-        topics.forEach(topic ->
-        {
-            EventConsumerProxy proxy = new EventConsumerProxy(topic);
-            ApplicationContext.getInstance().addApplicationListener(proxy);
-            proxyMap.put(topic, proxy);
-        });
+        Arrays.stream(EventType.values()).map(Enum::name)
+                .forEach(topic -> ApplicationContext.getInstance().addApplicationListener(new EventConsumerProxy(topic)));
 
         /**
          * 订阅者的两种订阅方式，
@@ -61,11 +47,16 @@ public class MessageCenter implements ServletContextListener
 
     public static void addSubscribes(MessageTaskManager manager)
     {
-        proxyMap.get(manager.getTopic()).addSubscribes(manager);
+        ApplicationContext.getInstance().addApplicationListener(new EventConsumerProxy(manager.getTopic())).addSubscribes(manager);
     }
 
     public static void delSubscribes(MessageTaskManager manager)
     {
-        proxyMap.get(manager.getTopic()).delSubscribes(manager);
+        ApplicationContext.getInstance().addApplicationListener(new EventConsumerProxy(manager.getTopic())).delSubscribes(manager);
+    }
+
+    public static void sendMessage(MessageForm form, String eventType)
+    {
+        ApplicationContext.getInstance().publishEvent(new ApplicationEvent(form).ofEventType(eventType));
     }
 }

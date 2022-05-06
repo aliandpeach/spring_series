@@ -18,7 +18,7 @@ public class DemoEventSubscriberAdd extends MessageTaskManager implements Initia
     @Override
     protected void onMessage(MessageForm form)
     {
-        System.out.println(form + " aaaaaaa");
+        System.out.println(form + " " + DemoEventSubscriberAdd.class.getName());
     }
 
     @Override
