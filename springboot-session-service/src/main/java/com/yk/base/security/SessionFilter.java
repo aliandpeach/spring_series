@@ -22,6 +22,9 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * 使用了spring-session管理保存session在redis中, 因此不需要使用该拦截器了
+ */
 // We should use OncePerRequestFilter since we are doing a database call, there is no point in doing this more than once
 public class SessionFilter extends OncePerRequestFilter
 {

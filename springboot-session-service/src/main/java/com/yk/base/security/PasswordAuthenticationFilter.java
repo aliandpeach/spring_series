@@ -1,6 +1,5 @@
 package com.yk.base.security;
 
-import com.yk.base.exception.CustomException;
 import com.yk.base.filter.NewHttpServletRequestWrapper;
 import com.yk.db.jpa.dto.UserDataDTO;
 import com.yk.httprequest.JSONUtil;
@@ -26,7 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /**
- * 密码校验拦截器 只在登录或者注册或者修改密码的接口中进行拦截
+ * 密码校验拦截器 只在登录或者修改密码的接口中进行拦截
  *
  * @author yangk
  * @version 1.0

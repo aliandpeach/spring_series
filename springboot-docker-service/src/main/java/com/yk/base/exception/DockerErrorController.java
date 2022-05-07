@@ -31,6 +31,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.ValidationException;
@@ -126,10 +127,14 @@ public class DockerErrorController implements ErrorController
         WebRequest requestAttributes = new ServletWebRequest(request);
         Map<String, Object> errorAttributes =
                 this.errorAttributes.getErrorAttributes(requestAttributes, ErrorAttributeOptions.of(ErrorAttributeOptions.Include.MESSAGE, ErrorAttributeOptions.Include.EXCEPTION));
+
+        // 从errorAttributes中获取异常信息, errorAttributes中的异常信息实际也是从request中获取的
         Object obj = errorAttributes.get("message");
         String exception = String.valueOf(errorAttributes.get("exception"));
 
+        // 从request中直接获取异常信息, request中的异常信息是由tomcat在 requestDispatcher.forward跳转时设置的, 猜测是在StandardHostValve类中
         Object statusObject = request.getAttribute("javax.servlet.error.status_code");
+        Object statusObject1 = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         Object exceptionObject = request.getAttribute("javax.servlet.error.exception");
 
         Throwable ex = this.errorAttributes.getError(requestAttributes);

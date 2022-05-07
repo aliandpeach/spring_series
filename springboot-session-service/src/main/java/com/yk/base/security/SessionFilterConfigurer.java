@@ -5,6 +5,7 @@ import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.session.SessionManagementFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -30,9 +31,11 @@ public class SessionFilterConfigurer extends SecurityConfigurerAdapter<DefaultSe
         // 在UsernamePasswordAuthenticationFilter 拦截器之前
         // http.addFilterBefore(sessionFilter, UsernamePasswordAuthenticationFilter.class);
 
+        // 自定义密码校验拦截器放在session校验拦截器之前
         PasswordFilter passwordFilter = new PasswordFilter(sessionProvider);
         http.addFilterBefore(passwordFilter, SessionManagementFilter.class);
 
+        // 密码校验拦截器放在自定义密码校验拦截器之前
         http.addFilterBefore(new PasswordAuthenticationFilter(authenticationManager), passwordFilter.getClass());
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

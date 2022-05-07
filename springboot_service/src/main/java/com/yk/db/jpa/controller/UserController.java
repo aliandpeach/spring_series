@@ -92,7 +92,9 @@ public class UserController implements InitializingBean
             @ApiResponse(code = 422, message = "Invalid name/passwd supplied")})
     public String login(@ApiParam("name") @RequestBody @Validated UserDataDTO user)
     {
-        return userService.signin(user.getName(), user.getPasswd());
+        String result = userService.signin(user.getName(), user.getPasswd());
+        LOGGER.info("sign in success : " + result);
+        return result;
     }
 
     /**
