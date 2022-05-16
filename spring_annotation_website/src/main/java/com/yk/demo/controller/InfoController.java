@@ -46,10 +46,7 @@ public class InfoController
     private RestTemplate restTemplate;
 
     /**
-     * {"ids":["1", "2"]}
-     *
-     * @param body
-     * @return
+     * {"ids":["1", "2"]} 默认是POST
      */
     @RequestMapping("/of")
     @ResponseBody
@@ -69,15 +66,15 @@ public class InfoController
      * <p>
      * https://blog.csdn.net/u013737132/article/details/106325903/
      * <p>
-     *        $.ajax({
-     *             type: "get",
-     *             contentType: "application/x-www-form-urlencoded",
-     *             url: "/rest/array",
-     *             data: 'ids[]=' + 1 + '&ids[]=' + 2 + '&token=t',
-     *             async: true,
-     *             success: function (result) {
-     *             }
-     *         });
+             $.ajax({
+                  type: "get",
+                  contentType: "application/x-www-form-urlencoded",
+                  url: "/rest/array",
+                  data: 'ids[]=' + 1 + '&ids[]=' + 2 + '&token=t',
+                  async: true,
+                  success: function (result) {
+                  }
+              });
      */
     @RequestMapping("/array")
     @ResponseBody

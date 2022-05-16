@@ -62,13 +62,13 @@ public class CheckClientTrustedFilter extends OncePerRequestFilter
         {
             logger.error("证书链校验失败, 没有加载本地证书库, {}, {}", uri, listOfVerifyUri);
             response.setStatus(500);
-            throw new GlobalException(500, "证书链校验失败, 没有加载本地证书库");
+            throw new GlobalException("证书链校验失败, 没有加载本地证书库", 500);
         }
         if (null == certs)
         {
             logger.error("客户端证书链校验失败, 客户端证书不存在, {}, {}", uri, listOfVerifyUri);
             response.setStatus(500);
-            throw new GlobalException(500, "客户端证书链校验失败, 证书链不存在");
+            throw new GlobalException("客户端证书链校验失败, 证书链不存在", 500);
         }
         /*for (X509Certificate client : certs)
         {
@@ -94,7 +94,7 @@ public class CheckClientTrustedFilter extends OncePerRequestFilter
             {
                 logger.error("客户端证书链校验失败", e);
                 response.setStatus(500);
-                throw new GlobalException(500, "客户端证书链校验失败");
+                throw new GlobalException("客户端证书链校验失败", 500);
             }
         }
         filterChain.doFilter(request, response);

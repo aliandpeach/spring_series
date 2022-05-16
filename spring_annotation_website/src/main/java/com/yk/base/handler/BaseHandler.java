@@ -10,29 +10,37 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-public class BaseHandler implements HandlerInterceptor {
+public class BaseHandler implements HandlerInterceptor
+{
     private Logger logger = LoggerFactory.getLogger("demo");
 
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException
+    {
         logger.info("请求之前处理");
-        String token = request.getParameter("token");
+        String token = request.getHeader("token");
         System.out.println("token=" + token);
-        if (StringUtils.isEmpty(token)) {
-            try {
+        if (StringUtils.isEmpty(token))
+        {
+            try
+            {
                 response.getWriter().write("token is null");
-            } catch (IOException e) {
+            }
+            catch (IOException e)
+            {
                 logger.error("BaseHandler preHandle error", e);
             }
-            return false;
+            return true;
         }
         return true;
     }
 
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) {
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView)
+    {
         System.out.println("postHandle方法之后处理");
     }
 
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+    {
         System.out.println("afterCompletion方法之后处理");
     }
 }

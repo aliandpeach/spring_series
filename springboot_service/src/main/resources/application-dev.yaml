@@ -25,6 +25,18 @@ spring:
       connectionTestQuery: SELECT 1
       poolName: DatebookHikariCP
       autoCommit: true
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password:
+    database: 0
+    timeout: 5000
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
   jpa:
     hibernate:
       ddl-auto: update

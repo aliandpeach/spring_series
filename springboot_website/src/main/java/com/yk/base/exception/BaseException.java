@@ -1,14 +1,16 @@
 package com.yk.base.exception;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 /**
- * 描述
- *
- * @author yangk
- * @version 1.0
- * @since 2021/06/16 16:09:59
+ * DockerException
  */
-public class GlobalException extends RuntimeException
+@Data
+@AllArgsConstructor
+public class BaseException extends RuntimeException
 {
+    private static final long serialVersionUID = 3590874415552570389L;
     /**
      * 错误码
      */
@@ -18,23 +20,24 @@ public class GlobalException extends RuntimeException
      */
     protected String message;
 
-    public GlobalException(String message)
+    public BaseException(String message)
     {
         super(message);
         this.message = message;
     }
 
-    public GlobalException(String message, int status)
+    public BaseException(String message, int status)
     {
         super(message);
         this.message = message;
         this.status = status;
     }
 
-    public GlobalException(String message, int status, Throwable e)
+    public BaseException(String message, int status, Throwable e)
     {
         super(message, e);
         this.message = message;
         this.status = status;
     }
+
 }

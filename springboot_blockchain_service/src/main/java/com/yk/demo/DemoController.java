@@ -136,7 +136,7 @@ public class DemoController
      *     ajax会自动将json对象转化为&连接的key=value格式的数据，GET请求就拼接在url后面，POST请求就放入post请求体中，后端不能使用@RequestBody注解
      *  3. json字符串，只适用于POST请求，且此时contentType必须为application/json，后端必须使用@RequestBody注解
      *
-     *
+     *   RequestParam对于jsonData的json数据只能用String字符串来接收
      *
      *  ajax默认是以application/x-www-form-urlencoded方式提交。也就是常见的表单提交方式。
      *  如果使用ajax指定application/json方式，data参数则是字符串类型的。使用JSON.stringify()转换一下

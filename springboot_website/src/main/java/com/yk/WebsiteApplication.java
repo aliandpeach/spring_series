@@ -34,40 +34,38 @@ public class WebsiteApplication extends SpringBootServletInitializer {
 
     /**
      * 方法覆盖 Tomcat启动war包的配置
-     * @param builder
-     * @return
      */
     public SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
         return builder.sources(WebsiteApplication.class);
     }
 
-    @Bean
-    @ConditionalOnMissingBean(name = "dispatcherServlet1")
-    public Servlet dispatcherServlet1() {
-        GenericServlet servlet = new GenericServlet() {
-            private static final long serialVersionUID = 8306124055775003076L;
+//    @Bean
+//    @ConditionalOnMissingBean(name = "dispatcherServlet1")
+//    public Servlet dispatcherServlet1() {
+//        GenericServlet servlet = new GenericServlet() {
+//            private static final long serialVersionUID = 8306124055775003076L;
+//
+//            @Override
+//            public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
+//                res.setContentType("text/plain");
+//                res.getWriter().append("Hello World");
+//            }
+//        };
+//        return servlet;
+//    }
 
-            @Override
-            public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
-                res.setContentType("text/plain");
-                res.getWriter().append("Hello World");
-            }
-        };
-        return servlet;
-    }
-
-    @Bean("errorPage")
-    public ErrorPageFilter errorPageFilter() {
-        return new ErrorPageFilter();
-    }
-
-    @Bean
-    public FilterRegistrationBean<ErrorPageFilter> disableSpringBootErrorFilter(@Qualifier("errorPage") ErrorPageFilter errorPageFilter) {
-        FilterRegistrationBean<ErrorPageFilter> filterRegistrationBean = new FilterRegistrationBean<>();
-        filterRegistrationBean.setFilter(errorPageFilter);
-        filterRegistrationBean.setEnabled(false);
-        return filterRegistrationBean;
-    }
+//    @Bean("errorPage")
+//    public ErrorPageFilter errorPageFilter() {
+//        return new ErrorPageFilter();
+//    }
+//
+//    @Bean
+//    public FilterRegistrationBean<ErrorPageFilter> disableSpringBootErrorFilter(@Qualifier("errorPage") ErrorPageFilter errorPageFilter) {
+//        FilterRegistrationBean<ErrorPageFilter> filterRegistrationBean = new FilterRegistrationBean<>();
+//        filterRegistrationBean.setFilter(errorPageFilter);
+//        filterRegistrationBean.setEnabled(false);
+//        return filterRegistrationBean;
+//    }
 
     /**
      * 外置tomcat 不生效
