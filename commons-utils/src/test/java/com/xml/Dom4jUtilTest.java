@@ -43,7 +43,7 @@ public class Dom4jUtilTest
         Element root = document.getRootElement();
         root.addElement("local");
 
-        Dom4jUtil.writeToXml(document, "C:\\Users\\Spinfo\\Desktop\\1.xml");
+        Dom4jUtil.writeToXml(document, "C:\\Users\\yangkai\\Desktop\\1.xml");
         System.out.println(node);
     }
 }

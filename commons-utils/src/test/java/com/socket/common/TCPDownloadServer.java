@@ -52,7 +52,7 @@ public class TCPDownloadServer
         @Override
         public void run()
         {
-            File f = new File("C:\\Users\\Spinfo\\Desktop\\11" + System.currentTimeMillis() + ".xml");
+            File f = new File("C:\\Users\\yangkai\\Desktop\\11" + System.currentTimeMillis() + ".xml");
             try (InputStream in = socket.getInputStream();
                  OutputStream fos = new FileOutputStream(f))
             {

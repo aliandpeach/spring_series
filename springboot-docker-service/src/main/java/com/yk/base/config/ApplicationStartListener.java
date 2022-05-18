@@ -40,6 +40,7 @@ public class ApplicationStartListener implements ServletContextInitializer
             logger.info("spring docker service running \n" + dataSourceProperties.getUrl());
             error.error("spring docker service error \n" + dataSourceProperties.getUrl());
             error.info("spring docker service error \n" + dataSourceProperties.getUrl());
+            error.info("spring docker service path \n" + System.getProperty("docker.path"));
         }, 0, 3, TimeUnit.SECONDS);
         logger.info("main onStartup started " + System.currentTimeMillis());
     }

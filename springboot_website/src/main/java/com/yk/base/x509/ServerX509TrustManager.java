@@ -98,9 +98,9 @@ public class ServerX509TrustManager implements X509TrustManager
      */
     public static void main(String args[]) throws Exception
     {
-        String digitCA = "C:\\Users\\Spinfo\\Desktop\\digit.der.cer";
-        String middleCA = "C:\\Users\\Spinfo\\Desktop\\midd.der.cer";
-        String js = "C:\\Users\\Spinfo\\Desktop\\js.der.cer";
+        String digitCA = "C:\\Users\\yangkai\\Desktop\\digit.der.cer";
+        String middleCA = "C:\\Users\\yangkai\\Desktop\\midd.der.cer";
+        String js = "C:\\Users\\yangkai\\Desktop\\js.der.cer";
         CertificateFactory digitCertFac = CertificateFactory.getInstance("X.509");
         X509Certificate digitCACer = (X509Certificate) digitCertFac.generateCertificate(new FileInputStream(digitCA));
 

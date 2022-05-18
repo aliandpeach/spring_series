@@ -24,7 +24,7 @@ public class TcpUploadClient
     {
         String serverIp = "localhost";
         int port = 1366;
-        service.submit(new ChatClient(serverIp, port, new FileInputStream("C:\\Users\\Spinfo\\Desktop\\Lucene 原理与代码分析完整版.pdf")));
+        service.submit(new ChatClient(serverIp, port, new FileInputStream("C:\\Users\\yangkai\\Desktop\\Lucene 原理与代码分析完整版.pdf")));
     }
 
     private static class ChatClient implements Runnable

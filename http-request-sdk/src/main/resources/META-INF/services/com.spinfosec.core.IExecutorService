@@ -1,0 +1,2 @@
+com.yk.connector.http.HttpExecutorServiceImpl
+com.yk.connector.sftp.FtpExecutorServiceImpl

@@ -49,7 +49,7 @@ public class HttpClientAuthTest
         System.out.println(hex.toUpperCase(Locale.ROOT));
 
         HttpClientUtil.Config config = new HttpClientUtil.Config();
-        config.setKeyStore("D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\spinfossl\\sdk.ks");
+        config.setKeyStore("D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk.ks");
         config.setKeyPasswd("C47182A19F40F69B5C022666B72A751CnHXB$f#T");
         config.setKeyStorePasswd("E47CF21F723705F516F5F2F0068001FE@m$5Sq4Q");
         config.setType("JKS");
@@ -137,7 +137,7 @@ public class HttpClientAuthTest
     @Test
     public void testPostText() throws Exception
     {
-        File f = new File("C:\\Users\\Spinfo\\Desktop\\test_secret17.txt");
+        File f = new File("C:\\Users\\yangkai\\Desktop\\test_secret17.txt");
         InputStreamReader readerx = new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8);
         BufferedReader rr = new BufferedReader(readerx);
 
@@ -180,7 +180,7 @@ public class HttpClientAuthTest
 
 
         HttpClientUtil.Config config = new HttpClientUtil.Config();
-        config.setKeyStore("D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\spinfossl\\sdk.ks");
+        config.setKeyStore("D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk.ks");
         config.setKeyPasswd("C47182A19F40F69B5C022666B72A751CnHXB$f#T");
         config.setKeyStorePasswd("E47CF21F723705F516F5F2F0068001FE@m$5Sq4Q");
         config.setType("JKS");

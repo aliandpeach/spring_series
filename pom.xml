@@ -27,5 +27,6 @@
         <module>springboot_blockchain_service</module>
 		<module>springboot-session-service</module>
 		<module>springboot-docker-service</module>
+		<module>http-request-sdk</module>
     </modules>
 </project>

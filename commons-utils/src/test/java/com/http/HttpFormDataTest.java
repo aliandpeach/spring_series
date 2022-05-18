@@ -154,7 +154,7 @@ public class HttpFormDataTest
 
         String fileId = UUID.randomUUID().toString().replace("-", "");
 
-        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\spinfossl\\sdk_pub.pem");
+        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk_pub.pem");
 
         String str = JSONUtil.toJson(new HashMap<String, String>(Collections.singletonMap(fileId, "5-1.txt")));
 
@@ -178,7 +178,7 @@ public class HttpFormDataTest
 
         String fileId = UUID.randomUUID().toString().replace("-", "");
 
-        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\spinfossl\\sdk_pub.pem");
+        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk_pub.pem");
 
         String str = JSONUtil.toJson(new HashMap<String, String>(Collections.singletonMap(fileId, "5-1.txt")));
 
@@ -201,7 +201,7 @@ public class HttpFormDataTest
 
         String fileId = UUID.randomUUID().toString().replace("-", "");
 
-        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\spinfossl\\sdk_pub.pem");
+        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk_pub.pem");
 
         String str = JSONUtil.toJson(new HashMap<String, String>(Collections.singletonMap(fileId, "sdk_pub.txt")));
 
@@ -249,7 +249,7 @@ public class HttpFormDataTest
 
         String fileId = UUID.randomUUID().toString().replace("-", "");
 
-        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\spinfossl\\sdk_pub.pem");
+        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk_pub.pem");
 
         List<Map<String, String>> list = new ArrayList<>();
         Map<String, String> map = new HashMap<String, String>(Collections.singletonMap("name", "sdk_pub.txt"));

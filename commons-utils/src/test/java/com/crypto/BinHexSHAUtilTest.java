@@ -38,7 +38,7 @@ public class BinHexSHAUtilTest
     public void testDigest()
     {
         // github连接过程中的回显的指纹信息，就是本地的publicKey进行Base64解密后，再执行MessageDigest("SHA-256") 后转16进制字符串
-        String path = "C:\\Users\\Spinfo\\Desktop\\20M测试.pptx";
+        String path = "C:\\Users\\yangkai\\Desktop\\20M测试.pptx";
         try
         {
             String algorithm = "MD5";
