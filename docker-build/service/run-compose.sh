@@ -1,1 +1,1 @@
-nohup /usr/local/bin/docker-compose up --build springboot-service-demo &
+/usr/local/bin/docker-compose up -d springboot-service-demo

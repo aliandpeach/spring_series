@@ -12,6 +12,9 @@ ADD target/application.yml /usr/local/docker/springboot-docker-service/applicati
 ADD target/application-docker.yml /usr/local/docker/springboot-docker-service/application-docker.yml
 
 # 执行jar包
-RUN bash -c 'touch /usr/local/docker/springboot-docker-service/springboot-docker-service.jar'
+# RUN bash -c 'touch /usr/local/docker/springboot-docker-service/springboot-docker-service.jar'
+
+# CMD ["java","-Ddocker.path=/usr/local/docker/", "-Djava.security.egd=file:/dev/./urandom","-jar","/usr/local/docker/springboot-docker-service/springboot-docker-service.jar","--spring.config.location=/usr/local/docker/springboot-docker-service/*.yml"]
+
 # 执行springboot-docker-service.jar 為了縮短 Tomcat 啟動時間，新增一個系統屬性指向 “/dev/./urandom” 作為 Entropy Source
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/usr/local/docker/springboot-docker-service/springboot-docker-service.jar","--spring.config.location=/usr/local/docker/springboot-docker-service/*.yml"]
+ENTRYPOINT ["java","-Ddocker.path=/usr/local/docker/", "-Djava.security.egd=file:/dev/./urandom","-jar","/usr/local/docker/springboot-docker-service/springboot-docker-service.jar","--spring.config.location=/usr/local/docker/springboot-docker-service/*.yml"]
