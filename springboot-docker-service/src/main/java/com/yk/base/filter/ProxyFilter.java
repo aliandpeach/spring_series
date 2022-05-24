@@ -22,7 +22,7 @@ import java.io.IOException;
 @WebFilter(urlPatterns = "/*")
 public class ProxyFilter implements Filter
 {
-    private Logger logger = LoggerFactory.getLogger("demo");
+    private Logger logger = LoggerFactory.getLogger(ProxyFilter.class);
 
     @Autowired
     private HandlerExceptionResolver handlerExceptionResolver;

@@ -23,11 +23,12 @@
     </Appenders>
 
     <Loggers>
-        <logger name="demo" level="info" includeLocation="true" additivity="false">
+        <logger name="com.yk" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="demo"/>
         </logger>
         <root level="info" includeLocation="true">
             <appender-ref ref="Console"/>
+            <appender-ref ref="demo"/>
         </root>
     </Loggers>
 </Configuration>

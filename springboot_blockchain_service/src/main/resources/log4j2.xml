@@ -71,9 +71,9 @@
         </RollingRandomAccessFile>
 
 
-        <RollingRandomAccessFile name="demo"
-                                 fileName="${LOG_HOME}/logs/demo.log"
-                                 filePattern="${LOG_HOME}/logs/demo/demo.log.%d{yyyy-MM-dd}-%i.gz">
+        <RollingRandomAccessFile name="other"
+                                 fileName="${LOG_HOME}/logs/other.log"
+                                 filePattern="${LOG_HOME}/logs/other/other.log.%d{yyyy-MM-dd}-%i.gz">
             <PatternLayout charset="UTF-8"
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
@@ -111,8 +111,8 @@
         <logger name="base" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="base"/>
         </logger>
-        <logger name="demo" level="info" includeLocation="true" additivity="false">
-            <appender-ref ref="demo"/>
+        <logger name="com.yk" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="base"/>
         </logger>
         <logger name="watched" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="watched"/>
@@ -132,18 +132,13 @@
         <logger name="performance" level="debug" includeLocation="true" additivity="false">
             <appender-ref ref="performance"/>
         </logger>
-        <logger name="com.yk.httprequest" level="info" includeLocation="true" additivity="false">
-            <appender-ref ref="error"/>
-        </logger>
-        <logger name="com.yk.crypto" level="info" includeLocation="true" additivity="false">
-            <appender-ref ref="error"/>
-        </logger>
         <logger name="org.springframework" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="error"/>
         </logger>
 
         <root level="info" includeLocation="true">
             <appender-ref ref="Console"/>
+            <appender-ref ref="other"/>
         </root>
     </Loggers>
 </Configuration>

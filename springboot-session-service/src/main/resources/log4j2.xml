@@ -9,9 +9,9 @@
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout charset="UTF-8" pattern="%d %-5p (%F:%L) - %m%n"/>
         </Console>
-        <RollingRandomAccessFile name="demo"
-                                 fileName="${LOG_HOME}/logs/demo.log"
-                                 filePattern="${LOG_HOME}/logs/demo.log.%d{yyyy-MM-dd}-%i.gz">
+        <RollingRandomAccessFile name="other"
+                                 fileName="${LOG_HOME}/logs/other.log"
+                                 filePattern="${LOG_HOME}/logs/other.log.%d{yyyy-MM-dd}-%i.gz">
             <PatternLayout charset="UTF-8"
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
@@ -38,24 +38,24 @@
         <logger name="base" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="base"/>
         </logger>
-        <logger name="demo" level="info" includeLocation="true" additivity="false">
-            <appender-ref ref="demo"/>
+        <logger name="other" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="other"/>
         </logger>
         <logger name="com.yk" level="info" includeLocation="true" additivity="false">
-            <appender-ref ref="demo"/>
+            <appender-ref ref="base"/>
         </logger>
         <logger name="org.springframework.boot" level="ERROR">
-            <appender-ref ref="demo"/>
+            <appender-ref ref="other"/>
         </logger>
         <logger name="org.springframework.security" level="ERROR">
-            <appender-ref ref="demo"/>
+            <appender-ref ref="other"/>
         </logger>
         <logger name="org.springframework.session" level="ERROR">
-            <appender-ref ref="demo"/>
+            <appender-ref ref="other"/>
         </logger>
         <root level="info" includeLocation="true">
             <appender-ref ref="Console"/>
-            <appender-ref ref="demo"/>
+            <appender-ref ref="other"/>
         </root>
     </Loggers>
 </Configuration>

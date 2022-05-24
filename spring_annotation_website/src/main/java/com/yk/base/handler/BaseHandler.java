@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public class BaseHandler implements HandlerInterceptor
 {
-    private Logger logger = LoggerFactory.getLogger("demo");
+    private Logger logger = LoggerFactory.getLogger(BaseHandler.class);
 
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException
     {

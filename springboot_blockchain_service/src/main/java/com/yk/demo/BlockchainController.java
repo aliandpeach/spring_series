@@ -35,7 +35,7 @@ import static com.yk.bitcoin.KeyCache.LOCK;
 @EnableConfigurationProperties(BlockchainProperties.class)
 public class BlockchainController
 {
-    private static final Logger logger = LoggerFactory.getLogger("demo");
+    private static final Logger logger = LoggerFactory.getLogger(BlockchainController.class);
     
     @Autowired
     private Cache cache;

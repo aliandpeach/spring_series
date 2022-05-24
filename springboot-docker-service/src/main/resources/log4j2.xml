@@ -3,9 +3,7 @@
 <Configuration status="off" monitorInterval="1800">
     <properties>
         <property name="LOG_HOME">${sys:log.home}/static/</property>
-        <property name="ERROR_LOG_FILE_NAME">error</property>
-        <property name="DEBUG_LOG_FILE_NAME">debug</property>
-        <property name="INFO_LOG_FILE_NAME">info</property>
+        <property name="LOG_FILE_NAME">base</property>
     </properties>
 
     <Appenders>
@@ -32,9 +30,9 @@
             </Policies>
             <DefaultRolloverStrategy max="20"/>
         </RollingRandomAccessFile>
-        <RollingRandomAccessFile name="error"
-                                 fileName="${LOG_HOME}/logs/${ERROR_LOG_FILE_NAME}.log"
-                                 filePattern="${LOG_HOME}/logs/error/${ERROR_LOG_FILE_NAME}.log.%d{yyyy-MM-dd}-%i.gz">
+        <RollingRandomAccessFile name="base"
+                                 fileName="${LOG_HOME}/logs/${LOG_FILE_NAME}.log"
+                                 filePattern="${LOG_HOME}/logs/error/${LOG_FILE_NAME}.log.%d{yyyy-MM-dd}-%i.gz">
             <PatternLayout charset="UTF-8" pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p] [%t] {%C:%L} - %m%n%xwEx"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
@@ -42,9 +40,9 @@
             </Policies>
             <DefaultRolloverStrategy max="20"/>
         </RollingRandomAccessFile>
-        <RollingRandomAccessFile name="demo"
-                                 fileName="${LOG_HOME}/logs/demo.log"
-                                 filePattern="${LOG_HOME}/logs/demo/demo.log.%d{yyyy-MM-dd}-%i.gz">
+        <RollingRandomAccessFile name="other"
+                                 fileName="${LOG_HOME}/logs/other.log"
+                                 filePattern="${LOG_HOME}/logs/other/other.log.%d{yyyy-MM-dd}-%i.gz">
             <PatternLayout charset="UTF-8" pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS} %-5p] [%t] {%C:%L} - %m%n%xwEx"/>
                     <!--pattern="%d %-5p (%F:%L) - %m%n"/>-->
             <Policies>
@@ -56,11 +54,8 @@
     </Appenders>
 
     <Loggers>
-        <logger name="demo" level="info" includeLocation="true" additivity="false">
-            <appender-ref ref="demo"/>
-        </logger>
-        <logger name="error" level="info" includeLocation="true" additivity="false">
-            <appender-ref ref="error"/>
+        <logger name="com.yk" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="base"/>
         </logger>
         <logger name="org.springframework" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="spring"/>
@@ -71,6 +66,7 @@
 
         <root level="info" includeLocation="true">
             <appender-ref ref="Console"/>
+            <appender-ref ref="other"/>
         </root>
     </Loggers>
 </Configuration>

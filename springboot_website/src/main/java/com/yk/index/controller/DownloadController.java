@@ -7,6 +7,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
@@ -251,6 +252,12 @@ public class DownloadController
      */
     @RequestMapping(value = "/v6", method = RequestMethod.GET)
     public ResponseEntity<IndexModel> v6(IndexModel indexModel)
+    {
+        return ResponseEntity.ok(indexModel);
+    }
+
+    @RequestMapping(value = "/v7", method = RequestMethod.POST)
+    public ResponseEntity<IndexModel> v7(@RequestPart("indexModel") IndexModel indexModel)
     {
         return ResponseEntity.ok(indexModel);
     }

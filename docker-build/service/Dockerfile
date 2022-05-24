@@ -13,6 +13,7 @@ ADD target/application-docker.yml /usr/local/docker/springboot-docker-service/ap
 
 # 执行jar包
 # RUN bash -c 'touch /usr/local/docker/springboot-docker-service/springboot-docker-service.jar'
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 # CMD ["java","-Ddocker.path=/usr/local/docker/", "-Djava.security.egd=file:/dev/./urandom","-jar","/usr/local/docker/springboot-docker-service/springboot-docker-service.jar","--spring.config.location=/usr/local/docker/springboot-docker-service/*.yml"]
 

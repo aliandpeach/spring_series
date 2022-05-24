@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ApplicationEventListener /*implements ApplicationListener<ApplicationReadyEvent>*/
 {
-    private Logger logger = LoggerFactory.getLogger("demo");
+    private Logger logger = LoggerFactory.getLogger("base");
 
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationEvent(ApplicationReadyEvent event)

@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class BaseListener /*implements ApplicationListener<ContextRefreshedEvent>*/
 {
-    private static final Logger logger = LoggerFactory.getLogger("demo");
+    private static final Logger logger = LoggerFactory.getLogger(BaseListener.class);
     
     private AtomicInteger integer = new AtomicInteger(0);
     

@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @EnableAsync
 public class KeyGeneratorWatchedService
 {
-    private Logger logger = LoggerFactory.getLogger("demo");
+    private Logger logger = LoggerFactory.getLogger(KeyGeneratorWatchedService.class);
     
     @Autowired
     private KeyGeneratorRunner keyGeneratorRunner;

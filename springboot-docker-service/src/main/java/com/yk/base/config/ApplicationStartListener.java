@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Component
 public class ApplicationStartListener implements ServletContextInitializer
 {
-    private static final Logger logger = LoggerFactory.getLogger("demo");
+    private static final Logger logger = LoggerFactory.getLogger("base");
     private static final Logger error = LoggerFactory.getLogger("error");
 
     @Autowired
