@@ -1,0 +1,1 @@
+docker build -t springboot_website:1.0-SNAPSHOT .

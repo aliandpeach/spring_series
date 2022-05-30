@@ -1,0 +1,57 @@
+version: '3.9'
+
+services:
+  springboot_website:
+    image: springboot_website:1.0-SNAPSHOT
+    # 指定容器名称
+    container_name: springboot_website-container
+    restart: always
+    volumes:
+      - "./target/application.yaml:/usr/local/docker/apache-tomcat-9.0.63/webapps/website/WEB-INF/classes/application.yaml"
+      - "./target/server.xml:/usr/local/docker/apache-tomcat-9.0.63/conf/server.xml"
+      - "./target/ssl:/usr/local/docker/apache-tomcat-9.0.63/conf/ssl"
+    ports:
+      - "14433:4433"
+    depends_on:
+      - mysql
+      - redis
+  #mysql服务名称
+  mysql:
+    #容器名称
+    container_name: mysql
+    #镜像名称
+    image: mysql:8.0.13
+    #自动启动
+    restart: always
+    #参数配置
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+    #端口映射
+    ports:
+      - 13307:13307
+    #环境变量
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    #挂载
+    volumes:
+      - ./mysql/sql:/opt/sql
+      - ./mysql/init/:/docker-entrypoint-initdb.d/
+      - ./mysql/conf/my.cnf:/etc/my.cnf
+      - ./mysql/mysql/mysql-files:/var/lib/mysql-files/
+      - ./mysql/mysql/data:/var/lib/mysql
+  #数据库可视化
+  #adminer:
+  #  image: adminer
+  #  restart: always
+  #  ports:
+  #    - 8085:8080
+  #Redis数据库
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - 6379:6379

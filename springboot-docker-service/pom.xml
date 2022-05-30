@@ -248,7 +248,7 @@
                     <!--配置Dockerfile 的位置-->
                     <dockerDirectory>${project.build.directory}</dockerDirectory>
                     <!--指定远程docker 地址-->
-                    <dockerHost>http://192.190.20.251:2375</dockerHost>
+                    <dockerHost>http://192.168.31.214:2375</dockerHost>
                     <!-- 这里是复制 jar到 docker容器指定目录配置 -->
                     <resources>
                         <resource>
@@ -302,11 +302,11 @@
                         <configuration>
                             <target>
                                 <copy file="${project.build.directory}/${project.artifactId}-${project.version}.jar"
-                                      tofile="${project.basedir}/../docker-build/service/target/${project.artifactId}-${project.version}.jar"/>
+                                      tofile="${project.basedir}/../docker-build/service/springboot-docker-service/target/${project.artifactId}-${project.version}.jar"/>
                                 <copy file="${project.build.directory}/application.yml"
-                                      tofile="${project.basedir}/../docker-build/service/target/application.yml"/>
+                                      tofile="${project.basedir}/../docker-build/service/springboot-docker-service/target/application.yml"/>
                                 <copy file="${project.build.directory}/application-docker.yml"
-                                      tofile="${project.basedir}/../docker-build/service/target/application-docker.yml"/>
+                                      tofile="${project.basedir}/../docker-build/service/springboot-docker-service/target/application-docker.yml"/>
                             </target>
                         </configuration>
                         <goals>

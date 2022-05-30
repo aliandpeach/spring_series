@@ -1,0 +1,15 @@
+version: '3.9'
+
+services:
+  tomcat-yk:
+    image: tomcat-yk:9
+    container_name: tomcat-yk-container
+    restart: always
+    ports:
+      - 9090:8080
+      # 远程调试端口
+      - 9091:8000
+    volumes:
+      - /opt/tomcat/logs:/usr/local/docker/apache-tomcat-9.0.63/logs
+    # 不能使用startup.sh因为这个命令是后台执行的, 会导致容器无法启动
+    entrypoint: ["/bin/sh", "-c", "/usr/local/docker/apache-tomcat-9.0.63/bin/catalina.sh jpda run"]

@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  mysql:
+    #容器名称
+    container_name: mysql-container
+    #镜像名称
+    image: mysql:8.0.13
+    #自动启动
+    restart: always
+    #参数配置
+    command:
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_general_ci
+      --explicit_defaults_for_timestamp=true
+      --lower_case_table_names=1
+    #端口映射
+    ports:
+      - 13306:13306
+    #环境变量
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    #挂载
+    volumes:
+      - ./sql:/opt/sql
+      - ./init/:/docker-entrypoint-initdb.d/
+      - ./conf/my.cnf:/etc/my.cnf
+      # mysql数据挂在到宿主机的当前目录
+      #- ./mysql/conf:/etc/mysql/conf.d
+      - ./mysql/mysql-files:/var/lib/mysql-files/
+      - ./mysql/data:/var/lib/mysql
+  #数据库可视化
+  #adminer:
+  #  image: adminer
+  #  restart: always
+  #  ports:
+  #    - 8085:8080

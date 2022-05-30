@@ -2,7 +2,7 @@ version: '3.9'
 
 services:
   springboot-service-demo:
-    build: .
+    build: ..
     image: springboot-docker-service:1.0-SNAPSHOT
     # 指定容器名称
     container_name: springboot-docker-service-container
@@ -10,6 +10,7 @@ services:
     # 指定服务运行的端口
     ports:
       - 31111:31111
+      - 31112:31112
     # 指定容器中需要挂载的文件
     volumes:
       - /etc/localtime:/etc/localtime
@@ -19,7 +20,7 @@ services:
       - ./target/application.yml:/usr/local/docker/springboot-docker-service/application.yml:ro
       - /opt/springboot-docker-service/static/logs:/usr/local/docker/springboot-docker-service/static/logs
     # 覆盖原有镜像文件中的ENTRYPOINT命令
-    entrypoint: ["java","-Ddocker.path=/usr/local/docker/1/", "-Djava.security.egd=file:/dev/./urandom","-jar","/usr/local/docker/springboot-docker-service/springboot-docker-service.jar","--spring.config.location=/usr/local/docker/springboot-docker-service/*.yml"]
+    entrypoint: ["java", "-agentlib:jdwp=transport=dt_socket,address=31112,server=y,suspend=n", "-Dfile.encoding=utf-8","-Ddocker.path=/usr/local/docker/1/", "-Djava.security.egd=file:/dev/./urandom","-jar","/usr/local/docker/springboot-docker-service/springboot-docker-service.jar","--spring.config.location=/usr/local/docker/springboot-docker-service/*.yml"]
 
     #environment:
     #  - DATABASE_HOST=127.0.0.1:3306
