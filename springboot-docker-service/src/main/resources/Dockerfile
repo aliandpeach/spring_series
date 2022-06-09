@@ -11,6 +11,8 @@ ADD springboot-docker-service-1.0-SNAPSHOT.jar /usr/local/docker/demo-1.0-SNAPSH
 ADD application.yml /usr/local/docker/demo-1.0-SNAPSHOT/application.yml
 ADD application-docker.yml /usr/local/docker/demo-1.0-SNAPSHOT/application-docker.yml
 
+ENV  LANG="en_US.UTF-8"
+RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 #bash方式执行,使demo-1.0-SNAPSHOT可访问
 #RUN新建立一层,在其上执行这些命令,执行结束后, commit 这一层的修改,构成新的镜像。
 RUN bash -c "touch /usr/local/docker/demo-1.0-SNAPSHOT/springboot-docker-service-1.0-SNAPSHOT.jar"

@@ -164,7 +164,7 @@ public class ControllerExceptionHandler
         BaseResponse<?> baseResponse = handleBaseException(e);
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         baseResponse.setStatus(status.value());
-        baseResponse.setMessage(status.getReasonPhrase());
+        baseResponse.setMessage(e.getMessage());
         return baseResponse;
     }
 

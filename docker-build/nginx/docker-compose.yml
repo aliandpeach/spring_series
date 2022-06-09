@@ -1,0 +1,12 @@
+version: '3.9'
+
+services:
+  nginx:
+    container_name: nginx-container
+    image: nginx:latest
+    restart: always
+    ports:
+      - 2880:80
+      - 24433:443
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d

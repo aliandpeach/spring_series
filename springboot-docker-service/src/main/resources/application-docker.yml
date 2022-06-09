@@ -63,6 +63,9 @@ spring:
         min-idle: 0
         max-wait: -1
 server:
+  tomcat:
+    # org.apache.coyote.http11.Constants.DEFAULT_CONNECTION_TIMEOUT = 60000
+    connection-timeout: 60000ms
   port: 31111
   servlet:
     context-path: /

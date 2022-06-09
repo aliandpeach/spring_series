@@ -1,14 +1,28 @@
 package com.yk.index.controller;
 
 import com.yk.index.model.IndexModel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
+import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.HttpMessageConverterExtractor;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
 
@@ -19,6 +33,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -32,6 +48,11 @@ import java.util.Map;
 @RequestMapping("/index/download")
 public class DownloadController
 {
+    private static final Logger logger = LoggerFactory.getLogger(DownloadController.class);
+
+    @Autowired
+    private RestTemplate restTemplate;
+
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     public ResponseEntity<String> uploadFile(HttpServletResponse response, MultipartHttpServletRequest request) throws IOException
     {
@@ -256,9 +277,110 @@ public class DownloadController
         return ResponseEntity.ok(indexModel);
     }
 
+    /**
+     * 使用form-data传值，参数内容为json格式，ContentType=application/json
+     *
+     * @param indexModel indexModel
+     * @return ResponseEntity
+     */
     @RequestMapping(value = "/v7", method = RequestMethod.POST)
     public ResponseEntity<IndexModel> v7(@RequestPart("indexModel") IndexModel indexModel)
     {
         return ResponseEntity.ok(indexModel);
+    }
+
+    @RequestMapping(value = "/v8", method = RequestMethod.POST)
+    public ResponseEntity<String> download(@RequestPart("file") MultipartFile file,
+                                           @RequestPart("indexModel") IndexModel indexModel)
+    {
+        try
+        {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headers.add("Connection", "keep-alive");
+            MultiValueMap<String, Object> map = new LinkedMultiValueMap<>();
+            map.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
+            map.add("indexModel", new IndexModel("name-1", "id-1", true));
+            HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(map, headers);
+
+            // 目标接口需要设置响应头为 Content-Type=application/octet-stream
+            ResponseEntity<byte[]> result = restTemplate.exchange("https://192.168.31.105:31111/docker/transfer", HttpMethod.POST, entity, byte[].class);
+
+            map.remove("file");
+            map.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
+            map.remove("indexModel");
+            map.add("indexModel", new IndexModel("name-1", "id-1", false));
+            // 该方式直接指定ByteArrayHttpMessageConverter 不需要目标接口设置响应头
+            byte[] _result = restTemplate.execute("https://192.168.31.105:31111/docker/transfer", HttpMethod.POST, request ->
+            {
+                FormHttpMessageConverter formHttpMessageConverter = new FormHttpMessageConverter();
+                formHttpMessageConverter.addSupportedMediaTypes(MediaType.APPLICATION_OCTET_STREAM);
+                formHttpMessageConverter.addSupportedMediaTypes(MediaType.APPLICATION_JSON);
+                formHttpMessageConverter.addPartConverter(new MappingJackson2HttpMessageConverter());
+                formHttpMessageConverter.write(map, MediaType.MULTIPART_FORM_DATA, request);
+            }, new HttpMessageConverterExtractor<>(byte[].class, new ArrayList<>(Collections.singletonList(new ByteArrayHttpMessageConverter()))));
+
+
+            map.remove("file");
+            map.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
+            map.remove("indexModel");
+            map.add("indexModel", new IndexModel("name-1", "id-1", true));
+            // Controller 直接返回byte[] 无法通过response.setHeader设置响应头为 Content-Type=application/octet-stream
+            ResponseEntity<byte[]> result2 = restTemplate.exchange("https://192.168.31.105:31111/docker/transfer2", HttpMethod.POST, entity, byte[].class);
+
+
+            map.remove("file");
+            map.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
+            map.remove("indexModel");
+            map.add("indexModel", new IndexModel("name-1", "id-1", false));
+            byte[] _result2 = restTemplate.execute("https://192.168.31.105:31111/docker/transfer2", HttpMethod.POST, request ->
+            {
+                FormHttpMessageConverter formHttpMessageConverter = new FormHttpMessageConverter();
+                formHttpMessageConverter.addSupportedMediaTypes(MediaType.APPLICATION_OCTET_STREAM);
+                formHttpMessageConverter.addSupportedMediaTypes(MediaType.APPLICATION_JSON);
+                formHttpMessageConverter.addPartConverter(new MappingJackson2HttpMessageConverter());
+                formHttpMessageConverter.write(map, MediaType.MULTIPART_FORM_DATA, request);
+            }, new HttpMessageConverterExtractor<>(byte[].class, new ArrayList<>(Collections.singletonList(new ByteArrayHttpMessageConverter()))));
+
+            map.remove("file");
+            map.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
+            map.remove("indexModel");
+            map.add("indexModel", new IndexModel("name-1", "id-1", false));
+            ResponseEntity<byte[]> __result2 = restTemplate.postForEntity("https://192.168.31.105:31111/docker/transfer2", entity, byte[].class);
+
+            map.remove("file");
+            map.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
+            ResponseEntity<byte[]> result3 = restTemplate.postForEntity("https://192.168.31.105:31111/docker/transfer3", entity, byte[].class);
+            logger.info("");
+        }
+        catch (Exception e)
+        {
+            logger.error("rest template execute error {}", e.getMessage());
+        }
+        return ResponseEntity.ok("OK");
+    }
+
+    static class MultipartInputStreamFileResource extends InputStreamResource
+    {
+
+        private final String filename;
+
+        MultipartInputStreamFileResource(InputStream inputStream, String filename)
+        {
+            super(inputStream);
+            this.filename = filename;
+        }
+
+        @Override
+        public String getFilename()
+        {
+            return this.filename;
+        }
+
+        @Override
+        public long contentLength()
+        {
+            return -1; // we do not want to generally read the whole stream into memory ...
+        }
     }
 }

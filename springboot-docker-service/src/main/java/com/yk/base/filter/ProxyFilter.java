@@ -35,7 +35,7 @@ public class ProxyFilter implements Filter
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException
     {
         logger.info("ProxyFilter doFilter");
-//        chain.doFilter(request, response);
+        chain.doFilter(request, response);
 
         // 由handlerExceptionResolver处理异常, 但是返回的是ModelAndView
         /*handlerExceptionResolver.resolveException((HttpServletRequest) request,
@@ -43,7 +43,7 @@ public class ProxyFilter implements Filter
                 null,
                 new DockerException("test proxy filter throw customer exception", 402));*/
         // 抛出异常由DockerErrorController统一处理
-        throw new DockerException("test proxy filter throw customer exception", 402);
+//        throw new DockerException("test proxy filter throw customer exception", 402);
     }
 
     public void destroy()
