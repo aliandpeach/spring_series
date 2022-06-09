@@ -2,3 +2,5 @@ target
 .idea
 .iml
 run
+static/**/*.log
+static/**/*.gz
