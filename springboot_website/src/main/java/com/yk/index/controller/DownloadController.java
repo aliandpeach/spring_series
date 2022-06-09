@@ -303,14 +303,14 @@ public class DownloadController
             map.add("indexModel", new IndexModel("name-1", "id-1", true));
             HttpEntity<MultiValueMap<String, Object>> entity = new HttpEntity<>(map, headers);
 
-            // 目标接口需要设置响应头为 Content-Type=application/octet-stream
+            // 1.1 目标接口需要设置响应头为 Content-Type=application/octet-stream
             ResponseEntity<byte[]> result = restTemplate.exchange("https://192.168.31.105:31111/docker/transfer", HttpMethod.POST, entity, byte[].class);
 
             map.remove("file");
             map.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
             map.remove("indexModel");
             map.add("indexModel", new IndexModel("name-1", "id-1", false));
-            // 该方式直接指定ByteArrayHttpMessageConverter 不需要目标接口设置响应头
+            // 1.2 该方式直接指定ByteArrayHttpMessageConverter 不需要目标接口设置响应头
             byte[] _result = restTemplate.execute("https://192.168.31.105:31111/docker/transfer", HttpMethod.POST, request ->
             {
                 FormHttpMessageConverter formHttpMessageConverter = new FormHttpMessageConverter();
@@ -325,7 +325,7 @@ public class DownloadController
             map.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
             map.remove("indexModel");
             map.add("indexModel", new IndexModel("name-1", "id-1", true));
-            // Controller 直接返回byte[] 无法通过response.setHeader设置响应头为 Content-Type=application/octet-stream
+            // 2.1 Controller 直接返回byte[] 无法通过response.setHeader设置响应头为 Content-Type=application/octet-stream
             ResponseEntity<byte[]> result2 = restTemplate.exchange("https://192.168.31.105:31111/docker/transfer2", HttpMethod.POST, entity, byte[].class);
 
 
@@ -333,6 +333,7 @@ public class DownloadController
             map.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
             map.remove("indexModel");
             map.add("indexModel", new IndexModel("name-1", "id-1", false));
+            // 2.2
             byte[] _result2 = restTemplate.execute("https://192.168.31.105:31111/docker/transfer2", HttpMethod.POST, request ->
             {
                 FormHttpMessageConverter formHttpMessageConverter = new FormHttpMessageConverter();
@@ -346,10 +347,12 @@ public class DownloadController
             map.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
             map.remove("indexModel");
             map.add("indexModel", new IndexModel("name-1", "id-1", false));
+            // 2.3
             ResponseEntity<byte[]> __result2 = restTemplate.postForEntity("https://192.168.31.105:31111/docker/transfer2", entity, byte[].class);
 
             map.remove("file");
             map.add("file", new MultipartInputStreamFileResource(file.getInputStream(), file.getOriginalFilename()));
+            // 3.1
             ResponseEntity<byte[]> result3 = restTemplate.postForEntity("https://192.168.31.105:31111/docker/transfer3", entity, byte[].class);
             logger.info("");
         }
