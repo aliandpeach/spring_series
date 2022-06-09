@@ -1,6 +1,8 @@
 package com.yk.base.web;
 
 import com.yk.httprequest.HttpClientUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -28,16 +30,26 @@ import java.util.List;
 @Configuration
 public class RestTemplateConfig
 {
+    @Value("${resttemplate.proxy.host}")
+    private String proxyHost;
+
+    @Value("${resttemplate.proxy.port}")
+    private int proxyPort;
+
     @Bean
     public ClientHttpRequestFactory factory()
     {
         HttpComponentsClientHttpRequestFactory httpRequestFactory;
         try
         {
-            HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 60010, "http");
             HttpClientUtil.Config config = new HttpClientUtil.Config();
+            if (!StringUtils.isEmpty(proxyHost) && proxyPort > 0 && proxyPort < 65535)
+            {
+                HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, proxyHost, proxyPort, "http");
+                config = config.ofProxy(proxyInfo);
+            }
             // 使用 http-client组件
-            httpRequestFactory = new HttpComponentsClientHttpRequestFactory(new HttpClientUtil(config.ofProxy(proxyInfo)).httpClient);
+            httpRequestFactory = new HttpComponentsClientHttpRequestFactory(new HttpClientUtil(config).httpClient);
             httpRequestFactory.setConnectTimeout(240000);
             httpRequestFactory.setReadTimeout(240000);
             return httpRequestFactory;

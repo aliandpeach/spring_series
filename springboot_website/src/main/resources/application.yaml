@@ -12,3 +12,7 @@ trust:
   trust-store: ${catalina.base}/conf/ssl/website.ts
   trust-store-passwd: Admin@123
   verify-uri: /xxxxxx/*
+resttemplate:
+  proxy:
+    host: 127.0.0.1
+    port: 60010
