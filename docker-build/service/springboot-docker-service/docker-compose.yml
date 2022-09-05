@@ -16,8 +16,8 @@ services:
       - /etc/localtime:/etc/localtime
       - /var/run/docker.sock:/var/run/docker.sock
       # 覆盖原有镜像中的配置文件
-      - ./target/application-docker.yml:/usr/local/docker/springboot-docker-service/application-docker.yml:ro
-      - ./target/application.yml:/usr/local/docker/springboot-docker-service/application.yml:ro
+      - ./package/application-docker.yml:/usr/local/docker/springboot-docker-service/application-docker.yml:ro
+      - ./package/application.yml:/usr/local/docker/springboot-docker-service/application.yml:ro
       - /opt/springboot-docker-service/static/logs:/usr/local/docker/springboot-docker-service/static/logs
     # 覆盖原有镜像文件中的ENTRYPOINT命令
     entrypoint: ["java", "-agentlib:jdwp=transport=dt_socket,address=31112,server=y,suspend=n", "-Dfile.encoding=utf-8","-Ddocker.path=/usr/local/docker/1/", "-Djava.security.egd=file:/dev/./urandom","-jar","/usr/local/docker/springboot-docker-service/springboot-docker-service.jar","--spring.config.location=/usr/local/docker/springboot-docker-service/*.yml"]

@@ -7,9 +7,9 @@ VOLUME /tmp
 WORKDIR /usr/local/docker/springboot-docker-service
 
 # 將jar包新增到容器中並更名為springboot-docker-service.jar
-ADD target/springboot-docker-service-1.0-SNAPSHOT.jar /usr/local/docker/springboot-docker-service/springboot-docker-service.jar
-ADD target/application.yml /usr/local/docker/springboot-docker-service/application.yml
-ADD target/application-docker.yml /usr/local/docker/springboot-docker-service/application-docker.yml
+ADD package/springboot-docker-service-1.0-SNAPSHOT.jar /usr/local/docker/springboot-docker-service/springboot-docker-service.jar
+ADD package/application.yml /usr/local/docker/springboot-docker-service/application.yml
+ADD package/application-docker.yml /usr/local/docker/springboot-docker-service/application-docker.yml
 
 # 执行jar包
 # RUN bash -c 'touch /usr/local/docker/springboot-docker-service/springboot-docker-service.jar'

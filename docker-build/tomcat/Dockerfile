@@ -6,7 +6,7 @@ MAINTAINER yk
 WORKDIR /usr/local/docker
  
 #4、一个复制命令,把jdk安装文件复制到镜像中,语法 ADD SRC DEST ,ADD命令具有自动解压功能(只支持.tar.gz)
-ADD target/apache-tomcat-9.0.63.tar.gz /usr/local/docker/
+ADD package/apache-tomcat-9.0.63.tar.gz /usr/local/docker/
 
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 

@@ -6,7 +6,7 @@ MAINTAINER yk
 WORKDIR /usr/local/docker
  
 #4、一个复制命令,把jdk安装文件复制到镜像中,语法 ADD SRC DEST ,ADD命令具有自动解压功能(只支持.tar.gz)
-ADD target/jdk-8u321-linux-x64.tar.gz /usr/local/docker
+ADD package/jdk-8u321-linux-x64.tar.gz /usr/local/docker
  
 #5、配置环境变量,此处目录为tar.gz包解压后的名称,需提前解压知晓：
 ENV JAVA_HOME=/usr/local/docker/jdk1.8.0_321

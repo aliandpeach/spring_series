@@ -7,9 +7,9 @@ services:
     container_name: springboot_website-container
     restart: always
     volumes:
-      - "./target/application.yaml:/usr/local/docker/apache-tomcat-9.0.63/webapps/website/WEB-INF/classes/application.yaml"
-      - "./target/server.xml:/usr/local/docker/apache-tomcat-9.0.63/conf/server.xml"
-      - "./target/ssl:/usr/local/docker/apache-tomcat-9.0.63/conf/ssl"
+      - "./package/application.yaml:/usr/local/docker/apache-tomcat-9.0.63/webapps/website/WEB-INF/classes/application.yaml"
+      - "./package/server.xml:/usr/local/docker/apache-tomcat-9.0.63/conf/server.xml"
+      - "./package/ssl:/usr/local/docker/apache-tomcat-9.0.63/conf/ssl"
     ports:
       - "14433:4433"
     depends_on:
