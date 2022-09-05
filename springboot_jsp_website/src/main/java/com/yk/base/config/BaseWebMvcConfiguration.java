@@ -44,6 +44,7 @@ public class BaseWebMvcConfiguration implements WebMvcConfigurer
     @Bean
     public InternalResourceViewResolver viewResolver()
     {
+        // SpringBoot打包运行的jsp目录在DocumentRoot.getValidDirectory()中获取
         InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
         viewResolver.setPrefix("/views/"); // 不能像thymeleaf一样写成 classpath:/xxxx/ 估计是无法解析打进jar包里的jsp
         viewResolver.setSuffix(".jsp");

@@ -12,12 +12,23 @@ import java.util.Arrays;
 @Controller
 @RequestMapping("/")
 public class IndexController {
-    private Logger logger = LoggerFactory.getLogger("demo");
+    private Logger logger = LoggerFactory.getLogger(IndexController.class);
 
     /*@RequestMapping(value = "/index")
     public String index(HttpServletRequest request) {
         return "index";
     }*/
+
+    @RequestMapping("")
+    public String index(ModelMap map) {
+        map.put("thText", "设置文本内容");
+        map.put("thUText", "设置文本内容");
+        map.put("thValue", "设置当前元素的value值");
+        map.put("thEach", Arrays.asList("列表", "遍历列表"));
+        map.put("thIf", "msg is not null");
+        map.put("thObject", new UserEntity("id", "username", "password", "description"));
+        return "index";
+    }
 
     @RequestMapping("/index")
     public String test(ModelMap map) {

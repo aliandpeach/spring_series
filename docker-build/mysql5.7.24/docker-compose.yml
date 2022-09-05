@@ -25,11 +25,17 @@ services:
     volumes:
       - ./sql:/opt/sql
       - ./init/:/docker-entrypoint-initdb.d/
+      # 5.7.12版本的mysql应该写成 ./conf/my.cnf:/etc/mysql/my.cnf
       - ./conf/my.cnf:/etc/my.cnf
       # mysql数据挂在到宿主机的当前目录
       #- ./mysql/conf:/etc/mysql/conf.d
       - ./mysql/mysql-files:/var/lib/mysql-files/
       - ./mysql/data:/var/lib/mysql
+      # 将外边时间直接挂载到容器内部，权限只读
+      - /etc/localtime:/etc/localtime:ro
+      # 将外面的时间挂载到容器内部，权限只读，容器内不可修改(centos7.6中/etc/timezone是一个文件夹,而不是一个文件)
+      # 先在本机上执行 echo 'Asia/Shanghai' > /etc/timezone/timezone, 修改下面的挂载为 /etc/timezone/timezone:/etc/timezone:ro
+      - /etc/timezone:/etc/timezone:ro
   #数据库可视化
   #adminer:
   #  image: adminer

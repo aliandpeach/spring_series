@@ -28,7 +28,7 @@ public class MvcWebConfig implements WebMvcConfigurer {
     public final static String TEMPLATE_PREFIX = "/WEB-INF/templates/";
     public final static String TEMPLATE_SUFFIX = ".html";
     public final static Boolean TEMPLATE_CACHEABLE = false;
-    public final static String TEMPLATE_MODE = "HTML5";
+    public final static String TEMPLATE_MODE = "HTML";
     public final static Integer TEMPLATE_ORDER = 1;
 
     /**

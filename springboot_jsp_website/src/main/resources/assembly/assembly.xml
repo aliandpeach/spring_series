@@ -1,5 +1,5 @@
 <assembly>
-    <id></id>
+    <id>id_123</id>
     <formats>
         <format>zip</format><!--打包的文件格式,也可以有：war zip-->
     </formats>
@@ -14,7 +14,7 @@
             </includes>
         </fileSet>
         <fileSet>
-            <directory>${project.basedir}/src/main/webapp/</directory>
+            <directory>${project.basedir}/src/main/webapp-views/</directory>
             <outputDirectory>/src/main/webapp/</outputDirectory>
             <includes>
                 <include>**/*</include>

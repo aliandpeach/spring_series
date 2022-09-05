@@ -5,6 +5,7 @@ import com.yk.demo.dao.impl.RoleQueryDAO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
@@ -12,20 +13,26 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class BaseListener /*implements ApplicationListener<ContextRefreshedEvent>*/
 {
     private static final Logger logger = LoggerFactory.getLogger(BaseListener.class);
-    
-    private AtomicInteger integer = new AtomicInteger(0);
+
+    private static final AtomicBoolean init = new AtomicBoolean(false);
+
+    private final AtomicInteger integer = new AtomicInteger(0);
     
     @Autowired
     private IRoleDAO roleDAO;
     
     @Autowired
     private RoleQueryDAO roleQueryDAO;
+
+    @Autowired
+    private ApplicationContext applicationContext;
     
     /**
      * 当一个ApplicationContext被初始化或刷新触发
@@ -42,5 +49,20 @@ public class BaseListener /*implements ApplicationListener<ContextRefreshedEvent
         list = new ArrayList<>();
         list = roleQueryDAO.queryRoles();
         logger.info("" + list);
+
+        // onApplicationEvent会被执行两次, 因为一个是root application 一个是 dispatcher-servlet
+        ApplicationContext context = event.getApplicationContext();
+        logger.debug("ContextRefreshed... display name = {}", context.getDisplayName());
+        if (event.getApplicationContext().equals(this.applicationContext))
+        {
+            synchronized (this)
+            {
+                if (!init.get())
+                {
+                    logger.debug("ContextRefreshed... async method...");
+                    init.set(true);
+                }
+            }
+        }
     }
 }

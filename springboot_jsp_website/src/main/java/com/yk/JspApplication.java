@@ -5,6 +5,8 @@ import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
@@ -25,8 +27,12 @@ import java.util.Collection;
 @ServletComponentScan
 public class JspApplication extends SpringBootServletInitializer
 {
+    private static final Logger logger = LoggerFactory.getLogger(JspApplication.class);
+
     public static void main(String[] args)
     {
+        System.setProperty("log.home", System.getProperty("user.dir"));
+        logger.info("user.dir = {}", System.getProperty("user.dir"));
         SpringApplication application = new SpringApplication();
         application.run(JspApplication.class);
     }
@@ -116,13 +122,11 @@ public class JspApplication extends SpringBootServletInitializer
     /**
      * customize方法中的Connector与 servletContainerInitializer-customize的Connector是同一个，
      * 所以该Bean的customize会覆盖上面的customize
-     *
-     * @return
      */
     @Bean
-    public WebServerFactoryCustomizer webServerFactoryCustomizer()
+    public WebServerFactoryCustomizer<TomcatServletWebServerFactory> webServerFactoryCustomizer()
     {
-        WebServerFactoryCustomizer webServerFactoryCustomizernew = new WebServerFactoryCustomizer<TomcatServletWebServerFactory>()
+        return new WebServerFactoryCustomizer<TomcatServletWebServerFactory>()
         {
             public void customize(TomcatServletWebServerFactory factory)
             {
@@ -130,7 +134,7 @@ public class JspApplication extends SpringBootServletInitializer
                 for (TomcatConnectorCustomizer tomcatConnectorCustomizer : list)
                 {
                     Class<?> clazz = tomcatConnectorCustomizer.getClass();
-                    System.out.println(clazz);
+                    logger.info("class name {}", clazz.getName());
                 }
                 factory.addConnectorCustomizers(new TomcatConnectorCustomizer()
                 {
@@ -139,7 +143,7 @@ public class JspApplication extends SpringBootServletInitializer
                         connector.setPort(9026);
                         connector.setSecure(true);
                         connector.setScheme("https");
-                        
+
                         Http11NioProtocol protocol = (Http11NioProtocol) connector.getProtocolHandler();
                         protocol.setKeystoreFile("key/website.ks");
                         protocol.setKeyPass("Admin@1234");
@@ -151,11 +155,10 @@ public class JspApplication extends SpringBootServletInitializer
                 });
                 // SpringBoot 给内置tomcat的docBase目录默认是 src/main/webapp public static
                 // factory.setDocumentRoot(new File(""));
-                System.out.println("==================JspApplication=================");
-                System.out.println(JspApplication.class.getClassLoader().getResource("").getPath());
-                System.out.println("==================JspApplication=================");
+                logger.info("==================JspApplication=================");
+                logger.info(JspApplication.class.getClassLoader().getResource("").getPath());
+                logger.info("==================JspApplication=================");
             }
         };
-        return webServerFactoryCustomizernew;
     }
 }

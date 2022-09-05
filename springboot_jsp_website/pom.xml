@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!--springboot-war 步骤(3) jar改为war-->
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
 
     <artifactId>springboot_jsp_website</artifactId>
 
@@ -32,6 +32,7 @@
             <artifactId>spring-boot-starter-web</artifactId>
             <exclusions>
                 <exclusion>
+                    <!--logging 默认支持logback-->
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-logging</artifactId>
                 </exclusion>
@@ -46,6 +47,23 @@
                     <artifactId>spring-boot-starter-logging</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <!--log4j2核心包-->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>2.16.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>2.16.0</version>
+        </dependency>
+        <!--用于与slf4j保持桥接-->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>2.16.0</version>
         </dependency>
         <!-- jsp支持依赖 Provided 编译和测试的时候使用-->
         <dependency>
@@ -92,6 +110,11 @@
             <version>6.0.6</version>
         </dependency>
     </dependencies>
+
+    <!--1. 打成war包, webapp-views中的所有文件被打包到war中(在war的根目录中), 可直接执行启动war正常访问jsp页面-->
+    <!--2. webapp-views中的所有文件只能被打包到/src/main/webapp/或者public或者static, 和工程的jar放在同一目录中, 可直接执行启动jar正常访问jsp页面-->
+    <!--3. webapp-views中的所有文件被打包到jar的META-INF/resources目录中, 可直接执行启动jar正常访问jsp页面
+           (前提是使用1.4.2.RELEASE版本的spring-boot-maven-plugin, 原因是： https://stackoverflow.com/questions/44689773/why-spring-boot-1-5-3-jar-does-not-recognise-jsp-files-in-src-main-resources-met)-->
     <build>
         <resources>
             <resource>
@@ -104,11 +127,11 @@
                 </excludes>
             </resource>
 
-            <!-- 不知为什么 idea启动配置成这个也可以访问到jsp -->
-            <!--<resource>
-                <directory>src/main/webapp</directory>
+            <!-- idea启动配置成这个也可以访问到jsp -->
+            <resource>
+                <directory>src/main/webapp-views</directory>
                 <targetPath>META-INF/resources</targetPath>
-            </resource>-->
+            </resource>
         </resources>
         <plugins>
             <!--不使用parent的构建方式，那么spring-boot-maven-plugin 必须加上repackage，
@@ -118,6 +141,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.6.2</version>
                 <configuration>
                     <mainClass>com.yk.JspApplication</mainClass>
                 </configuration>
@@ -130,11 +154,12 @@
                 </executions>
             </plugin>
 
-            <!-- 该插件配合spring-boot-maven-plugin，把jar和src/main/webapp/的jsp打包到一起,
-                 这样才能在不打包为war的情况下正常访问到jsp页面-->
-            <plugin>
+            <!-- 该插件负责把src/main/webapp-views/打包到/src/main/webapp/或者public或者static,
+                 spring-boot-maven-plugin 负责打包工程为jar, 最后生成zip文件中包含两者, 解压zip后执行jar可访问到jsp -->
+            <!--<plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <id>make-assembly</id>
@@ -144,11 +169,13 @@
                         </goals>
                         <configuration>
                             <finalName>${project.name}</finalName>
-                            <descriptor>/src/main/resources/assembly/assembly.xml</descriptor>
+                            <descriptors>
+                                <descriptor>/src/main/resources/assembly/assembly.xml</descriptor>
+                            </descriptors>
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin>-->
 
             <!--假设不使用spring-boot-maven-plugin，
                 使用maven-jar-plugin和maven-assembly-plugin也可以打包
@@ -191,11 +218,49 @@
 
             <!--springboot-war 步骤(4) maven-war-plugin 和 spring-boot-maven-plugin同时启用-->
             <!--3.0版本插件不存在web.xml缺少时无法打包的情况-->
-            <!--<plugin>
+            <!-- springboot工程打包成war时, src/main/webapp-views中的资源和jsp被打包到war中(在war的根目录中), 通过DocumentRoot.getWarFileDocumentRoot获取jsp资源-->
+            <plugin>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.2.2</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <webResources>
+                        <resource>
+                            <directory>src/main/webapp-views</directory>
+                        </resource>
+                    </webResources>
+                </configuration>
+            </plugin>
+
+
+            <!--<plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                        <target name="jsp2java">
+                            <taskdef classname="org.apache.jasper.JspC" name="jsp2java">
+                                <classpath id="jsp2java.classpath">
+                                    <fileset dir="${tomcat.home}/bin">
+                                        <include name="*.jar"/>
+                                    </fileset>
+                                    <fileset dir="${tomcat.home}/lib">
+                                        <include name="*.jar"/>
+                                    </fileset>
+                                </classpath>
+                            </taskdef>
+                            <jsp2java classpath="jsp2java.classpath" javaEncoding="UTF-8" validateXml="false"
+                                      uriroot="${webapp.path}/WebRoot"
+                                      webXmlFragment="${webapp.path}/WebRoot/WEB-INF/webJSP.xml"
+                                      outputDir="${webapp.path}/WebRoot/WEB-INF/JspC/src"/>
+                    </target>
                 </configuration>
             </plugin>-->
         </plugins>

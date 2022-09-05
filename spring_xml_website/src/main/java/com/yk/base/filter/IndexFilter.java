@@ -16,7 +16,7 @@ import java.io.IOException;
 @WebFilter(filterName = "indexFilter", urlPatterns = "/*")
 public class IndexFilter implements Filter {
 
-    private Logger logger = LoggerFactory.getLogger("demo");
+    private Logger logger = LoggerFactory.getLogger(IndexFilter.class);
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {

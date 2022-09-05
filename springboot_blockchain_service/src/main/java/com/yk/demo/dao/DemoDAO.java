@@ -2,11 +2,19 @@ package com.yk.demo.dao;
 
 import com.yk.demo.model.DemoModel;
 import org.mybatis.spring.SqlSessionTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.jdbc.core.ConnectionCallback;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.PreparedStatementCallback;
 import org.springframework.stereotype.Repository;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +27,7 @@ import java.util.Map;
 @Repository
 public class DemoDAO
 {
+    private static final Logger logger = LoggerFactory.getLogger(DemoDAO.class);
     /**
      * mybatis
      */
@@ -57,6 +66,36 @@ public class DemoDAO
      */
     public List<DemoModel> queryByName2(String name)
     {
+        // 这里直接获取Connection后, 一定记得关闭
+        try (Connection conn = jdbcTemplate.getDataSource().getConnection())
+        {
+            DatabaseMetaData databaseMetaData = conn.getMetaData();
+            logger.error("database MetaData {}", databaseMetaData);
+        }
+        catch (Exception e)
+        {
+            logger.error("jdbc template error {}", e.getMessage());
+        }
+        DatabaseMetaData databaseMetaData = jdbcTemplate.execute(new ConnectionCallback<DatabaseMetaData>()
+        {
+            @Override
+            public DatabaseMetaData doInConnection(Connection con) throws SQLException, DataAccessException
+            {
+                return con.getMetaData();
+            }
+        });
+        jdbcTemplate.execute("insert into t_demo (`name`) values (?)", (PreparedStatementCallback<Integer>) ps ->
+        {
+            ps.setString(1, name);
+            int i = ps.executeUpdate();
+            return i;
+        });
+
+        List<Object[]> parameters = new ArrayList<>();
+        parameters.add(new Object[]{name + "_" + System.currentTimeMillis()});
+        parameters.add(new Object[]{name + "_" + System.currentTimeMillis()});
+        jdbcTemplate.batchUpdate("insert into t_demo (`name`) values (?)", parameters);
+
         List<DemoModel> list = new ArrayList<>();
         jdbcTemplate.query("SELECT * FROM  t_demo WHERE name = ?", new Object[]{name}, resultSet ->
         {

@@ -1,6 +1,7 @@
 package com.http;
 
 import cn.hutool.core.util.HexUtil;
+import com.crypto.sm.SM2Test;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.yk.httprequest.HttpClientUtil;
 import org.apache.http.client.config.RequestConfig;
@@ -21,12 +22,18 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 描述
@@ -137,7 +144,7 @@ public class HttpClientAuthTest
     @Test
     public void testPostText() throws Exception
     {
-        File f = new File("C:\\Users\\yangkai\\Desktop\\test_secret17.txt");
+        File f = new File("F:\\Downloads\\1F74F8F8-28E8-4d96-BD0D-3737926ED6AE.txt");
         InputStreamReader readerx = new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8);
         BufferedReader rr = new BufferedReader(readerx);
 
@@ -180,20 +187,185 @@ public class HttpClientAuthTest
 
 
         HttpClientUtil.Config config = new HttpClientUtil.Config();
-        config.setKeyStore("D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk.ks");
-        config.setKeyPasswd("C47182A19F40F69B5C022666B72A751CnHXB$f#T");
-        config.setKeyStorePasswd("E47CF21F723705F516F5F2F0068001FE@m$5Sq4Q");
-        config.setType("JKS");
-        config.setSslKeyManager(true);
-        Map<String, String> body = new HashMap<>(Collections.singletonMap("jobId", "0560ec07891f472980b78dcb2fa9a29c"));
+//        config.setKeyStore("D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk.ks");
+//        config.setKeyPasswd("C47182A19F40F69B5C022666B72A751CnHXB$f#T");
+//        config.setKeyStorePasswd("E47CF21F723705F516F5F2F0068001FE@m$5Sq4Q");
+//        config.setType("JKS");
+//        config.setSslKeyManager(true);
+//        config.setProxyInfo(new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http"));
+        config.setSocketTimeout(120000);
+        Map<String, String> body = new HashMap<>(Collections.singletonMap("jobId", "8303261fd4eb44249ab76a69a17ff46d"));
         body.put("id", "123456789");
         body.put("text", sb.toString());
-        Map<String, Object> result = new HttpClientUtil(config).post("https://192.190.116.205/SIMP_DBS_S/event/file/analysis/task/text",
-                new HashMap<>(),
+
+        Map<String, String> headers = new HashMap<>();
+
+        SM2Test sm2 = new SM2Test();
+        String time = LocalDateTime.now().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+        String str = "SS0EA21120003:" + time;
+        String encrypt = sm2.encode(str, "04B917C2246315CEE1BB413E44FD0093373C1E04263E473954BE36CAA470EE3651FCFF0DCCEA3173646BC3C779627FF7ADA0E66495A15D317F253E37F0070269E4");
+        System.out.println(encrypt);
+        headers.put("Authorization", encrypt);
+
+        Model model = new HttpClientUtil(config).post("https://192.190.20.251/SIMP_DBS_S/event/doc/text",
+                headers,
                 body,
-                new TypeReference<Map<String, Object>>()
+                new TypeReference<Model>()
                 {
                 });
-        System.out.println(result);
+        System.out.println(Optional.ofNullable(model.getResult()).orElse(new ArrayList<>()).size());
+        System.out.println(model);
+    }
+
+    private static class Model
+    {
+        private int code;
+        private String level;
+        private String state;
+        private String message;
+        private String taskId;
+        private String secretRelatedLevel;
+
+        private List<Info> result;
+
+        public int getCode()
+        {
+            return code;
+        }
+
+        public void setCode(int code)
+        {
+            this.code = code;
+        }
+
+        public String getLevel()
+        {
+            return level;
+        }
+
+        public void setLevel(String level)
+        {
+            this.level = level;
+        }
+
+        public String getState()
+        {
+            return state;
+        }
+
+        public void setState(String state)
+        {
+            this.state = state;
+        }
+
+        public String getMessage()
+        {
+            return message;
+        }
+
+        public void setMessage(String message)
+        {
+            this.message = message;
+        }
+
+        public String getTaskId()
+        {
+            return taskId;
+        }
+
+        public void setTaskId(String taskId)
+        {
+            this.taskId = taskId;
+        }
+
+        public String getSecretRelatedLevel()
+        {
+            return secretRelatedLevel;
+        }
+
+        public void setSecretRelatedLevel(String secretRelatedLevel)
+        {
+            this.secretRelatedLevel = secretRelatedLevel;
+        }
+
+        public List<Info> getResult()
+        {
+            return result;
+        }
+
+        public void setResult(List<Info> result)
+        {
+            this.result = result;
+        }
+    }
+
+    private static class Info
+    {
+        private List<Integer> pos;
+        private String matchContent;
+        private String source;
+        private String secretRate;
+        private String externalBreachContent;
+        private String secretRelatedLevel;
+
+        public List<Integer> getPos()
+        {
+            return pos;
+        }
+
+        public void setPos(List<Integer> pos)
+        {
+            this.pos = pos;
+        }
+
+        public String getMatchContent()
+        {
+            return matchContent;
+        }
+
+        public void setMatchContent(String matchContent)
+        {
+            this.matchContent = matchContent;
+        }
+
+        public String getSource()
+        {
+            return source;
+        }
+
+        public void setSource(String source)
+        {
+            this.source = source;
+        }
+
+        public String getSecretRate()
+        {
+            return secretRate;
+        }
+
+        public void setSecretRate(String secretRate)
+        {
+            this.secretRate = secretRate;
+        }
+
+        public String getExternalBreachContent()
+        {
+            return externalBreachContent;
+        }
+
+        public void setExternalBreachContent(String externalBreachContent)
+        {
+            this.externalBreachContent = externalBreachContent;
+        }
+
+        public String getSecretRelatedLevel()
+        {
+            return secretRelatedLevel;
+        }
+
+        public void setSecretRelatedLevel(String secretRelatedLevel)
+        {
+            this.secretRelatedLevel = secretRelatedLevel;
+        }
     }
 }

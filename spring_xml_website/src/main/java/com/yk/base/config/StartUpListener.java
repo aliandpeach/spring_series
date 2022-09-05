@@ -42,7 +42,7 @@ import java.util.Properties;
 public class StartUpListener implements ServletContextListener
 {
 
-    Logger logger = LoggerFactory.getLogger("demo");
+    Logger logger = LoggerFactory.getLogger(StartUpListener.class);
 
     /**
      * getClassLoader()是当前类加载器,而getContextClassLoader是当前线程的类加载器

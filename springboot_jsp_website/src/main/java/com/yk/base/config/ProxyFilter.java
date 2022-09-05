@@ -1,5 +1,8 @@
 package com.yk.base.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -16,6 +19,7 @@ import java.io.IOException;
 @WebFilter(filterName = "proxyFilter", urlPatterns = {"/*"})
 public class ProxyFilter implements Filter
 {
+    private static final Logger logger = LoggerFactory.getLogger(ProxyFilter.class);
     @Override
     public void init(FilterConfig filterConfig) throws ServletException
     {
@@ -29,7 +33,7 @@ public class ProxyFilter implements Filter
         String uri = ((HttpServletRequest) request).getRequestURI();
         if (uri.endsWith(".jsp"))
         {
-            System.out.println(uri);
+            logger.info(uri);
         }
         chain.doFilter(request, response);
     }

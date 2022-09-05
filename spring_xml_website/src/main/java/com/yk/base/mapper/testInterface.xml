@@ -2,6 +2,6 @@
 <mapper namespace="com.yk.base.mapper.TestInterfaceMapperDAO">
 
     <select id="testInterfaceMybatisQuery" parameterType="int" resultType="Map">
-        SELECT * FROM  t_s_role
+        SELECT * FROM  t_group
     </select>
 </mapper>

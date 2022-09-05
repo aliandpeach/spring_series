@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# 拷贝tomcat-watch到 /etc/init.d/ 赋权 chmod +x /etc/init.d/tomcat-watch, 拷贝watched.sh到 ${TOMCAT_HOME}
+# 通过service tomcat-watch start启动tomcat OOM日志监控
+
+source /etc/profile
+#TOMCAT_HOME=
+
+start(){
+  echo "${TOMCAT_HOME}/bin/watched.sh starting"
+  watched_pid=`ps -ef|grep "${TOMCAT_HOME}/bin/watched.sh"|grep -v grep|awk '{print $2}'`
+  if [ ! -z "$watched_pid" -a "$watched_pid" != " " ]; then
+    echo "tomcat-watched is started!"
+  else
+    echo "$(date "+%Y-%m-%d %H:%m:%S") ${TOMCAT_HOME}/bin/watched.sh starting" >> ${TOMCAT_HOME}/logs/watched.log
+    nohup sh "${TOMCAT_HOME}/bin/watched.sh" >/dev/null 2>&1 &
+    echo "$(date "+%Y-%m-%d %H:%m:%S") tomcat-watched started `ps -ef|grep "${TOMCAT_HOME}/bin/watched.sh"|grep -v grep|awk '{print $2}'`" >> ${TOMCAT_HOME}/logs/watched.log
+    echo "tomcat-watched started"
+  fi
+}
+
+stop(){
+  watched_pid=`ps -ef|grep "${TOMCAT_HOME}/bin/watched.sh"|grep -v grep|awk '{print $2}'`
+  echo "$(date "+%Y-%m-%d %H:%m:%S") stopping ${watched_pid}" >> ${TOMCAT_HOME}/logs/watched.log
+  if [ ! -z "$watched_pid" -a "$watched_pid" != " " ]; then
+    kill -9 ${watched_pid}
+  else
+    echo "tomcat-watched is not started!"
+    echo "$(date "+%Y-%m-%d %H:%m:%S") tomcat-watched is not started!" >> ${TOMCAT_HOME}/logs/watched.log
+  fi
+  echo "tomcat-watched stoped"
+}
+
+#how we were called
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart)
+        stop
+        sleep 10
+        start
+        ;;
+    *)
+    echo "Usage: $0 {start|stop|restart}"
+esac
+
+exit 0

@@ -1,11 +1,18 @@
 package com.fs;
 
+import cn.hutool.core.io.FileUtil;
 import com.google.common.collect.ImmutableList;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 import com.google.common.jimfs.PathType;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -13,6 +20,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.google.common.jimfs.Feature.FILE_CHANNEL;
 import static com.google.common.jimfs.Feature.LINKS;
@@ -44,6 +52,39 @@ public class FileTest
     }
 
     public static void main(String[] args) throws IOException
+    {
+        String path = "D:\\workspace\\SDM_branches\\datamask\\datamask-simp-sdm2021-zjBoC\\datamask\\WebContent\\WEB-INF\\lib";
+        List<File> fileList = FileUtil.loopFiles(new File(path), new FileFilter()
+        {
+            @Override
+            public boolean accept(File pathname)
+            {
+                return pathname.getName().endsWith(".jar");
+            }
+        });
+        String str = "<dependency>\n" +
+                "\t<groupId>%s</groupId>\n" +
+                "\t<artifactId>%s</artifactId>\n" +
+                "\t<scope>system</scope>\n" +
+                "\t<systemPath>${project.basedir}/WebContent/WEB-INF/lib/%s</systemPath>\n" +
+                "\t<version>%s</version>\n" +
+                "</dependency>";
+
+        List<String> result = new ArrayList<>();
+        for (File file : fileList)
+        {
+            String name = file.getName().replace(".jar", "");
+            result.add(String.format(str, name, name, file.getName(), name.substring(file.getName().lastIndexOf("-") + 1)));
+        }
+        try (OutputStream output = new FileOutputStream(path + "\\" + "result.xml");
+             OutputStreamWriter outputStreamWriter = new OutputStreamWriter(output);
+             BufferedWriter writer = new BufferedWriter(outputStreamWriter))
+        {
+            writer.write(result.stream().collect(Collectors.joining("\n")));
+        }
+    }
+
+    public static void main1(String[] args) throws IOException
     {
         /*File file = new File("F:\\Download\\ideaIU-2021.1.exe");
         try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");

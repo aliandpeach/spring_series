@@ -1,5 +1,6 @@
 package com.crypto.sm;
 
+import cn.hutool.core.util.HexUtil;
 import org.bouncycastle.asn1.gm.GMNamedCurves;
 import org.bouncycastle.asn1.gm.GMObjectIdentifiers;
 import org.bouncycastle.asn1.x9.X9ECParameters;
@@ -35,6 +36,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.Base64;
 
 import static cn.hutool.core.date.DatePattern.NORM_DATETIME_MS_PATTERN;
@@ -56,7 +58,7 @@ public class SM2Test
     // 获取椭圆曲线KEY生成器
     private KeyFactory keyFactory;
 
-    private SM2Test()
+    public SM2Test()
     {
         try
         {
@@ -117,6 +119,18 @@ public class SM2Test
         cipher.init(Cipher.ENCRYPT_MODE, key);
         // 加密并编码为base64格式
         return Hex.toHexString(cipher.doFinal(input.getBytes()));
+    }
+
+    /**
+     * 解密
+     *
+     * @param input      待解密文本
+     * @param prvKeyByte 私钥
+     */
+    public byte[] decoder(String input, byte[] prvKeyByte) throws NoSuchPaddingException, NoSuchAlgorithmException,
+            InvalidKeySpecException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException
+    {
+        return decoder(input, HexUtil.encodeHexStr(prvKeyByte));
     }
 
     /**

@@ -73,7 +73,7 @@
         <property name="removeAbandoned" value="true"/>
         <!-- 1800秒，也就是30分钟 -->
         <property name="removeAbandonedTimeout" value="3600"/>
-        <!-- 关闭abanded连接时输出错误日志 -->
+        <!-- 关闭abandoned连接时输出错误日志 -->
         <property name="logAbandoned" value="true"/>
 
         <!-- 开启Druid的监控统计功能 -->
@@ -85,6 +85,10 @@
                 <prop key="remarksReporting">true</prop>
             </props>
         </property>
+    </bean>
+
+    <bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+        <property name="dataSource" ref="dataSource"/>
     </bean>
 
     <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
@@ -137,38 +141,7 @@
 
 
     <!-- 通知Spring 开启扫描 @Aspect 切面编程自动代理 相当于 @EnableAspectJAutoProxy(proxyTargetClass = true) -->
-    <aop:aspectj-autoproxy proxy-target-class="true"/>
-
-    <!--开启注解扫描 -->
-    <!--
-        这个配置会自动注册三个类
-        RequestMappingHandlerMapping
-        RequestMappingHandlerAdapter
-        ExceptionHandlerExceptionResolver
-        以支持使用注解@Controller的注解方法（如@RequestMapping、@ExceptionHandler）来处理request，
-        并开启一系列默认功能设置，有了这个配置，就能将所有请求映射到@Controller修饰的handler上，
-        以及对应的@RequestMapping上，仅仅配置这个，可以处理数据接口，但是无法映射静态资源，这时我们再添加一个<mvc:default-servlet-handler />配置即可
-    -->
-    <mvc:annotation-driven>
-        <!-- use for converting @RequestBody method parameters and @ResponseBody method return values -->
-        <!-- 当Controller配置的是ResponseBody, 默认会使用message-converts -->
-        <!-- 所以当controller 返回 return "index" 或者 ModelMap时,不能使用@ResponseBody -->
-        <!-- ModelAndView没有该限制 -->
-        <mvc:message-converters>
-            <!--Http请求默认字符集ISO-8859-1 ，Spring中也是此字符集，需要手动配置以解决中文乱码问题-->
-            <bean class="org.springframework.http.converter.StringHttpMessageConverter">
-                <property name="supportedMediaTypes">
-                    <list>
-                        <bean class="org.springframework.http.MediaType">
-                            <constructor-arg value="text"/>
-                            <constructor-arg value="plain"/>
-                            <constructor-arg value="UTF-8"/>
-                        </bean>
-                    </list>
-                </property>
-            </bean>
-        </mvc:message-converters>
-    </mvc:annotation-driven>
+    <aop:aspectj-autoproxy proxy-target-class="true" expose-proxy="true"/>
 
     <bean id="restTemplate" class="org.springframework.web.client.RestTemplate">
         <property name="messageConverters">

@@ -154,7 +154,7 @@ public class ConvertUtil
         int splitSize = originalList.size() % split == 0 ? originalList.size() / split : originalList.size() / split + 1;
         for (int i = 0; i < splitSize; i++)
         {
-            result.add(originalList.subList(i * split, i * split + split));
+            result.add(originalList.subList(i * split, Math.min(i * split + split, originalList.size())));
         }
         return result;
     }

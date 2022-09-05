@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/")
 public class LoginController
 {
-    private Logger logger = LoggerFactory.getLogger("demo");
+    private Logger logger = LoggerFactory.getLogger(LoginController.class);
     
     @Autowired
     private HttpServletRequest request;

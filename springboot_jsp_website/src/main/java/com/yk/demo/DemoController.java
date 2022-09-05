@@ -1,17 +1,16 @@
 package com.yk.demo;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +19,8 @@ import java.util.Map;
 @RequestMapping("/demo")
 public class DemoController
 {
+    private static final Logger logger = LoggerFactory.getLogger(DemoController.class);
+
     @Autowired
     private JdbcTemplate jdbcTemplate;
     
@@ -36,7 +37,7 @@ public class DemoController
         CurParameterizedType type = new CurParameterizedType(Map.class, new Type[]{String.class, Object.class});
         
         List<HashMap> ret = jdbcTemplate.query("SELECT * FROM t_s_role ", new BeanPropertyRowMapper<>(HashMap.class));
-        System.out.println();
+        logger.info("");
         int count = jdbcTemplate.update("DELETE FROM t_s_role WHERE id = ?", "1");
         try
         {

@@ -6,7 +6,15 @@ services:
     image: nginx:latest
     restart: always
     ports:
-      - 2880:80
-      - 24433:443
+      - 7999:7999
     volumes:
-      - ./conf.d:/etc/nginx/conf.d
+      # 配置文件nginx.conf是要放在/etc/nginx/目录下的
+      # 而nginx.conf中引入的文件(用于独立配置server)，需要放在/etc/nginx/conf.d/目录下
+      #- ./config/conf.d:/etc/nginx/conf.d
+      - ./config/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/mime.types:/etc/nginx/mime.types:ro
+    networks:
+      - mynginx
+networks:
+  mynginx:
+    driver: bridge
