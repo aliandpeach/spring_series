@@ -1,0 +1,16 @@
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yk.user.dao.IRoleDAO">
+
+    <resultMap id="roleResultMap" type="com.yk.user.model.Role">
+        <result column="id" jdbcType="VARCHAR" javaType="java.lang.String" property="id" />
+        <result column="name" jdbcType="VARCHAR" javaType="java.lang.String" property="name" />
+        <collection property="permissionList" javaType="java.util.ArrayList" ofType="com.yk.user.model.Permission"
+                    select="com.yk.user.dao.IPermissionDAO.queryPermissionListByRoleId" column="{roleId=id}">
+        </collection>
+    </resultMap>
+    <select id="queryRoleListByUserId" parameterType="java.util.HashMap" resultMap="roleResultMap">
+        SELECT t_role.id, t_role.name FROM t_user_role
+            LEFT JOIN t_role ON t_role.id = t_user_role.role_id
+        WHERE t_user_role.user_id = #{userId,jdbcType=VARCHAR};
+    </select>
+</mapper>

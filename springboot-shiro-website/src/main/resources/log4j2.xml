@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="off" monitorInterval="1800">
+    <properties>
+        <property name="LOG_HOME">${sys:catalina.home}</property>
+    </properties>
+
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d %-5p (%F:%L) - %m%n"/>
+        </Console>
+        <RollingRandomAccessFile name="other"
+                                 fileName="${LOG_HOME}/logs/other.log"
+                                 filePattern="${LOG_HOME}/logs/other.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout
+                    pattern="%d %-5p (%F:%L) - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingRandomAccessFile>
+
+        <RollingRandomAccessFile name="base"
+                                 fileName="${LOG_HOME}/logs/base.log"
+                                 filePattern="${LOG_HOME}/logs/base.log.%d{yyyy-MM-dd}.gz">
+            <PatternLayout
+                    pattern="%d %-5p (%F:%L) - %m%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="5 MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="20"/>
+        </RollingRandomAccessFile>
+    </Appenders>
+
+    <Loggers>
+        <logger name="com.yk" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="base"/>
+        </logger>
+        <logger name="org.springframework" level="warn" includeLocation="true" additivity="false" />
+        <logger name="org.apache" level="warn" includeLocation="true" additivity="false" />
+
+        <root level="info" includeLocation="true">
+            <appender-ref ref="Console"/>
+            <appender-ref ref="other"/>
+        </root>
+    </Loggers>
+</Configuration>

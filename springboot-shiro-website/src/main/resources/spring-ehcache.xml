@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache updateCheck="false" name="shiroCache">
+
+    <diskStore path="user.dir/shiroCache"/>
+
+    <defaultCache
+            maxElementsInMemory="10000"
+            eternal="false"
+            timeToIdleSeconds="120"
+            timeToLiveSeconds="120"
+            overflowToDisk="true"
+            diskPersistent="true"
+            diskExpiryThreadIntervalSeconds="120"/>
+
+    <cache name="shiro-activeSessionCache" eternal="false" maxBytesLocalHeap="500M"
+           timeToIdleSeconds="3600" timeToLiveSeconds="0" overflowToDisk="false"
+           statistics="true">
+    </cache>
+
+    <!-- timeToLiveSeconds: 单位是秒, 表示一个元素不管有没有被使用，其在缓存中允许存在的最长时间, 默认值是0,表示不限制 -->
+    <!-- timeToIdleSeconds: 单位是秒, 表示一个元素在不被请求的情况下允许在缓存中存在的最长时间, 默认值是0,表示不限制 -->
+    <cache name="tokenCache" eternal="false" maxBytesLocalHeap="500M"
+           timeToIdleSeconds="36000" timeToLiveSeconds="0" overflowToDisk="true"
+           statistics="true" diskPersistent="true">
+    </cache>
+
+</ehcache>
