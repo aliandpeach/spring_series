@@ -28,7 +28,7 @@ public class HttpConnectionTest
         URL url = new URL(null,
                 "http://zjjcmspublic.oss-cn-hangzhou-zwynet-d01-a.internet.cloud.zj.gov.cn/jcms_files/jcms1/web1825/site/attach/0/9d45d21c4950410db2eea73d097334c6.pdf",
                 new sun.net.www.protocol.https.Handler());
-        InetSocketAddress addr = new InetSocketAddress("192.190.10.101", 3128);
+        InetSocketAddress addr = new InetSocketAddress("192.168.31.101", 3128);
         Proxy proxy = new Proxy(Proxy.Type.HTTP, addr);
         HttpsURLConnection conn = (HttpsURLConnection) url.openConnection(proxy);
 

@@ -4,6 +4,7 @@ import cn.hutool.core.util.HexUtil;
 import com.crypto.sm.SM2Test;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.yk.httprequest.HttpClientUtil;
+import com.yk.httprequest.JSONUtil;
 import org.apache.http.client.config.RequestConfig;
 import org.junit.Test;
 
@@ -64,7 +65,7 @@ public class HttpClientAuthTest
         Map<String, String> param = new HashMap<>(Collections.singletonMap("jobId", "jobId"));
         param.put("id", "id");
         param.put("name", "name");
-        Map<String, String> result = new HttpClientUtil(config).get("https://192.190.116.205:443/SIMP_DBS_S/event/file/analysis/analyze",
+        Map<String, String> result = new HttpClientUtil(config).get("https://192.168.31.205:443/base/event/file/analysis/analyze",
                 new HashMap<>(),
                 param,
                 new TypeReference<Map<String, String>>()
@@ -142,9 +143,63 @@ public class HttpClientAuthTest
     }
 
     @Test
+    public void testGetQuery() throws Exception
+    {
+        HttpClientUtil.Config config = new HttpClientUtil.Config();
+//        config.setProxyInfo(new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http"));
+        config.setSocketTimeout(120000);
+        Map<String, String> body = new HashMap<>(Collections.singletonMap("jobId", "8303261fd4eb44249ab76a69a17ff46d"));
+        body.put("taskId", "29572e44-25e5-401d-9e2f-217dd90652d0");
+
+        Map<String, String> headers = new HashMap<>();
+
+        SM2Test sm2 = new SM2Test();
+        String time = LocalDateTime.now().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+        String str = "SS0EA21120003:" + time;
+        String encrypt = sm2.encode(str, "04B917C2246315CEE1BB413E44FD0093373C1E04263E473954BE36CAA470EE3651FCFF0DCCEA3173646BC3C779627FF7ADA0E66495A15D317F253E37F0070269E4");
+        System.out.println(encrypt);
+        headers.put("Authorization", encrypt);
+
+        Map<String, Object> model = new HttpClientUtil(config).get("https://192.168.31.251:443/base/event/doc/query",
+                headers,
+                body,
+                new TypeReference<Map<String, Object>>()
+                {
+                }, 1);
+        System.out.println(model);
+    }
+
+    @Test
+    public void testPostUpload() throws Exception
+    {
+        HttpClientUtil.Config config = new HttpClientUtil.Config();
+//        config.setProxyInfo(new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http"));
+        config.setSocketTimeout(120000);
+        Map<String, String> body = new HashMap<>(Collections.singletonMap("jobId", "8303261fd4eb44249ab76a69a17ff46d"));
+        body.put("url", "http://zjjcmspublic.oss-cn-hangzhou-zwynet-d01-a.internet.cloud.zj.gov.cn/jcms_files/jcms1/web3431/site/old/webmagic/eWebEditor/uploadfile/20140723085535625.jpg");
+
+        Map<String, String> headers = new HashMap<>();
+
+        SM2Test sm2 = new SM2Test();
+        String time = LocalDateTime.now().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+        String str = "SS0EA21120003:" + time;
+        String encrypt = sm2.encode(str, "04B917C2246315CEE1BB413E44FD0093373C1E04263E473954BE36CAA470EE3651FCFF0DCCEA3173646BC3C779627FF7ADA0E66495A15D317F253E37F0070269E4");
+        System.out.println(encrypt);
+        headers.put("Authorization", encrypt);
+
+        Map<String, Object> model = new HttpClientUtil(config).post("https://192.168.31.251:443/base/event/doc/upload",
+                headers,
+                body,
+                new TypeReference<Map<String, Object>>()
+                {
+                });
+        System.out.println(model);
+    }
+
+    @Test
     public void testPostText() throws Exception
     {
-        File f = new File("F:\\Downloads\\1F74F8F8-28E8-4d96-BD0D-3737926ED6AE.txt");
+        File f = new File("F:\\Downloads\\B6ABBDD8-670A-4682-8F0B-395D0C0966E3.txt");
         InputStreamReader readerx = new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8);
         BufferedReader rr = new BufferedReader(readerx);
 
@@ -155,7 +210,7 @@ public class HttpClientAuthTest
             sb.append(line).append("\n");
         }
         char[] ccc = sb.toString().toCharArray();
-        System.out.println(new String(ccc, 0, ccc.length));
+//        System.out.println(new String(ccc, 0, ccc.length));
 
         InputStreamReader reader = new InputStreamReader(new FileInputStream(f), StandardCharsets.UTF_8);
         int len;
@@ -168,7 +223,7 @@ public class HttpClientAuthTest
             System.arraycopy(buf, 0, temp, current.length, len);
             current = temp;
         }
-        System.out.println(new String(current, 0, current.length));
+//        System.out.println(new String(current, 0, current.length));
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         FileInputStream input = new FileInputStream(f);
@@ -183,8 +238,7 @@ public class HttpClientAuthTest
         bb.put(bytes);
         bb.flip();
         CharBuffer cb = StandardCharsets.UTF_8.decode(bb);
-        System.out.println(cb);
-
+//        System.out.println(cb);
 
         HttpClientUtil.Config config = new HttpClientUtil.Config();
 //        config.setKeyStore("D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk.ks");
@@ -207,14 +261,16 @@ public class HttpClientAuthTest
         System.out.println(encrypt);
         headers.put("Authorization", encrypt);
 
-        Model model = new HttpClientUtil(config).post("https://192.190.20.251/SIMP_DBS_S/event/doc/text",
+        long start = System.currentTimeMillis();
+        Model model = new HttpClientUtil(config).post("https://192.168.31.251/base/event/doc/text",
                 headers,
                 body,
                 new TypeReference<Model>()
                 {
                 });
         System.out.println(Optional.ofNullable(model.getResult()).orElse(new ArrayList<>()).size());
-        System.out.println(model);
+        System.out.println(JSONUtil.toJson(model));
+        System.out.println(System.currentTimeMillis() - start);
     }
 
     private static class Model

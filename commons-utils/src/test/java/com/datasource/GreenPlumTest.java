@@ -17,6 +17,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
@@ -134,23 +136,57 @@ public class GreenPlumTest
         }
     }
 
+    public static long importData(DataSource dataSource,
+                                  String table,
+                                  String delimiter,
+                                  String quote,
+                                  String file) throws SQLException, IOException
+    {
+        try (InputStream in = new FileInputStream(file);
+             Connection con = dataSource.getConnection())
+        {
+            logger.info("import data begin");
+            CopyManager cm = new CopyManager(con.unwrap(BaseConnection.class));
+            StringBuffer sb = new StringBuffer();
+            sb.append("copy ");
+            sb.append(table);
+            sb.append(" from STDIN ");
+            sb.append(" WITH csv DELIMITER '");
+            sb.append(delimiter);
+            sb.append("'");
+//            sb.append(" ENCODING 'UTF8'");
+            sb.append(" QUOTE '").append(quote).append("'");
+            String copySql = sb.toString();
+            logger.info("import data begin,  sql  is {}", copySql);
+            long startTime = System.currentTimeMillis();
+            long handledRowCount = cm.copyIn(copySql, in);
+            long elapsedTime = System.currentTimeMillis() - startTime;
+            logger.info("import data end,  sql  is {}, elapsed time = {}", copySql, elapsedTime);
+            return handledRowCount;
+        }
+        catch (IOException | SQLException e)
+        {
+            logger.error(e.getMessage(), e);
+            throw e;
+        }
+    }
+
     /**
      * DROP TABLE tmp.my_table CASCADE;
      * CREATE TABLE tmp.my_table
-     *         ( field_1 varchar
-     *         , field_2 varchar
-     *         , field_3 varchar
-     *         , field_4 varchar
-     *         );
+     * ( field_1 varchar
+     * , field_2 varchar
+     * , field_3 varchar
+     * , field_4 varchar
+     * );
      *
      * COPY tmp.my_table (field_1,field_2,field_3,field_4)
      * FROM STDIN
      * WITH CSV DELIMITER ',' QUOTE '"' ESCAPE '\'
-     *         ;
+     * ;
      * "value","another value","this is \"another\" value","no more, thanks"
      * \.
-     *         ;
-     *
+     * ;
      *
      * @param dataSource
      * @param table
@@ -226,14 +262,16 @@ public class GreenPlumTest
         }
     }
 
-    public static void main(String[] args)
+    public static void main(String[] args) throws SQLException, IOException
     {
         DruidDataSource dataSource = new DruidDataSource();
+//        dataSource.setDriverClassName("com.pivotal.jdbc.GreenplumDriver");
+//        dataSource.setUrl("jdbc:pivotal:greenplum://192.170.24.45:5432;DatabaseName=postgres");
         dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setUrl("jdbc:postgresql://192.170.24.41:5432/test-yk?gssEncMode=disable");
+        dataSource.setUrl("jdbc:postgresql://192.170.24.45:5432/postgres?gssEncMode=disable");
         dataSource.setUsername("gpadmin");
         dataSource.setPassword("gpadmin");
-        dataSource.setDbType("oracle");
+//        dataSource.setDbType("oracle");
         //最大连接池数量
         dataSource.setMaxActive(100);
         // 初始化时建立物理连接的个数
@@ -247,7 +285,23 @@ public class GreenPlumTest
         // 连接保持空闲而不被驱逐的最小时间
         dataSource.setMinEvictableIdleTimeMillis(300000);
         System.out.println(System.currentTimeMillis());
-        GreenPlumTest.importData(dataSource, "tm_0000026_target", ";", "C:\\Users\\Spinfo\\Desktop\\tm_0000026_big.txt", "", "");
+        GreenPlumTest.importData(dataSource, "public.\"data_1000_1_YangKai\"", ",", "\"", "C:\\Users\\Admin\\Desktop\\79934aca42b54ff7806b36162803cb21.csv");
         System.out.println(System.currentTimeMillis());
+        /*try (Connection conn = dataSource.getConnection();
+             PreparedStatement statement = conn.prepareStatement("select * from data_1000w_1"))
+        {
+//            conn.setAutoCommit(false);
+//            statement.setFetchSize(100);
+            ResultSet rs = statement.executeQuery();
+            while (rs.next())
+            {
+                String name = rs.getString("NAME");
+                System.out.println(name);
+            }
+        }
+        catch (Exception e)
+        {
+
+        }*/
     }
 }

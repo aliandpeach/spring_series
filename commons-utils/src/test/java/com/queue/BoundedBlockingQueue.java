@@ -20,13 +20,13 @@ public class BoundedBlockingQueue<T>
     private final Condition notFull = lock.newCondition();
     private final Condition notEmpty = lock.newCondition();
 
-    private int maxQueueSize;
+    private final int maxQueueSize;
 
     private int count;
 
     private String name;
 
-    private BlockingQueue<T> queue;
+    private final BlockingQueue<T> queue;
 
     public BoundedBlockingQueue(BlockingQueue<T> queue, int maxQueueSize)
     {

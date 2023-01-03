@@ -38,7 +38,7 @@ public class JDBCTest
     private List<Map<String, Object>> read(int limit) throws Exception
     {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection connection = DriverManager.getConnection("jdbc:mysql://192.190.116.205:3306/tmc_db?useUnicode=true&useSSL=false&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&serverTimezone=GMT%2B8", "root", "root");
+        Connection connection = DriverManager.getConnection("jdbc:mysql://192.168.31.205:3306/tmc_db?useUnicode=true&useSSL=false&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&serverTimezone=GMT%2B8", "root", "root");
         connection.setAutoCommit(false); //NOTE 为了设置fetchSize,必须设置为false
         List<Map<String, Object>> result = new ArrayList<>();
         String sql = "SELECT * FROM sys_alarm_history";
@@ -84,7 +84,7 @@ public class JDBCTest
     private List<Map<String, Object>> readSize(int fetchSize) throws Exception
     {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection connection = DriverManager.getConnection("jdbc:mysql://192.190.116.205:3306/tmc_db?useUnicode=true&useSSL=false&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&serverTimezone=GMT%2B8", "root", "root");
+        Connection connection = DriverManager.getConnection("jdbc:mysql://192.168.31.205:3306/tmc_db?useUnicode=true&useSSL=false&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&serverTimezone=GMT%2B8", "root", "root");
         connection.setAutoCommit(false); //NOTE 为了设置fetchSize,必须设置为false
         List<Map<String, Object>> result = new ArrayList<>();
         String sql = "SELECT * FROM sys_alarm_history";

@@ -53,7 +53,7 @@ public class FileTest
 
     public static void main(String[] args) throws IOException
     {
-        String path = "D:\\workspace\\SDM_branches\\datamask\\datamask-simp-sdm2021-zjBoC\\datamask\\WebContent\\WEB-INF\\lib";
+        String path = "D:\\workspace\\branches\\datatest\\WebContent\\WEB-INF\\lib";
         List<File> fileList = FileUtil.loopFiles(new File(path), new FileFilter()
         {
             @Override

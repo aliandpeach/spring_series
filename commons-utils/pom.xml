@@ -89,6 +89,25 @@
             <artifactId>druid</artifactId>
             <version>1.1.24</version>
         </dependency>
+        <dependency>
+            <groupId>com.aliyun.oss</groupId>
+            <artifactId>aliyun-sdk-oss</artifactId>
+            <version>3.4.2</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>httpcore</artifactId>
+                    <groupId>org.apache.httpcomponents</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>httpclient</artifactId>
+                    <groupId>org.apache.httpcomponents</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>stax-api</artifactId>
+                    <groupId>stax</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <!--<dependency>
             <groupId>org.bitcoin.core</groupId>
             <artifactId>org.bitcoinj.core</artifactId>
@@ -232,11 +251,28 @@
         </dependency>
 
         <dependency>
+            <groupId>com.jcraft</groupId>
+            <artifactId>jsch</artifactId>
+            <version>0.1.54</version>
+        </dependency>
+        <dependency>
+            <groupId>ch.ethz.ganymed</groupId>
+            <artifactId>ganymed-ssh2</artifactId>
+            <version>262</version>
+        </dependency>
+
+        <dependency>
             <groupId>gbase-connector-java-8.3.81.53-build55.2.1-bin</groupId>
             <artifactId>gbase-connector-java-8.3.81.53-build55.2.1-bin</artifactId>
             <scope>system</scope>
             <systemPath>${project.basedir}/gbase-connector-java-8.3.81.53-build55.5.7-bin_min_mix.jar</systemPath>
             <version>bin</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-net</groupId>
+            <artifactId>commons-net</artifactId>
+            <version>3.8.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>

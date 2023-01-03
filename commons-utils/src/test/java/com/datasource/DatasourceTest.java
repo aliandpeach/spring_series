@@ -4,6 +4,8 @@ import com.alibaba.druid.pool.DruidDataSource;
 import com.alibaba.druid.pool.DruidDataSourceFactory;
 import com.alibaba.druid.pool.DruidPooledConnection;
 import com.datasource.transaction.DataSourceTransactionManager;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -19,8 +21,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
@@ -36,6 +41,295 @@ import static cn.hutool.core.thread.ThreadUtil.sleep;
  */
 public class DatasourceTest
 {
+    private static final String QUERY_INDEX_SQL = "select a.owner, a.index_name, a.uniqueness, b.column_name,b.table_name from" +
+            "  dba_indexes a, dba_ind_columns b where a.index_name = b.index_name and a.owner in (?) and  a.table_name = ? and a.owner = b.index_owner  " +
+//			"and not exists ( select 1 from dba_constraints t where t.constraint_type = 'P' and t.owner = ?  and t.constraint_name = a.index_name) "+
+            " order by b.column_position";
+    private static final String QUERY_TABLE_COLUMN = "SELECT A.TABLE_NAME,A.COLUMN_NAME,A.DATA_TYPE,A.DATA_LENGTH,B.COMMENTS,A.COLUMN_ID,'COMMON_A' AS OWNER FROM " +
+            "USER_TAB_COLUMNS A, USER_COL_COMMENTS B, USER_TABLES C  WHERE A.TABLE_NAME = B.TABLE_NAME AND A.COLUMN_NAME = B.COLUMN_NAME AND A.TABLE_NAME = C.TABLE_NAME  AND NOT EXISTS (select 1 from user_tab_cols c  where c.virtual_column = 'YES' and a.table_name = c.table_name and a.column_name = c.column_name) " +
+            "and A.TABLE_NAME in ('DATA_1000_1_YangKai')";
+
+    public static void main(String[] args) throws SQLException
+    {
+//        new DatasourceTest().moveMysqlData2Oracle();
+        queryTableColumn();
+    }
+
+    public static void queryAllMysql() throws Exception
+    {
+        String aaa = "select * from SYS_CODE_LIST where code_type = 'class_path'";
+        String bbb = "select * from SYS_CODE_LIST where code_type = 'rule_type'";
+        String ccc = "select * from T_MATCH_RULE";
+        String ddd = "select * from T_RULE_REGULAR";
+        String eee = "select * from T_DESENSITIZE_RULE";
+        String fff = "select * from T_DESENSITIZE_CONFIG";
+
+        DruidDataSource dataSourceMysql = new DruidDataSource();
+        dataSourceMysql.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        dataSourceMysql.setUrl("jdbc:mysql://192.168.20.252:3306/datatest?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true");
+        dataSourceMysql.setUsername("root");
+        dataSourceMysql.setPassword("Admin@0123");
+        dataSourceMysql.setDbType("mysql");
+
+        DruidDataSource dataSourceOracle = new DruidDataSource();
+        dataSourceOracle.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+        dataSourceOracle.setUrl("jdbc:oracle:thin:@192.168.31.19:1521:orcl");
+        dataSourceOracle.setUsername("DATATEST");
+        dataSourceOracle.setPassword("Admin#0123");
+        dataSourceOracle.setDbType("oracle");
+
+        Connection connection = dataSourceMysql.getConnection();
+        PreparedStatement statement = connection.prepareStatement(aaa);
+        ResultSet _rs = statement.executeQuery();
+        while (_rs.next())
+        {
+
+        }
+    }
+
+    private static void queryCancelPrivs() throws SQLException
+    {
+        DruidDataSource dataSourceOracle = new DruidDataSource();
+        dataSourceOracle.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+        dataSourceOracle.setUrl("jdbc:oracle:thin:@192.168.31.19:1521:orcl");
+        dataSourceOracle.setUsername("SYS AS SYSDBA");
+        dataSourceOracle.setPassword("Admin#0123");
+        dataSourceOracle.setDbType("oracle");
+        List<String> privileges = new ArrayList<>();
+        try (Connection connection = dataSourceOracle.getConnection())
+        {
+            PreparedStatement statement = connection.prepareStatement("SELECT privilege from dba_sys_privs where grantee = 'COMMON_A' ORDER BY PRIVILEGE ASC");
+            ResultSet _r = statement.executeQuery();
+            while (_r.next())
+            {
+                String privilege = _r.getString(1);
+                privileges.add(privilege);
+            }
+        }
+        List<String> results = privileges.stream().map(t -> "REVOKE " + t + " FROM \"COMMON_A\"").collect(Collectors.toList());
+//        System.out.println(result);
+        try (Connection connection = dataSourceOracle.getConnection())
+        {
+            Statement statement = connection.createStatement();
+            for (String sql : results)
+            {
+                if (sql.contains("REVOKE CREATE SESSION FROM"))
+                {
+                    continue;
+                }
+                statement.addBatch(sql);
+            }
+            statement.executeBatch();
+            connection.commit();
+        }
+    }
+
+    private static void queryPrivilegesByRoleName() throws SQLException
+    {
+        DruidDataSource dataSourceOracle = new DruidDataSource();
+        dataSourceOracle.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+        dataSourceOracle.setUrl("jdbc:oracle:thin:@192.168.31.19:1521:orcl");
+        dataSourceOracle.setUsername("SYS AS SYSDBA");
+        dataSourceOracle.setPassword("Admin#0123");
+        dataSourceOracle.setDbType("oracle");
+        List<String> privileges = new ArrayList<>();
+        try (Connection connection = dataSourceOracle.getConnection())
+        {
+            PreparedStatement statement = connection.prepareStatement("SELECT privilege from dba_sys_privs where grantee = 'RESOURCE' ORDER BY PRIVILEGE ASC");
+            ResultSet _r = statement.executeQuery();
+            while (_r.next())
+            {
+                String privilege = _r.getString(1);
+                privileges.add(privilege);
+            }
+        }
+        System.out.println(privileges);
+    }
+    private static void queryTableColumn() throws SQLException
+    {
+        DruidDataSource dataSourceOracle = new DruidDataSource();
+        dataSourceOracle.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+        dataSourceOracle.setUrl("jdbc:oracle:thin:@192.168.31.19:1521:orcl");
+        dataSourceOracle.setUsername("COMMON_A");
+        dataSourceOracle.setPassword("Admin#0123");
+        dataSourceOracle.setDbType("oracle");
+        List<String> privileges = new ArrayList<>();
+        try (Connection connection = dataSourceOracle.getConnection())
+        {
+            PreparedStatement statement = connection.prepareStatement(QUERY_TABLE_COLUMN);
+            ResultSet _r = statement.executeQuery();
+            while (_r.next())
+            {
+                String a = _r.getString(1);
+                String b = _r.getString(2);
+                String c = _r.getString(3);
+                privileges.add(b);
+            }
+        }
+        System.out.println(privileges);
+    }
+
+    private static void queryUsers() throws SQLException
+    {
+        DruidDataSource dataSourceOracle = new DruidDataSource();
+        dataSourceOracle.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+        dataSourceOracle.setUrl("jdbc:oracle:thin:@192.168.31.19:1521:orcl");
+        dataSourceOracle.setUsername("COMMON_A");
+        dataSourceOracle.setPassword("Admin#0123");
+        dataSourceOracle.setDbType("oracle");
+        List<String> privileges = new ArrayList<>();
+        try (Connection connection = dataSourceOracle.getConnection())
+        {
+            PreparedStatement statement = connection.prepareStatement("select username from dba_users where account_status = 'OPEN' and username not in ( 'SYSDBA', 'SYS' , 'SYSTEM')  order by userName");
+            ResultSet _r = statement.executeQuery();
+            while (_r.next())
+            {
+                String privilege = _r.getString(1);
+                privileges.add(privilege);
+            }
+        }
+        System.out.println(privileges);
+    }
+
+    private static void queryIndex() throws SQLException
+    {
+        DruidDataSource dataSourceOracle = new DruidDataSource();
+        dataSourceOracle.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+        dataSourceOracle.setUrl("jdbc:oracle:thin:@192.168.31.19:1521:orcl");
+        dataSourceOracle.setUsername("TEST_ONE");
+        dataSourceOracle.setPassword("Admin#0123");
+        dataSourceOracle.setDbType("oracle");
+        try (Connection connection = dataSourceOracle.getConnection())
+        {
+            PreparedStatement statement = connection.prepareStatement(QUERY_INDEX_SQL);
+            statement.setObject(1, "TEST_FIVE,TEST_THREE,TEST_TWO".split(","));
+            statement.setString(1, "FIVE_DATA_1000_1");
+            ResultSet _r = statement.executeQuery();
+            while (_r.next())
+            {
+                String a = _r.getString(1);
+                String b = _r.getString(2);
+                String c = _r.getString(3);
+                String d = _r.getString(4);
+            }
+        }
+    }
+
+    public void moveMysqlData2Oracle()
+    {
+        DruidDataSource dataSourceMysql = new DruidDataSource();
+        dataSourceMysql.setDriverClassName("com.mysql.cj.jdbc.Driver");
+        dataSourceMysql.setUrl("jdbc:mysql://192.168.31.15:3306/datatest?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true");
+        dataSourceMysql.setUsername("root");
+        dataSourceMysql.setPassword("Admin@0123");
+        dataSourceMysql.setDbType("mysql");
+
+        DruidDataSource dataSourceOracle = new DruidDataSource();
+        dataSourceOracle.setDriverClassName("oracle.jdbc.driver.OracleDriver");
+        dataSourceOracle.setUrl("jdbc:oracle:thin:@192.168.31.19:1521:orcl");
+        dataSourceOracle.setUsername("DATATEST");
+        dataSourceOracle.setPassword("Admin#0123");
+        dataSourceOracle.setDbType("oracle");
+
+        BlockingQueue<SysBaseValue> queue = new LinkedBlockingQueue<>(100000);
+        AtomicInteger count = new AtomicInteger(0);
+        AtomicBoolean finished = new AtomicBoolean(false);
+
+        new Thread(() ->
+        {
+            try (Connection connection = dataSourceMysql.getConnection();
+                 PreparedStatement statement = connection.prepareStatement("SELECT ID, CODE, CONVERT(AES_DECRYPT(UNHEX(VALUE),'salt') USING utf8)  as VALUE, BTYPE, REMARK from SYS_BASE_VALUE", ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY))
+            {
+                statement.setFetchSize(Integer.MIN_VALUE);
+                ResultSet _r = statement.executeQuery();
+                while (_r.next())
+                {
+                    String id = _r.getString("ID");
+                    int code = _r.getInt("CODE");
+                    String value = _r.getString("VALUE");
+                    String btype = _r.getString("BTYPE");
+                    String remark = _r.getString("REMARK");
+                    SysBaseValue sysBaseValue = new SysBaseValue(id, code, value, btype, remark);
+                    queue.put(sysBaseValue);
+                    count.incrementAndGet();
+                }
+            }
+            catch (SQLException | InterruptedException e)
+            {
+                e.printStackTrace();
+            }
+            finished.set(true);
+        }).start();
+
+        new Thread(() ->
+        {
+            List<SysBaseValue> list = new ArrayList<>();
+            while (true)
+            {
+                SysBaseValue sysBaseValue = queue.poll();
+                if (null != sysBaseValue)
+                    list.add(sysBaseValue);
+                if (list.size() == 100000)
+                {
+                    try (Connection connection = dataSourceOracle.getConnection();
+                         PreparedStatement statement = connection.prepareStatement("INSERT INTO SYS_BASE_VALUE_2 (ID, CODE, VALUE, BTYPE, REMARK) values (?, ?, ?, ?, ?)"))
+                    {
+                        for (SysBaseValue _value : list)
+                        {
+                            statement.setString(1, _value.getId());
+                            statement.setInt(2, _value.getCode());
+                            statement.setString(3, _value.getValue());
+                            statement.setString(4, _value.getBytpe());
+                            statement.setString(5, _value.getRemark());
+                            statement.addBatch();
+                        }
+                        statement.executeBatch();
+                    }
+                    catch (SQLException e)
+                    {
+                        e.printStackTrace();
+                    }
+                    list.clear();
+                }
+                if (list.size() < 100000 && finished.get() && list.size() > 0 && queue.size() == 0)
+                {
+                    try (Connection connection = dataSourceOracle.getConnection();
+                         PreparedStatement statement = connection.prepareStatement("INSERT INTO SYS_BASE_VALUE_2 (ID, CODE, VALUE, BTYPE, REMARK) values (?, ?, ?, ?, ?)"))
+                    {
+                        for (SysBaseValue _value : list)
+                        {
+                            statement.setString(1, _value.getId());
+                            statement.setInt(2, _value.getCode());
+                            statement.setString(3, _value.getValue());
+                            statement.setString(4, _value.getBytpe());
+                            statement.setString(5, _value.getRemark());
+                            statement.addBatch();
+                        }
+                        statement.executeBatch();
+                    }
+                    catch (SQLException e)
+                    {
+                        e.printStackTrace();
+                    }
+                    list.clear();
+                    break;
+                }
+            }
+        }).start();
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class SysBaseValue
+    {
+        private String id;
+        private int code;
+        private String value;
+        private String bytpe;
+        private String remark;
+    }
+
+
     public DataSource create() throws Exception
     {
         Properties props = new Properties();
@@ -46,9 +340,9 @@ public class DatasourceTest
 
         Properties properties = new Properties();
         properties.setProperty("driverClassName", "com.mysql.cj.jdbc.Driver");
-        properties.setProperty("url", "jdbc:mysql://192.190.20.252:13307/one?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true");
+        properties.setProperty("url", "jdbc:mysql://192.168.20.252:13307/one?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true");
         properties.setProperty("username", "test_one");
-        properties.setProperty("password", "Spinfo@0123");
+        properties.setProperty("password", "Admin@0123");
         properties.setProperty("dbType", "mysql");
 
         DruidDataSource druidDataSource = (DruidDataSource) DruidDataSourceFactory.createDataSource(properties);
@@ -63,7 +357,7 @@ public class DatasourceTest
     {
         DruidDataSource dataSource = new DruidDataSource();
         dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://192.190.20.251:3306/test?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true");
+        dataSource.setUrl("jdbc:mysql://192.168.20.251:3306/test?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true");
         dataSource.setUsername("root");
         dataSource.setPassword("root");
         dataSource.setDbType("mysql");
@@ -75,9 +369,9 @@ public class DatasourceTest
 //        dataSource.setDbType("mysql");
 
 //        dataSource.setDriverClassName("oracle.jdbc.driver.OracleDriver");
-//        dataSource.setUrl("jdbc:oracle:thin:@192.190.50.19:1521:orcl");
+//        dataSource.setUrl("jdbc:oracle:thin:@192.168.31.19:1521:orcl");
 //        dataSource.setUsername("TEST_TWO");
-//        dataSource.setPassword("Spinfo#0123");
+//        dataSource.setPassword("Admin#0123");
 //        dataSource.setDbType("oracle");
         //最大连接池数量
         dataSource.setMaxActive(100);
@@ -176,7 +470,7 @@ public class DatasourceTest
      * 测试批量更新（表名不一样的场景, 由于PreparedStatement需要预编译, 不能把表名作为参数传入, 所以不行）
      * 改用createStatement的addBatch
      */
-    public static void main(String[] args) throws SQLException
+    public static void main6(String[] args) throws SQLException
     {
         DatasourceTest datasourceTest = new DatasourceTest();
         DataSource dataSource = null;

@@ -2,6 +2,7 @@ package com.reg;
 
 import org.junit.Test;
 
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -10,6 +11,12 @@ public class RegTest
     @Test
     public void test()
     {
+        String __reg = "(?:(?:^.*\\.txt$)|(?:^.*\\.docx$)|(?:^.*\\.doc$))";
+        String __str = "oss-cn-hangzhou-zwynet-d01-a.internet.cloud.zj.gov.cn/zjjcmspublic/jcms_files/jcms1/web2080/site/media/0/31c10184ffdf4340a2201fd4bee0edc0.mp4";
+        Matcher __matcher = Pattern.compile(__reg).matcher(__str);
+        boolean __find = __matcher.find();
+
+
         String reg = "(金额|￥)(：|:)(([1-9]\\d*\\.?\\d*)|(0\\.\\d*[1-9]))";
         Matcher matcher = Pattern.compile(reg).matcher("金额:123多个资源的||012345修改界面表14021997831||13013013000||18729256151单动态生成，1机密陕西省莲湖区未;加机密特殊秘密aaaaaaa￥:123.2aaaaaaaaaaaaaaaaaaaaaaa字金额：123.2符验证发陕西省高新区大幅度发");
         while (matcher.find())
@@ -53,5 +60,24 @@ public class RegTest
         {
             System.out.println(matcher5.group());
         }
+
+        Matcher matcher6 = Pattern.compile("((?<=\\D)|(^))0[0-9]{13}((?=\\D+)|($))").matcher("07205031909406");
+        while (matcher6.find())
+        {
+            System.out.println(matcher6.group());
+        }
+        Matcher matcher7 = Pattern.compile("((?<=\\D)|(^))(ZJDK|ZJBH)[0-9]{17}((?=\\D+)|($))").matcher("ZJBH33031340200210601");
+        while (matcher7.find())
+        {
+            System.out.println(matcher7.group());
+        }
+        Matcher matcher8 = Pattern.compile("((?<=\\D)|(^))[BD][0-9]{6}-[0-9]{4}-[0-9]{5}((?=\\D+)|($))").matcher("B330391-2012-03145");
+        while (matcher8.find())
+        {
+            System.out.println(matcher8.group());
+        }
+        System.out.println(UUID.randomUUID().toString().replace("-", ""));
+        System.out.println(UUID.randomUUID().toString().replace("-", ""));
+        System.out.println(UUID.randomUUID().toString().replace("-", ""));
     }
 }

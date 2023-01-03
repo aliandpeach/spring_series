@@ -55,7 +55,7 @@ public class HttpFormDataTest
     @Test
     public void sendFormData() throws Exception
     {
-        String url = "https://192.190.10.122:21111/import/upload/multiple/json";
+        String url = "https://192.168.10.122:21111/import/upload/multiple/json";
 
         JSONObject jsonObject = new JSONObject();
         String fileId = UUID.randomUUID().toString().replace("-", "");
@@ -75,7 +75,7 @@ public class HttpFormDataTest
     @Test
     public void sendFormDataXML() throws Exception
     {
-        String url = "https://192.190.116.205:443/SIMP_DBS_S/event/file/analysis/upload/xml";
+        String url = "https://192.168.31.205:443/base/event/file/analysis/upload/xml";
 
         JAXBContext context = JAXBContext.newInstance(FileInfos.class);
         Marshaller marshaller = context.createMarshaller();
@@ -111,7 +111,7 @@ public class HttpFormDataTest
     @Test
     public void sendFormDataXMLByHttpClient() throws Exception
     {
-        String url = "https://192.190.116.205:443/SIMP_DBS_S/event/file/analysis/upload/xml";
+        String url = "https://192.168.31.205:443/base/event/file/analysis/upload/xml";
 
         JAXBContext context = JAXBContext.newInstance(FileInfos.class);
         Marshaller marshaller = context.createMarshaller();
@@ -149,7 +149,7 @@ public class HttpFormDataTest
     @Test
     public void sendFormDataJson() throws Exception
     {
-        String url = "https://192.190.10.122:21111/import/upload/multiple/json";
+        String url = "https://192.168.31.122:21111/import/upload/multiple/json";
         Map<String, String> filePathMap = new HashMap<>();
 
         String fileId = UUID.randomUUID().toString().replace("-", "");
@@ -173,7 +173,7 @@ public class HttpFormDataTest
     @Test
     public void sendFormDataJson3() throws Exception
     {
-        String url = "https://192.190.10.122:21111/import/upload/multiple/json3";
+        String url = "https://192.168.10.122:21111/import/upload/multiple/json3";
         Map<String, String> filePathMap = new HashMap<>();
 
         String fileId = UUID.randomUUID().toString().replace("-", "");
@@ -196,7 +196,7 @@ public class HttpFormDataTest
     @Test
     public void sendFormDataJson4() throws Exception
     {
-        String url = "https://192.190.10.122:21111/import/upload/multiple/json4";
+        String url = "https://192.168.10.122:21111/import/upload/multiple/json4";
         Map<String, String> filePathMap = new HashMap<>();
 
         String fileId = UUID.randomUUID().toString().replace("-", "");
@@ -218,7 +218,7 @@ public class HttpFormDataTest
     @Test
     public void sendFormDataJson5() throws Exception
     {
-        String url = "https://192.190.10.122:21111/import/upload/multiple/json5";
+        String url = "https://192.168.10.122:21111/import/upload/multiple/json5";
         Map<String, String> filePathMap = new HashMap<>();
 
         String fileId1 = UUID.randomUUID().toString().replace("-", "");
@@ -244,7 +244,7 @@ public class HttpFormDataTest
     @Test
     public void sendFormDataJson6() throws Exception
     {
-        String url = "https://192.190.10.122:21111/import/upload/multiple/json6";
+        String url = "https://192.168.10.122:21111/import/upload/multiple/json6";
         Map<String, String> filePathMap = new HashMap<>();
 
         String fileId = UUID.randomUUID().toString().replace("-", "");
@@ -271,7 +271,7 @@ public class HttpFormDataTest
     public void sendPostBytes() throws Exception
     {
         String content = "abc123中文";
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postText("https://192.190.10.122:21112/import/upload/multiple/bytes", content);
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postText("https://192.168.10.122:21112/import/upload/multiple/bytes", content);
         System.out.println(response);
     }
 
@@ -344,7 +344,7 @@ public class HttpFormDataTest
     @Test
     public void getHtml() throws Exception
     {
-        String url = "https://192.190.116.205/temporary_upload/bmj-new-install-1.5.0.0.7.v5.zip";
+        String url = "https://192.168.116.205/temporary_upload/bmj-new-install-1.5.0.0.7.v5.zip";
         new HttpClientUtil().getBytes(url, new HashMap<>(), new HashMap<>(), "a.html", System.currentTimeMillis() + "", "F:\\iworkspace\\_downloadx");
     }
 }
