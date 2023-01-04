@@ -1,1 +1,1 @@
-docker build -t springboot_website:1.0-SNAPSHOT .
+docker build -t tomcat-website:1.0-SNAPSHOT .

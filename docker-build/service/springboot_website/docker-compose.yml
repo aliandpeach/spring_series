@@ -2,7 +2,9 @@ version: '3.9'
 
 services:
   springboot_website:
-    image: springboot_website:1.0-SNAPSHOT
+    # 先使用上级目录中的Dockerfile构建镜像(Dockerfile文件名是默认名, 如果是其它名称则需要指定), 镜像名为springboot_website:1.0-SNAPSHOT
+    build: ..
+    image: tomcat-website:1.0-SNAPSHOT
     # 指定容器名称
     container_name: springboot_website-container
     restart: always
