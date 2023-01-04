@@ -55,6 +55,11 @@ do
       echo "$(date "+%Y-%m-%d %H:%M:%S") restart tomcat again" >> ${TOMCAT_HOME}/logs/watched.log
       echo "$(date "+%Y-%m-%d %H:%M:%S") catalina_file_name = ${catalina_file_name}" >> "${TOMCAT_HOME}"/logs/watched.log
 
+      if [ -f "${TOMCAT_HOME}/tomcat.pid" ]; then
+        echo "$(date "+%Y-%m-%d %H:%M:%S") delete last tomcat.pid" >> "${TOMCAT_HOME}"/logs/watched.log
+        rm -f "${TOMCAT_HOME}"/tomcat.pid
+      fi
+
       service tomcat start
       sleep 1
       echo "$(date "+%Y-%m-%d %H:%M:%S") `${JAVA_HOME}/bin/jps`" >> ${TOMCAT_HOME}/logs/watched.log

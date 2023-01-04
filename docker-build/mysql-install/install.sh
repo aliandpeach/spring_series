@@ -16,7 +16,7 @@ echo "step2: waiting for database installation ..."
 if [ ! -d "${current_dir}/run" ];then
    mkdir -p  "${current_dir}/run"
 fi
-tar -zxvf ./tools/mysql-5.7.12-linux-glibc2.5-x86_64.tar.gz -C "${current_dir}"/run
+tar -zxvf ./tools/mysql-5.7.24-linux-glibc2.5-x86_64.tar.gz -C "${current_dir}"/run
 
 setupreg=$(pwd |sed 's/\//\\\\\//g')
 
