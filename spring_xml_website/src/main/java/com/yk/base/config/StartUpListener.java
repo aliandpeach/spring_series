@@ -39,6 +39,10 @@ import java.util.Optional;
 import java.util.Properties;
 
 @WebListener
+// 可在web.xml中配置使StartUpListener生效
+//<listener>
+//  <listener-class>com.yk.base.config.StartUpListener</listener-class>
+//</listener>
 public class StartUpListener implements ServletContextListener
 {
 

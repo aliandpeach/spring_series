@@ -28,5 +28,6 @@
 		<module>springboot-session-service</module>
 		<module>springboot-docker-service</module>
 		<module>http-request-sdk</module>
+		<module>springboot-shiro-website</module>
     </modules>
 </project>

@@ -42,7 +42,10 @@ import org.thymeleaf.spring5.view.ThymeleafViewResolver;
  *  3. 如果WebMvcConfigurer接口没有更多公开的的高级配置，那么就需要继承WebMvcConfigurationSupport， 注意不要添加 @EnableWebMvc
  */
 @Configuration //bean.xml
-@EnableWebMvc //开启注解版 SpringMVC 相当 web.xml 该工程完全省略了 web.xml
+// 开启注解版 SpringMVC 相当 web.xml 该工程完全省略了 web.xml
+// 非springboot工程启用该注解不会像springboot工程那样禁止掉WebMvcAutoConfiguration, mvc工程本身也没有自动配置
+// 所以如果mvc工程要使用swagger, 必须在addResourceHandlers 增加路径映射
+@EnableWebMvc
 @Order(2)
 @ComponentScan("com.yk")
 public class SpringMvcConfig implements WebMvcConfigurer

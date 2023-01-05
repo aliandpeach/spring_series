@@ -27,6 +27,7 @@ public class TestBeanServiceImpl {
                 = Optional.<TestInnerBeanServiceImpl>ofNullable(service).map(t -> t.test(1, "")).get();
 
         r = testInnerBeanService.map(t -> t.test(1, "")).orElseGet(() -> new ArrayList<>());
+        r = testInnerBeanService.map(t -> t.test(1, "")).orElseGet(() -> null);
         r = testInnerBeanService.map(t -> t.test(1, "")).orElse(new ArrayList<>());
     }
 

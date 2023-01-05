@@ -281,5 +281,23 @@ public class Main {
                 .filter(t -> !Objects.isNull(t) && !Objects.isNull(t.get("jobId")) && !Objects.isNull(t.get("name")))
                 .flatMap(t -> new HashMap<>(Collections.singletonMap(t.get("jobId"), t.get("name"))).entrySet().stream())
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (k1, k2) -> k1));
+
+
+        Map<String, Map<String, Integer>> mapHashMap = new HashMap<>();
+        Map<String, Integer> innerMap1 = new HashMap<>();
+        innerMap1.put("aa", 1);
+        innerMap1.put("bb", 1);
+        Map<String, Integer> innerMap2 = new HashMap<>();
+        innerMap2.put("cc", 3);
+        innerMap2.put("dd", 4);
+        mapHashMap.put("A", innerMap1);
+        mapHashMap.put("B", innerMap2);
+
+        String _result = mapHashMap.entrySet().stream()
+                .flatMap(t -> Collections.singletonMap(t.getKey(), t.getValue().entrySet().stream().map(y -> y.getKey() + ":" + y.getValue())
+                        .collect(Collectors.joining(",\n    ", "    ", ""))).entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (a, b) -> a))
+                .entrySet().stream().map(c -> c.getKey() + ": \n" + c.getValue()).collect(Collectors.joining("\n"));
+        System.out.println(_result);
     }
 }

@@ -1,5 +1,8 @@
 package com.yk.base.util;
 
+import com.yk.crypto.Base58;
+import org.bouncycastle.util.encoders.Hex;
+
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -67,6 +70,7 @@ public class DESUtils {
             // 这里无论使用 secretKey 还是 "private static Key key" 结果都一样
             cipher.init(Cipher.ENCRYPT_MODE, secretKey); // DES/CBC/PKCS5Padding mode需要用到IvParameterSpec
             byte[] encryteStrBytes = cipher.doFinal(pwdBytes);
+            System.out.println(Base58.encode(encryteStrBytes));
             return Base64.getEncoder().encodeToString(encryteStrBytes);
         } catch (Exception e) {
             throw new RuntimeException("decryptString error", e);
@@ -101,5 +105,13 @@ public class DESUtils {
         System.out.println(en);
         String de = DESUtils.decryptString(en);
         System.out.println(de);
+
+        SecureRandom sr = new SecureRandom("TEET".getBytes(StandardCharsets.UTF_8));
+        byte []_b = new byte[16];
+        sr.nextBytes(_b);
+        System.out.println(Hex.toHexString(_b));
+        System.out.println(System.currentTimeMillis());
+        System.out.println(Base64.getEncoder().encodeToString(_b));
+        System.out.println(Base58.encode(_b));
     }
 }

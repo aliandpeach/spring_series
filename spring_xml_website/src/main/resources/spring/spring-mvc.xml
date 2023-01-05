@@ -28,6 +28,10 @@
     <!-- 下面两个配置只在DispatcherServlet拦截所有请求的情况下配置即可-->
     <mvc:default-servlet-handler/> <!-- DispatcherServlet 拦截了所有请求包括静态资源，开启这个配置，就可以直接访问除安全目录外的其他静态资源 -->
     <mvc:resources mapping="/jquery/**" location="/plugin/jquery/"/>
+    <!-- 如果mvc工程要使用swagger, 必须像springboot的WebMvcAutoConfiguration自动配置那样, 手动增加路径映射 -->
+    <!--<bean name="swaggerConfig" class="com.swagger.config.SwaggerConfig"/>
+    <mvc:resources mapping="swagger-ui.html" location="classpath:/META-INF/resources/" />
+    <mvc:resources mapping="/webjars/**" location="classpath:/META-INF/resources/webjars/" />-->
 
     <bean id="templateResolver"
           class="org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver">
@@ -68,6 +72,48 @@
         </property>
     </bean>
 
+    <bean id="objectMapper" class="org.springframework.http.converter.json.Jackson2ObjectMapperFactoryBean">
+        <!-- 自定义时间字符串转Date -->
+        <property name="deserializersByType">
+            <map key-type="java.lang.Class">
+                <entry key="java.util.Date" value-ref="dateJacksonConverter"/>
+            </map>
+        </property>
+        <!-- 自定义Date转字符串格式 -->
+        <!--<property name="serializersByType">
+            <map key-type="java.util.Date">
+                <entry key="java.lang.String" value-ref="dateJacksonConverter"/>
+            </map>
+        </property>-->
+    </bean>
+
+    <!-- 自定义Date转字符串格式 -->
+    <!--<bean id="objectMapper" class="com.fasterxml.jackson.databind.ObjectMapper">
+        <property name="dateFormat">
+            <bean class="java.text.SimpleDateFormat">
+                <constructor-arg type="java.lang.String" value="yyyy-MM-dd HH:mm:ss" />
+            </bean>
+        </property>
+    </bean>-->
+
+    <!-- 待验证 DateConverterConfig 和 DateJacksonConverter 哪个在前端到后台传参中被使用 -->
+    <!--注册类型转换器GoodsConverter-->
+    <bean id="conversionService" class="org.springframework.context.support.ConversionServiceFactoryBean">
+        <property name="converters">
+            <list>
+                <bean class="com.yk.base.config.DateConverterConfig"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="conversionService1" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <property name="converters">
+            <list>
+                <bean class="com.yk.base.config.DateConverterConfig"/>
+            </list>
+        </property>
+    </bean>
+
     <!--
         这个配置会自动注册三个类
         RequestMappingHandlerMapping
@@ -96,7 +142,10 @@
                     </list>
                 </property>
             </bean>
-            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+                <!-- spring mvc 使用自定义 objectMapper, 可实现Date转前端字符串格式 -->
+                <property name="objectMapper" ref="objectMapper"/>
+            </bean>
         </mvc:message-converters>
     </mvc:annotation-driven>
 
