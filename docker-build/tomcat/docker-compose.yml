@@ -2,6 +2,7 @@ version: '3.9'
 
 services:
   tomcat-yk:
+    build: .
     image: tomcat-yk:9
     container_name: tomcat-yk-container
     restart: always
