@@ -1,5 +1,6 @@
 package com.yk.base.exception;
 
+import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -159,14 +160,28 @@ public class ControllerExceptionHandler
         BaseResponse<?> baseResponse = handleBaseException(e);
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         baseResponse.setStatus(status.value());
-        baseResponse.setMessage(e.getMessage());
+        baseResponse.setMessage("内部异常");
         return baseResponse;
     }
 
     @ExceptionHandler(value = UnauthorizedException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)
-    public void handleUnauthorizedException(Exception e)
+    public BaseResponse<?> handleUnauthorizedException(Exception e)
     {
+        BaseResponse<?> baseResponse = handleBaseException(e);
+        logger.error("Unauthorized Exception {}", baseResponse.getMessage());
+        baseResponse.setMessage("角色或者权限异常");
+        return baseResponse;
+    }
+
+    @ExceptionHandler(value = UnauthenticatedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public BaseResponse<?> handleUnauthenticatedException(Exception e)
+    {
+        BaseResponse<?> baseResponse = handleBaseException(e);
+        logger.error("Unauthenticated Exception {}", baseResponse.getMessage());
+        baseResponse.setMessage("角色或者权限异常");
+        return baseResponse;
     }
 
     /**

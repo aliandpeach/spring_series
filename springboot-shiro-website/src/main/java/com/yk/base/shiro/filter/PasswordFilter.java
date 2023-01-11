@@ -2,14 +2,17 @@ package com.yk.base.shiro.filter;
 
 import com.yk.base.exception.ShiroException;
 import com.yk.base.shiro.jwt.JwtTokenProvider;
-import com.yk.base.shiro.redis.RedisServiceImpl;
 import com.yk.base.shiro.token.PasswordToken;
 import com.yk.base.wapper.NewHttpServletRequestWrapper;
 import com.yk.httprequest.JSONUtil;
-import com.yk.user.model.User;
-import com.yk.user.service.UserService;
+import com.yk.user.form.UserForm;
 import org.apache.commons.io.IOUtils;
 import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.DisabledAccountException;
+import org.apache.shiro.authc.ExcessiveAttemptsException;
+import org.apache.shiro.authc.IncorrectCredentialsException;
+import org.apache.shiro.authc.LockedAccountException;
+import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.web.filter.AccessControlFilter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -57,7 +60,7 @@ public class PasswordFilter extends AccessControlFilter
         try (InputStream input = request.getInputStream())
         {
             String json = IOUtils.toString(input, StandardCharsets.UTF_8.name());
-            User user = JSONUtil.fromJson(json, User.class);
+            UserForm user = JSONUtil.fromJson(json, UserForm.class);
             passwordToken.setUsername(user.getUsername());
 //            passwordToken.setPasswd(bcryptPasswordEncoder.encode(user.getPasswd()));
             passwordToken.setPasswd(user.getPasswd());
@@ -73,11 +76,52 @@ public class PasswordFilter extends AccessControlFilter
         try
         {
             subject.login(passwordToken);
+            return true;
         }
-        catch (AuthenticationException e)
+        catch (Exception e)
         {
-            throw new ShiroException(400, "sign in error");
+            if (e instanceof AuthenticationException)
+            {
+                if (e instanceof DisabledAccountException)
+                {
+                    // 帐号被锁定
+                    if (e instanceof LockedAccountException)
+                    {
+                        throw new ShiroException("账号被锁定");
+                    }
+                    // 帐号被禁用
+                    else
+                    {
+                        throw new ShiroException("帐号被禁用");
+                    }
+                }
+                // 登录失败次数过多
+                else if (e instanceof ExcessiveAttemptsException)
+                {
+                    throw new ShiroException("登录失败次数过多");
+                }
+                // 未知帐号/没找到帐号
+                else if (e instanceof UnknownAccountException)
+                {
+                    throw new ShiroException("未知帐号");
+                }
+                else if (e instanceof IncorrectCredentialsException)
+                {
+                    throw new ShiroException("认证错误");
+                }
+                else
+                {
+                    if (e.getCause() instanceof ShiroException)
+                    {
+                        throw (ShiroException) e.getCause();
+                    }
+                    throw new ShiroException("登录错误");
+                }
+            }
+            else
+            {
+                throw new ShiroException("登录错误");
+            }
         }
-        return true;
     }
 }

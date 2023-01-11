@@ -132,7 +132,7 @@ public class ShiroErrorController implements ErrorController
         Object obj = errorAttributes.get("message");
         String exception = String.valueOf(errorAttributes.get("exception"));
 
-        // 从request中直接获取异常信息, request中的异常信息是由tomcat在 requestDispatcher.forward跳转时设置的, 猜测是在StandardHostValve类中
+        // 从request中直接获取异常信息, request中的异常信息是由tomcat在 requestDispatcher.forward跳转时设置的, 猜测是在StandardHostValue类中
         Object statusObject = request.getAttribute("javax.servlet.error.status_code");
         Object statusObject1 = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         Object exceptionObject = request.getAttribute("javax.servlet.error.exception");
@@ -142,7 +142,7 @@ public class ShiroErrorController implements ErrorController
         {
             log.error("customer exception：[{}]", ex.getMessage());
             errorAttributes.put("message", ex.getMessage());
-//            errorAttributes.put("status", ((ShiroException) ex).getStatus());
+            errorAttributes.put("status", ((ShiroException) ex).getStatus());
         }
         else if (ex instanceof BindException)
         {
@@ -181,17 +181,24 @@ public class ShiroErrorController implements ErrorController
                     FieldError fieldError = bindingResult.getFieldErrors().get(0);
                     errorAttributes.put("message", fieldError.getDefaultMessage());
                 }
-                log.error(">>>异常：参数校验异常，异常信息：[{}]", e.getMessage());
+                log.error("异常：参数校验异常，异常信息：[{}]", e.getMessage());
             }
         }
         else if (ex instanceof HttpMediaTypeNotSupportedException || ex instanceof HttpMediaTypeNotAcceptableException)
         {
+            errorAttributes.put("message", ex.getMessage());
             log.error("媒体类型异常，异常信息：[{}]", ex.getMessage());
         }
         else if (ex instanceof ServletException)
         {
             ServletException e = (ServletException) ex;
             Throwable cause = e.getCause();
+            if (cause instanceof ShiroException)
+            {
+                errorAttributes.put("message", cause.getMessage());
+                errorAttributes.put("status", ((ShiroException) cause).getStatus());
+                log.error("登录异常：异常信息：[{}]", cause.getMessage());
+            }
         }
         else if (ex instanceof ValidationException)
         {

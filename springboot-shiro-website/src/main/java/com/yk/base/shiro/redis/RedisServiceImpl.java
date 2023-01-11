@@ -6,9 +6,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service("redisService")
 public class RedisServiceImpl
@@ -72,7 +74,7 @@ public class RedisServiceImpl
      */
     public void deleteByKeys(Object... keys)
     {
-        this.deleteByKeys(Arrays.asList(keys));
+        this.deleteByKeys(Arrays.stream(keys).filter(Objects::nonNull).map(Object::toString).collect(Collectors.toList()));
     }
 
     /**

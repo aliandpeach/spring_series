@@ -4,6 +4,14 @@ spring:
       enabled: true
       max-file-size: 1073741824
       max-request-size: 1073741824
+  thymeleaf:
+    cache: false
+    enabled: true
+    prefix: classpath:/thymeleaf/
+    suffix: .html
+    mode: HTML
+    template-resolver-order: 1
+    encoding: UTF-8
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driverClassName: com.mysql.cj.jdbc.Driver
@@ -38,4 +46,4 @@ security:
   jwt:
     token:
       secret-key: secret-key
-      expire-length: 3600000 # 5 minutes duration by default: 5 minutes * 60 seconds * 1000 miliseconds
+      expire-length: 360000 # 5 minutes duration by default: 5 minutes * 60 seconds * 1000 miliseconds

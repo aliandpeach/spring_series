@@ -21,6 +21,11 @@ public class RequestUtils
         return ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getResponse();
     }
 
+    public static void setNewBaseMetadata()
+    {
+        getRequest().setAttribute(REQUEST_BASE_METADATA, new BaseMetadata());
+    }
+
     public static BaseMetadata getBaseMetadata()
     {
         return (BaseMetadata) getRequest().getAttribute(REQUEST_BASE_METADATA);

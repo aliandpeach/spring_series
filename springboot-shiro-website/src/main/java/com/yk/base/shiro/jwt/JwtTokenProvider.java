@@ -6,8 +6,10 @@ import com.yk.user.model.Permission;
 import com.yk.user.model.Role;
 import com.yk.user.model.User;
 import com.yk.user.service.UserService;
+import io.jsonwebtoken.ClaimJwtException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -19,6 +21,8 @@ import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.ExpiredCredentialsException;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.pam.UnsupportedTokenException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -34,6 +38,8 @@ import java.util.stream.Collectors;
 @Component
 public class JwtTokenProvider
 {
+    private static Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+
     /**
      * THIS IS NOT A SECURE PRACTICE! For simplicity, we are storing a static key here. Ideally, in a
      * microservices environment, this key would be kept on a config-server.
@@ -42,6 +48,7 @@ public class JwtTokenProvider
     private String secretKey;
 
     @Value("${security.jwt.token.expire-length:3600000}")
+    @Getter
     private long validityInMilliseconds = 3600000; // 1h
 
     @Getter
@@ -69,7 +76,7 @@ public class JwtTokenProvider
 
     public String createRefreshToken(String username, List<Role> roles)
     {
-        return create(username, roles, 3600000 * 24);
+        return create(username, roles, validityInMilliseconds);
     }
 
     private String create(String username, List<Role> roles, long millis)
@@ -93,7 +100,26 @@ public class JwtTokenProvider
 
     public AuthenticationInfo getJwtAuthenticationToken(String token, String realmName)
     {
-        User user = userService.queryUserByUsername(getUsername(token));
+        String _username;
+        try
+        {
+            _username = getUsername(token);
+        }
+        catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException | IllegalArgumentException e)
+        {
+            if (e instanceof ExpiredJwtException)
+            {
+                // 在这里不直接抛出异常, 如果只是token过期但可以获得token的username, 就继续走下去, 在TokenFilter中进行判断是否返回refresh token
+                Claims claims = ((ExpiredJwtException) e).getClaims();
+                _username = null != claims ? claims.getSubject() : null;
+                logger.error("token expired warning, token:{}, username : {}", token, _username);
+            }
+            else
+            {
+                throw new ShiroException(e.getMessage());
+            }
+        }
+        User user = userService.queryUserByUsername(_username);
         if (null == user || StringUtils.isEmpty(user.getUsername()))
         {
             throw new ShiroException(400, "user not exist");
@@ -103,7 +129,9 @@ public class JwtTokenProvider
 
     public String getUsername(String token)
     {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
+        Jws<Claims> claimsJws = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+        String subject = claimsJws.getBody().getSubject();
+        return subject;
     }
 
     public String resolveToken(HttpServletRequest req)
@@ -125,15 +153,15 @@ public class JwtTokenProvider
         }
         catch (SignatureException | UnsupportedJwtException | MalformedJwtException | IllegalArgumentException e)
         {
-            throw new UnsupportedTokenException("token error: unsupported", e);
+            throw new UnsupportedTokenException("token error: unsupported");
         }
         catch (ExpiredJwtException e)
         {
-            throw new ExpiredCredentialsException("token expired", e);
+            throw new ExpiredCredentialsException("token expired");
         }
         catch (Exception e)
         {
-            throw new UnsupportedTokenException("token error", e);
+            throw new UnsupportedTokenException("token error");
         }
     }
 }

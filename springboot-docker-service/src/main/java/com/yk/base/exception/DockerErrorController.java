@@ -132,7 +132,7 @@ public class DockerErrorController implements ErrorController
         Object obj = errorAttributes.get("message");
         String exception = String.valueOf(errorAttributes.get("exception"));
 
-        // 从request中直接获取异常信息, request中的异常信息是由tomcat在 requestDispatcher.forward跳转时设置的, 猜测是在StandardHostValve类中
+        // 从request中直接获取异常信息, request中的异常信息是由tomcat在 requestDispatcher.forward跳转时设置的, 猜测是在StandardHostValue类中
         Object statusObject = request.getAttribute("javax.servlet.error.status_code");
         Object statusObject1 = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         Object exceptionObject = request.getAttribute("javax.servlet.error.exception");

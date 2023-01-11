@@ -22,10 +22,10 @@ CREATE TABLE `t_permission` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-INSERT INTO `t_permission` VALUES ('1', 'QUERY');
-INSERT INTO `t_permission` VALUES ('2', 'ADD');
-INSERT INTO `t_permission` VALUES ('3', 'MODIFY');
-INSERT INTO `t_permission` VALUES ('4', 'DELETE');
+INSERT INTO `t_permission` VALUES ('1', 'user:query');
+INSERT INTO `t_permission` VALUES ('2', 'user:add');
+INSERT INTO `t_permission` VALUES ('3', 'user:modify');
+INSERT INTO `t_permission` VALUES ('4', 'user:delete');
 
 CREATE TABLE `t_role_permission` (
    `role_id` varchar(255) NOT NULL,

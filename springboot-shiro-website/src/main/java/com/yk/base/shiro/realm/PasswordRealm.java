@@ -7,11 +7,13 @@ import com.yk.user.model.Permission;
 import com.yk.user.model.Role;
 import com.yk.user.model.User;
 import com.yk.user.service.UserService;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
+import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
@@ -31,27 +33,7 @@ public class PasswordRealm extends AuthorizingRealm
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principalCollection)
     {
-        Object primaryPrincipal = principalCollection.getPrimaryPrincipal();
-        String username = (String) SecurityUtils.getSubject().getSession().getAttribute("username");
-        if (username == null)
-        {
-            return null;
-        }
-        SimpleAuthorizationInfo authorizationInfo = new SimpleAuthorizationInfo();
-        User user = userService.queryUserByUsername(username);
-        if (user.getRoleList() == null)
-        {
-            return null;
-        }
-        for (Role role : user.getRoleList())
-        {
-            authorizationInfo.addRole(role.getName());
-            for (Permission permission : role.getPermissionList())
-            {
-                authorizationInfo.addStringPermission(permission.getName());
-            }
-        }
-        return authorizationInfo;
+        return null;
     }
 
     /**
@@ -62,13 +44,17 @@ public class PasswordRealm extends AuthorizingRealm
     {
         if (!(passwordAuth instanceof PasswordToken))
         {
-            return null;
+            throw new UnknownAccountException("帐号或密码为空");
+        }
+        if (null == passwordAuth.getPrincipal() || null == passwordAuth.getCredentials())
+        {
+            throw new UnknownAccountException("帐号或密码为空");
         }
         String username = (String) passwordAuth.getPrincipal();
         User user = userService.queryUserByUsername(username);
         if (null == user)
         {
-            throw new ShiroException(400, "user not exist");
+            throw new ShiroException("未知帐号");
         }
         return new SimpleAuthenticationInfo(user.getUsername(), user.getPasswd(), this.getName());
     }

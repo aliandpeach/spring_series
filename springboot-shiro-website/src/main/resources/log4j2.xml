@@ -44,6 +44,7 @@
         <root level="info" includeLocation="true">
             <appender-ref ref="Console"/>
             <appender-ref ref="other"/>
+            <appender-ref ref="base"/>
         </root>
     </Loggers>
 </Configuration>
