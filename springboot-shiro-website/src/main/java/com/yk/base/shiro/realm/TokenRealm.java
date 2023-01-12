@@ -18,7 +18,6 @@ import org.apache.shiro.cache.Cache;
 import org.apache.shiro.cache.MapCache;
 import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.subject.PrincipalCollection;
-import org.apache.shiro.subject.SimplePrincipalCollection;
 import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,9 +125,7 @@ public class TokenRealm extends AuthorizingRealm
     public void reloadAuthorizationInfo(String username)
     {
         Subject subject = SecurityUtils.getSubject();
-        String realmName = this.getName();
-        SimplePrincipalCollection principals = new SimplePrincipalCollection(username, realmName);
-        subject.runAs(principals);
+
         Cache<Object, AuthorizationInfo> cache = initAuthorizationInfoCache();
         cache.remove(subject.getPrincipals());
 

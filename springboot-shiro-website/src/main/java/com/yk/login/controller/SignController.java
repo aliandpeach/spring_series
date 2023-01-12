@@ -3,6 +3,7 @@ package com.yk.login.controller;
 import cn.hutool.core.map.MapUtil;
 import com.yk.base.exception.BaseResponse;
 import com.yk.base.exception.ShiroException;
+import com.yk.base.shiro.config.ShiroUtils;
 import com.yk.base.shiro.jwt.JwtTokenProvider;
 import com.yk.base.shiro.redis.RedisServiceImpl;
 import com.yk.base.utils.RequestUtils;
@@ -10,6 +11,7 @@ import com.yk.user.form.UserForm;
 import com.yk.user.model.User;
 import com.yk.user.service.UserService;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.slf4j.Logger;
@@ -19,9 +21,11 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -43,6 +47,9 @@ public class SignController
     @Autowired
     private SecurityManager securityManager;
 
+    @Autowired
+    private ShiroUtils shiroUtils;
+
     @RequestMapping(value = "/signin", method = RequestMethod.POST)
     public BaseResponse<Map<String, String>> signin(@RequestBody @Validated UserForm user)
     {
@@ -54,7 +61,7 @@ public class SignController
         redisService.addValue(
                 _key,
                 _token,
-                jwtTokenProvider.getValidityInMilliseconds() / 1000 * 1000,
+                jwtTokenProvider.getValidityInMilliseconds() / 1000 * 10,
                 TimeUnit.SECONDS);
         return new BaseResponse<>(200, "", MapUtil.builder(new HashMap<String, String>()).put("Authorization", _token).build());
     }
@@ -82,5 +89,14 @@ public class SignController
     public BaseResponse<Map<String, String>> signup(@RequestBody User user)
     {
         return new BaseResponse<>(200, "", MapUtil.builder(new HashMap<String, String>()).build());
+    }
+
+    @RequestMapping("/update/permission")
+    @ResponseBody
+    @RequiresRoles("ROLE_ADMIN")
+    public BaseResponse<String> updatePermission()
+    {
+        shiroUtils.updateUserPermission();
+        return new BaseResponse<>(200, "", "权限修改成功");
     }
 }
