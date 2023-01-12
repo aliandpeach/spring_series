@@ -12,6 +12,8 @@ import com.yk.user.service.UserService;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -27,6 +29,8 @@ import java.util.concurrent.TimeUnit;
 @RequestMapping("/")
 public class SignController
 {
+    private static final Logger logger = LoggerFactory.getLogger(SignController.class);
+
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
@@ -50,7 +54,7 @@ public class SignController
         redisService.addValue(
                 _key,
                 _token,
-                jwtTokenProvider.getValidityInMilliseconds() / 1000 * 20,
+                jwtTokenProvider.getValidityInMilliseconds() / 1000 * 1000,
                 TimeUnit.SECONDS);
         return new BaseResponse<>(200, "", MapUtil.builder(new HashMap<String, String>()).put("Authorization", _token).build());
     }

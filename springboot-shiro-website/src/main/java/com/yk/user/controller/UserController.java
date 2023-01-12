@@ -3,6 +3,7 @@ package com.yk.user.controller;
 import com.yk.base.exception.BaseResponse;
 import com.yk.user.model.User;
 import com.yk.user.service.UserService;
+import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authz.annotation.RequiresPermissions;
 import org.apache.shiro.authz.annotation.RequiresRoles;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ public class UserController
     @RequiresPermissions("user:query")
     public BaseResponse<List<User>> queryAllList()
     {
+        Object principal = SecurityUtils.getSubject().getPrincipal();
         return new BaseResponse<>(200, "", userService.queryAllList());
     }
 }
