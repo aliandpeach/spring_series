@@ -1,11 +1,23 @@
 package com.crypto.cert;
 
 import com.yk.crypto.KeyUtil;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.openssl.PEMKeyPair;
+import org.bouncycastle.openssl.PEMParser;
+import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -139,7 +151,7 @@ public class KeyUtilTest
     }
 
     @Test
-    public void readPKCS1PrivateKey()
+    public void comparePkcs1AndPkcs8PrivateKey()
     {
         try
         {
@@ -152,6 +164,11 @@ public class KeyUtilTest
             PKCS8EncodedKeySpec pk8 = new PKCS8EncodedKeySpec(rsaPrivateKeyPKCS1.getEncoded());
             PrivateKey privateKey = KeyFactory.getInstance("RSA").generatePrivate(pk8);
             Assert.assertArrayEquals(privateKey.getEncoded(), rsaPrivateKeyPKCS8.getEncoded());
+
+            // 导出为PEM格式, 打印的结果与pkcs8.pem一致
+            Assert.assertEquals(KeyUtil.writerPrivateKey2PEM(rsaPrivateKeyPKCS1), KeyUtil.writerPrivateKey2PEM(rsaPrivateKeyPKCS8));
+            Assert.assertEquals(KeyUtil.writerPrivateKey2PEM(rsaPrivateKeyPKCS1), KeyUtil.writerPrivateKey2PEM(privateKey));
+            System.out.println(KeyUtil.writerPrivateKey2PEM(rsaPrivateKeyPKCS1));
         }
         catch (Exception e)
         {
@@ -159,7 +176,7 @@ public class KeyUtilTest
         }
     }
     @Test
-    public void readPKCS1PublicKey()
+    public void comparePkcs1AndPkcs8PublicKey()
     {
         try
         {
@@ -172,10 +189,56 @@ public class KeyUtilTest
             X509EncodedKeySpec x509 = new X509EncodedKeySpec(rsaPubKeyPKCS1.getEncoded());
             PublicKey pub = KeyFactory.getInstance("RSA").generatePublic(x509);
             Assert.assertArrayEquals(pub.getEncoded(), rsaPubKeyPKCS8.getEncoded());
+            // 打印的结果和pkcs8_pub.pem内容一致
+            Assert.assertEquals(KeyUtil.writerPublicKey2PEM(rsaPubKeyPKCS1), KeyUtil.writerPublicKey2PEM(rsaPubKeyPKCS8));
+            Assert.assertEquals(KeyUtil.writerPublicKey2PEM(rsaPubKeyPKCS1), KeyUtil.writerPublicKey2PEM(pub));
+            System.out.println(KeyUtil.writerPublicKey2PEM(rsaPubKeyPKCS1));
         }
         catch (Exception e)
         {
             e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testExportPkcs1() throws Exception
+    {
+        // 打印的结果和pkcs1.pem一致
+        PemReader readerPri = new PemReader(new InputStreamReader(ConvertTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/pkcs1.pem"), StandardCharsets.UTF_8));
+        PEMParser pemParserPri = new PEMParser(readerPri);
+        PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(((PEMKeyPair) pemParserPri.readObject()).getPrivateKeyInfo());
+        System.out.println(KeyUtil.writerPkcs1Pri2PEM(privateKeyInfo.getPrivateKey().getOctets()));
+
+        // 打印的结果和pkcs1_pub.pem一致
+        PemReader readerPub = new PemReader(new InputStreamReader(ConvertTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/pkcs1_pub.pem"), StandardCharsets.UTF_8));
+        PEMParser pemParserPub = new PEMParser(readerPub);
+        SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(((SubjectPublicKeyInfo) pemParserPub.readObject()));
+        System.out.println(KeyUtil.writerPkcs1Pub2PEM(publicKeyInfo.getPublicKeyData().getOctets()));
+    }
+
+    @Test
+    public void test() throws Exception
+    {
+        JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
+        // 测试1和2 两种方式读取pkcs1是否一致, 结果一致
+        PemReader reader1 = new PemReader(new InputStreamReader(ConvertTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/pkcs1.pem"), StandardCharsets.UTF_8));
+        PemReader reader2 = new PemReader(new InputStreamReader(ConvertTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/pkcs1.pem"), StandardCharsets.UTF_8));
+        try (ASN1InputStream asn1InputStream = new ASN1InputStream(reader1.readPemObject().getContent()))
+        {
+            // 1.
+            ASN1Primitive rsaPrivateKey = asn1InputStream.readObject();
+            PrivateKeyInfo privateKeyInfo1 = new PrivateKeyInfo(new AlgorithmIdentifier(PKCSObjectIdentifiers.pkcs_1), rsaPrivateKey);
+            // 这里的转换不能执行
+//            RSAPrivateKey key1 = (RSAPrivateKey) converter.getPrivateKey(privateKeyInfo1);
+            // 2.
+            PEMParser pemParser = new PEMParser(reader2);
+            PrivateKeyInfo privateKeyInfo2 = PrivateKeyInfo.getInstance(((PEMKeyPair) pemParser.readObject()).getPrivateKeyInfo());
+            RSAPrivateKey key2 = (RSAPrivateKey) converter.getPrivateKey(privateKeyInfo2);
+
+            Assert.assertArrayEquals(privateKeyInfo1.getPrivateKey().getOctets(),privateKeyInfo2.getPrivateKey().getOctets());
+            Assert.assertEquals(KeyUtil.writerPkcs1Pri2PEM(privateKeyInfo1.getPrivateKey().getOctets()),
+                    KeyUtil.writerPkcs1Pri2PEM(privateKeyInfo2.getPrivateKey().getOctets()));
+            System.out.println(KeyUtil.writerPkcs1Pri2PEM(privateKeyInfo1.getPrivateKey().getOctets()));
         }
     }
 }

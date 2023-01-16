@@ -219,7 +219,7 @@ public class KeyUtil
     }
 
     /**
-     * 私钥写入PEM格式文件-不加密. 通过openssl导出pkcs12的私钥和该方法导出结果一致, openssl pkcs12 -nocerts -nodes -in test.p12 -out test-key.pem
+     * PKCS8私钥写入PEM格式文件-不加密. 通过openssl导出pkcs12的私钥和该方法导出结果一致, openssl pkcs12 -nocerts -nodes -in test.p12 -out test-key.pem
      */
     public static String writerPrivateKey2PEM(PrivateKey key) throws IOException
     {
@@ -232,11 +232,42 @@ public class KeyUtil
         return stringWriter.toString();
     }
 
+    /**
+     * PKCS8公钥写入PEM格式文件
+     */
     public static String writerPublicKey2PEM(PublicKey key) throws IOException
     {
         StringWriter pemStrWriter = new StringWriter();
         PemWriter pemWriter = new PemWriter(pemStrWriter);
         PemObject pemObject = new PemObject("PUBLIC KEY", key.getEncoded());
+        pemWriter.writeObject(pemObject);
+        pemWriter.flush();
+        pemWriter.close();
+        return pemStrWriter.toString();
+    }
+
+    /**
+     * PKCS1私钥写入PEM格式文件
+     */
+    public static String writerPkcs1Pri2PEM(byte[] key) throws IOException
+    {
+        StringWriter stringWriter = new StringWriter();
+        PemWriter pemWriter = new PemWriter(stringWriter);
+        PemObjectGenerator pemObject = new PemObject("RSA PRIVATE KEY", key);
+        pemWriter.writeObject(pemObject);
+        pemWriter.flush();
+        pemWriter.close();
+        return stringWriter.toString();
+    }
+
+    /**
+     * PKCS1公钥写入PEM格式文件
+     */
+    public static String writerPkcs1Pub2PEM(byte[] pub) throws IOException
+    {
+        StringWriter pemStrWriter = new StringWriter();
+        PemWriter pemWriter = new PemWriter(pemStrWriter);
+        PemObject pemObject = new PemObject("RSA PUBLIC KEY", pub);
         pemWriter.writeObject(pemObject);
         pemWriter.flush();
         pemWriter.close();
@@ -285,7 +316,7 @@ public class KeyUtil
             PEMParser pemParser = new PEMParser(reader);
             JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
             PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(((PEMKeyPair) pemParser.readObject()).getPrivateKeyInfo());
-
+            // 最后转换为PKCS8格式私钥
             return (RSAPrivateKey) converter.getPrivateKey(privateKeyInfo);
         }
     }
@@ -322,6 +353,7 @@ public class KeyUtil
             PEMParser pemParser = new PEMParser(reader);
             JcaPEMKeyConverter converter = new JcaPEMKeyConverter();
             SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(((SubjectPublicKeyInfo) pemParser.readObject()));
+            // 最后转换为PKCS8格式公钥
             return (RSAPublicKey) converter.getPublicKey(publicKeyInfo);
         }
     }

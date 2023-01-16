@@ -283,15 +283,17 @@
                     <include>**/*.*</include>
                 </includes>
             </resource>
-            <!--<resource>
+            <resource>
                 <directory>src/test/java</directory>
                 <includes>
                     <include>**/*.pem</include>
                     <include>**/*.key</include>
                     <include>**/*.pub</include>
                     <include>**/*.xml</include>
+                    <include>**/*.der</include>
+                    <include>**/*.crt</include>
                 </includes>
-            </resource>-->
+            </resource>
         </resources>
         <testSourceDirectory>src/test/java</testSourceDirectory>
         <testResources>
@@ -302,6 +304,8 @@
                     <include>**/*.key</include>
                     <include>**/*.pub</include>
                     <include>**/*.xml</include>
+                    <include>**/*.der</include>
+                    <include>**/*.crt</include>
                 </includes>
             </testResource>
         </testResources>

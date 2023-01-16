@@ -4,6 +4,7 @@ import cn.hutool.core.util.HexUtil;
 import com.crypto.cert.KeyUtilTest;
 import com.yk.crypto.BinHexSHAUtil;
 import com.yk.crypto.EnDecryptUtil;
+import com.yk.crypto.KeyUtil;
 import com.yk.crypto.RSA2048Util;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
@@ -14,14 +15,22 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.xml.bind.DatatypeConverter;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
+import java.util.Base64;
 
 /**
  * RSA2048UtilTest
@@ -127,5 +136,39 @@ public class RSA2048UtilTest
         {
             this.main();
         }
+    }
+
+    @Test
+    public void encryptTest() throws Exception
+    {
+        RSAPublicKey rsaPubKeyPKCS1 = KeyUtil.readPublicKeySecondApproach(KeyUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/gitee_login.pub"));
+        RSAPublicKey rsaPubKeyPKCS2 = KeyUtil.readPublicKey(KeyUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/gitee_login.pub"));
+        boolean is = Arrays.equals(rsaPubKeyPKCS2.getEncoded(), rsaPubKeyPKCS2.getEncoded());
+        byte[] _r = EnDecryptUtil.encrypt("abc.1234".getBytes(StandardCharsets.UTF_8), rsaPubKeyPKCS1.getEncoded());
+        System.out.println(Base64.getEncoder().encodeToString(_r));
+    }
+
+    @Test
+    public void giteeTest() throws Exception
+    {
+        // gitee导出的公钥, 分别为der(二进制)和crt(pem)格式
+        PublicKey publicKey1 = KeyUtil.readCertificate(KeyUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/gitee.der"));
+        PublicKey publicKey2 = KeyUtil.readCertificate(KeyUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/gitee.crt"));
+        boolean is = Arrays.equals(publicKey1.getEncoded(), publicKey2.getEncoded());
+        byte[] _r = EnDecryptUtil.encrypt("abc.1234".getBytes(StandardCharsets.UTF_8), publicKey1.getEncoded());
+        System.out.println(Base64.getEncoder().encodeToString(_r));
+    }
+
+    @Test
+    public void x509ToPem() throws Exception
+    {
+        CertificateFactory ft = CertificateFactory.getInstance("X.509");
+        X509Certificate certificate = (X509Certificate) ft.generateCertificate(KeyUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/gitee.der"));
+        PublicKey publicKey = certificate.getPublicKey();
+
+        String strKey = "-----BEGIN PUBLIC KEY-----\n"
+                + Base64.getEncoder().encodeToString(publicKey.getEncoded())
+                + "\n-----END PUBLIC KEY-----";
+        System.out.println(strKey);
     }
 }

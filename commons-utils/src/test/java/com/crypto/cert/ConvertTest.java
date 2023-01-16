@@ -2,11 +2,7 @@ package com.crypto.cert;
 
 import cn.hutool.core.io.resource.ClassPathResource;
 import com.yk.crypto.KeyUtil;
-import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.openssl.PKCS8Generator;
 import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8EncryptorBuilder;
 import org.bouncycastle.operator.OutputEncryptor;
@@ -44,6 +40,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
@@ -67,9 +64,14 @@ public class ConvertTest
     private static final String original_id_rsa_pub = "AAAAB3NzaC1yc2EAAAADAQABAAABAQCl+XynS9tkXmBcpwk8VXImSlWWgi3ua2ZVz3WBHpfCYP07JSlFfX2h4AZ6e7D4d4dS8cVBHS/IzVvJkp0zaqnfB/tSFkr3FD41FyF7bCMhUGIH/SIXz4GeSiumM44G0e4bG4trhE3F2P9xa3uUDrJlAAwFwMi5iTmmZKTn9HNUfjFCI3TGuyINLYRS7TBCpkBZ7rKlwbn1rqB7HfO+0+68lo0huQS8UrGvMiQxPAkmIYS+D8p1yrqwOncQhHAwwwoUsPBprXxa+S5ByxEsYaMDMALSGpE/0QSZ0bIElCeOHdZV6Sx3TunPD3oy/zkKlaOSaVD4O3TvC+vfWL1RnM2P";
 
     /**
-     * openssl genrsa -out pkcs1.pem 2048   生成没有加密的私钥  (pkcs1)
-     * openssl pkcs8 -topk8 -inform PEM -in privkey.pem -outform pem -nocrypt -out pkcs8.pem  (pkcs8)
-     * openssl rsa -in pkcs1.pem -pubout -out pkcs8_pub.pem  (pkcs8 public key)
+     * openssl genrsa -out pkcs1.pem 2048   生成没有加密的私钥  (pkcs1)                                 -- 生成pkcs1
+     * openssl pkcs8 -topk8 -inform PEM -in pkcs1.pem -outform pem -nocrypt -out pkcs8.pem  (pkcs8)  -- pkcs1转换为pkcs8
+     * openssl rsa -in pkcs1.pem -pubout -out pkcs8_pub.pem  (pkcs8 public key)                      -- pkcs1导出pkcs8公钥
+     *
+     * openssl rsa -in pkcs8.pem -out pkcs1.pem -- pkcs8转换为pkcs1
+     *
+     * openssl rsa -in pkcs1.pem -RSAPublicKey_out -out pkcs1_pub.pem                                 -- pkcs1导出pkcs1公钥
+     * openssl rsa -in pkcs8.pem -pubout -out pkcs8_pub.pem                                           -- pkcs8导出pkcs8公钥
      */
     private static final String pkcs1_rsa = "com/crypto/cert/pkcs1.pem";
     private static final String pkcs8_rsa = "com/crypto/cert/pkcs8.pem";
@@ -132,17 +134,17 @@ public class ConvertTest
     /**
      * 读取openssl生成的私钥 两种方式
      * <p>
-     * 1. 生成私钥 - openssl genrsa -out privkey.pem 2048   生成没有加密的私钥
-     *    转换为PKCS8 - openssl pkcs8 -topk8 -inform PEM -in privkey.pem -outform pem -nocrypt -out pkcs8.pem , 通过PKCS8EncodedKeySpec 读取
+     * 1. 生成私钥 - openssl genrsa -out pkcs1.pem 2048   生成没有加密的私钥
+     *    转换为PKCS8 - openssl pkcs8 -topk8 -inform PEM -in pkcs1.pem -outform pem -nocrypt -out pkcs8.pem , 通过PKCS8EncodedKeySpec 读取
      * <p>
-     * 2. 生成私钥 - openssl genrsa -out privkey.pem 2048   生成没有加密的私钥, 通过BouncyCastle读取
+     * 2. 生成私钥 - openssl genrsa -out pkcs1.pem 2048   生成没有加密的私钥, 通过BouncyCastle读取
      *    java.security.Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider())
      *
      *
-     *    openssl rsa : -----BEGIN RSA PRIVATE KEY-----
+     *    pkcs1 rsa : -----BEGIN RSA PRIVATE KEY-----
      *    pkcs8 rsa : -----BEGIN PRIVATE KEY-----
      *
-     * 生成公钥 ： openssl rsa -in privkey.pem -pubout -out public.pem ( 使用privkey.pem 或 pkcs8.pem计算的公钥一致)
+     * 生成公钥 ： openssl rsa -in pkcs1.pem -pubout -out public.pem ( 使用pkcs1.pem 或 pkcs8.pem计算的公钥一致)
      */
     @Test
     public void readOpensslRSA() throws Exception
@@ -169,7 +171,7 @@ public class ConvertTest
         Assert.assertEquals(key1, key2);
         Assert.assertEquals(KeyUtil.writerPrivateKey2PEM(key1), KeyUtil.writerPrivateKey2PEM(key2));
 
-        // 根据私钥计算公钥 相当于 ： openssl rsa -in privkey.pem -pubout -out public.pem
+        // 根据私钥计算公钥 相当于 ： openssl rsa -in pkcs1.pem -pubout -out public.pem
         RSAPrivateCrtKey privk = (RSAPrivateCrtKey) key2;
         RSAPublicKeySpec publicKeySpec = new java.security.spec.RSAPublicKeySpec(privk.getModulus(), privk.getPublicExponent());
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -264,38 +266,19 @@ public class ConvertTest
     @Test
     public void formatPkcs1ToPkcs8() throws Exception
     {
-        PemReader reader = new PemReader(new InputStreamReader(ConvertTest.class.getClassLoader().getResourceAsStream(pkcs1_rsa), StandardCharsets.UTF_8));
-        try (ASN1InputStream asn1InputStream = new ASN1InputStream(reader.readPemObject().getContent()))
-        {
-            // 转换 pkcs1 -> pkcs8
-            ASN1Primitive rsaPrivateKey = asn1InputStream.readObject();
-            PrivateKeyInfo privateKeyInfo
-                    = new PrivateKeyInfo(new AlgorithmIdentifier(PKCSObjectIdentifiers.pkcs_1), rsaPrivateKey);
-            byte[] bytes = privateKeyInfo.getPrivateKey().getEncoded();
-            System.out.println(Arrays.toString(bytes));
-            PKCS8EncodedKeySpec pk1 = new PKCS8EncodedKeySpec(bytes);
-//            PrivateKey key1 = KeyFactory.getInstance("RSA").generatePrivate(pk1);
+        // 转换 pkcs1 -> pkcs8
+        RSAPrivateKey key1 = KeyUtil.readPrivateKeySecondApproach(ConvertTest.class.getClassLoader().getResourceAsStream(pkcs1_rsa));
 
-            // 与 使用 openssl转换的pkcs8 比较
-            PemReader reader8 = new PemReader(new InputStreamReader(ConvertTest.class.getClassLoader().getResourceAsStream(pkcs1_rsa), StandardCharsets.UTF_8));
-            PKCS8EncodedKeySpec pk2 = new PKCS8EncodedKeySpec(reader8.readPemObject().getContent());
-            PrivateKey key2 = KeyFactory.getInstance("RSA").generatePrivate(pk2);
-            System.out.println(Arrays.toString(key2.getEncoded()));
-            Assert.assertArrayEquals(bytes, key2.getEncoded());
+        // 与 使用 openssl转换的pkcs8 比较
+        PrivateKey key2 = KeyUtil.readPrivateKey(ConvertTest.class.getClassLoader().getResourceAsStream(pkcs8_rsa));
+        Assert.assertArrayEquals(key1.getEncoded(), key2.getEncoded());
+        System.out.println(KeyUtil.writerPrivateKey2PEM(key2));
+        // 转换 pkcs8 -> pkcs1
+        PrivateKeyInfo pkInfo = PrivateKeyInfo.getInstance(key2.getEncoded());
+        System.out.println(KeyUtil.writerPkcs1Pri2PEM(pkInfo.getPrivateKey().getOctets()));
 
-            // 转换 pkcs8 -> pkcs1
-//            PrivateKey priv = pair.getPrivate();
-//            byte[] privBytes = priv.getEncoded();
-//
-//            PrivateKeyInfo pkInfo = PrivateKeyInfo.getInstance(privBytes);
-//            ASN1Encodable encodable = pkInfo.parsePrivateKey();
-//            ASN1Primitive primitive = encodable.toASN1Primitive();
-//            byte[] privateKeyPKCS1 = primitive.getEncoded();
-//
-//            PrivateKeyInfo pki = PrivateKeyInfo.getInstance(encodeByte);
-//            RSAPrivateKey pkcs1Key = RSAPrivateKey.getInstance(pki.getPrivateKey());
-//            byte[] pkcs1Bytes = pkcs1Key.getEncoded();//etc.
-        }
+        // 转换 pkcs8公钥 -> pkcs1公钥
+//        SubjectPublicKeyInfo pubInfo = SubjectPublicKeyInfo.getInstance();
     }
 
     /**
