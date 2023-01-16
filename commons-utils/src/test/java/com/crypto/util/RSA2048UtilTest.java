@@ -151,7 +151,7 @@ public class RSA2048UtilTest
     @Test
     public void giteeTest() throws Exception
     {
-        // giteeµ¼³öµÄ¹«Ô¿, ·Ö±ğÎªder(¶ş½øÖÆ)ºÍcrt(pem)¸ñÊ½
+        // giteeå¯¼å‡ºçš„å…¬é’¥, åˆ†åˆ«ä¸ºder(äºŒè¿›åˆ¶)å’Œcrt(pem)æ ¼å¼
         PublicKey publicKey1 = KeyUtil.readCertificate(KeyUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/gitee.der"));
         PublicKey publicKey2 = KeyUtil.readCertificate(KeyUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/gitee.crt"));
         boolean is = Arrays.equals(publicKey1.getEncoded(), publicKey2.getEncoded());
