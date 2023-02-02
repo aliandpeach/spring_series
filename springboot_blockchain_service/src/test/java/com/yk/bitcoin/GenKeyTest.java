@@ -101,6 +101,43 @@ public class GenKeyTest
         th1.interrupt();// interrupt()会导致 th1线程抛出异常
         th1.join();
     }
+
+    @Test
+    public void randomGenKey()
+    {
+        KeyGenerator keyGenerator = new KeyGenerator();
+        StringBuilder randomBinaryKeyString = new StringBuilder();
+        for (int i = 0; i < 256; i++)
+        {
+            randomBinaryKeyString.append((new Random().nextInt(10) + 1) % 2 == 0 ? "0" : "1");
+        }
+        System.out.println(randomBinaryKeyString);
+        // 二进制字符串转换为byte[]
+        byte[] key = BinHexSHAUtil.binaryString2bytes(randomBinaryKeyString.toString());
+
+        // byte[]转换为16进制字符串
+        String hexKey = HexUtil.encodeHexStr(key);
+        // 16进制字符串或者二进制字符串或者byte[]转换为 BigInteger,  _k == _k2 == _k3;
+        BigInteger _k = new BigInteger(hexKey, 16);
+        BigInteger _k2 = new BigInteger(randomBinaryKeyString.toString(), 2);
+        BigInteger _k3 = new BigInteger(1, key);
+
+        // BigInteger在转换为byte[], temp会有符号问题, 可以用BinHexSHAUtil.to解决或者使用Utils.bigIntegerToBytes
+        byte[] temp = _k.toByteArray();
+        byte[] ary = new byte[32];
+        BinHexSHAUtil.to(temp, ary);
+        byte[] ary2 = Utils.bigIntegerToBytes(_k, 32);
+        boolean is = Arrays.equals(ary, ary2);
+        is = Arrays.equals(ary, key);
+        String _hexKey = HexUtil.encodeHexStr(ary2);
+
+        System.out.println(hexKey);
+        System.out.println(_hexKey);
+        String prk = keyGenerator.keyGen(key, true);
+        String pub = keyGenerator.addressGen(key);
+        System.out.println(prk);
+        System.out.println(pub);
+    }
     
     @Test
     public void genKey()
@@ -114,10 +151,10 @@ public class GenKeyTest
         byte[] max32bytes = BinHexSHAUtil.binaryString2bytes(max256BinaryString.toString());
         // ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
         String maxHex = HexUtil.encodeHexStr(max32bytes);
-        
+
         BigInteger zero = new BigInteger("0", 16);
         BigInteger one = new BigInteger("1", 16);
-        BigInteger max = new BigInteger(maxHex, 16);
+        BigInteger max = new BigInteger("10", 16);
         for (BigInteger i = zero; i.compareTo(max) < 0; i = i.add(one))
         {
             byte[] barray = i.toByteArray();
@@ -144,18 +181,20 @@ public class GenKeyTest
     {
         KeyGenerator keyGenerator = new KeyGenerator();
         byte[] bytes = new byte[32];
-        new Random().nextBytes(bytes);
+        new SecureRandom(Sha256Hash.hash("0".getBytes(StandardCharsets.UTF_8))).nextBytes(bytes);
+//        new SecureRandom("address".getBytes(StandardCharsets.UTF_8)).nextBytes(bytes);
         String pri = keyGenerator.keyGen(bytes, false);
         String pri2 = keyGenerator.keyGen(bytes, true);
         // 5JsqvMN5CjwpM36wo8RbR2rM1GommssZubfb5KSJf815uLqG511
         System.out.println(pri);
         System.out.println(pri2);
+        System.out.println(keyGenerator.addressGen(bytes));
     }
     
     @Test
     public void genKey3() throws Exception
     {
-        Random random = new Random();
+        SecureRandom random = new SecureRandom();
         for (int i = 0; i < 1; i++)
         {
             byte[] bytes = new byte[32];
@@ -164,12 +203,12 @@ public class GenKeyTest
             String hex = HexUtil.encodeHexStr(bytes);
             System.out.println(hex);
         }
-        
+
         byte[] bytes = "nothing".getBytes();
         bytes = Sha256Hash.hash(bytes);
         String hex_ = BinHexSHAUtil.byteArrayToHex(bytes);
         System.out.println("hex=" + hex_);
-        hex_ = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140";
+//        hex_ = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140";
         byte[] privateKey = Utils.bigIntegerToBytes(new BigInteger(hex_, 16), 32);
         String binaryString = BinHexSHAUtil.bytes2BinaryString(privateKey);
         // System.out.println(binaryString); 1FYMZEHnszCHKTBdFZ2DLrUuk3dGwYKQxh|1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH
