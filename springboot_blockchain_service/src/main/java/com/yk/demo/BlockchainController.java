@@ -2,9 +2,10 @@ package com.yk.demo;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.yk.base.config.BlockchainProperties;
-import com.yk.bitcoin.Cache;
-import com.yk.bitcoin.KeyCache;
 import com.yk.bitcoin.KeyGenerator;
+import com.yk.bitcoin.KeyGeneratorWatchedService;
+import com.yk.bitcoin.model.Task;
+import com.yk.bitcoin.model.TaskForm;
 import com.yk.crypto.Sha256Hash;
 import com.yk.demo.model.BlockchainModel;
 import com.yk.demo.model.GroupInterface;
@@ -28,82 +29,52 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.yk.bitcoin.KeyCache.LOCK;
-
 @Controller
 @RequestMapping("/block/chain")
 @EnableConfigurationProperties(BlockchainProperties.class)
 public class BlockchainController
 {
     private static final Logger logger = LoggerFactory.getLogger(BlockchainController.class);
-    
-    @Autowired
-    private Cache cache;
-    
+
     @Autowired
     private BlockchainProperties blockchainProperties;
-    
+
     @Autowired
     private KeyGenerator keyGenerator;
 
     @Autowired
     private HttpClientUtil httpClientUtil;
-    
+
+    @Autowired
+    private KeyGeneratorWatchedService keyGeneratorWatchedService;
+
     @RequestMapping(value = "/{status}", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public Map<String, String> opt(@PathVariable("status") String status, @RequestBody Map<String, String> body)
+    public Map<String, String> opt(@PathVariable("status") String status, @RequestBody @Validated TaskForm body)
     {
-        if (!blockchainProperties.isExecute())
-        {
-            return new HashMap<>(Collections.singletonMap("status", "un-execute"));
-        }
-        if (null == status || !status.equalsIgnoreCase("start"))
-        {
-            cache.setRun(false);
-            return new HashMap<>(Collections.singletonMap("status", "stopped"));
-        }
-        String min = body.get("min");
-        String max = body.get("max");
-        synchronized (LOCK)
-        {
-            cache.setMin(new BigInteger(min, 16));
-            cache.setMax(new BigInteger(max, 16));
-        }
-        cache.setRun(status.equalsIgnoreCase("start"));
+        keyGeneratorWatchedService.main(new Task("", new BigInteger(body.getMin(), 16), new BigInteger(body.getMax(), 16)));
         return new HashMap<>(Collections.singletonMap("status", "started"));
     }
-    
+
     @RequestMapping(value = "/the/min", method = RequestMethod.GET)
     @ResponseBody
     public Map<String, Object> theMin()
     {
         Map<String, Object> result = new HashMap<>();
-        synchronized (LOCK)
-        {
-            String min = cache.getMin().toString(16).toUpperCase();
-            int size = KeyCache.keyQueue.size();
-            result.put("min", min);
-            result.put("size", size);
-        }
         return result;
     }
-    
+
     @RequestMapping(value = "/the/range", method = RequestMethod.GET)
     @ResponseBody
     public Map<String, Object> theRange()
     {
         Map<String, Object> result = new HashMap<>();
-        synchronized (LOCK)
-        {
-            BigInteger min = cache.getMin();
-            BigInteger max = cache.getMax();
-            
-            BigInteger range = max.subtract(min);
-            result.put("range", range.toString(16).toUpperCase());
-        }
+
+//        BigInteger range = max.subtract(min);
+//        result.put("range", range.toString(16).toUpperCase());
         return result;
     }
-    
+
     @RequestMapping(value = "/the/calc", method = RequestMethod.GET)
     @ResponseBody
     public Map<String, Object> theCalc(@RequestParam Map<String, String> param)
@@ -124,7 +95,7 @@ public class BlockchainController
             result.put("error", "length incorrect");
             return result;
         }
-        
+
         boolean is = ConvertUtil.isHexString(param.get("start"))
                 && ConvertUtil.isHexString(param.get("end"));
         if (!is)
@@ -132,15 +103,15 @@ public class BlockchainController
             result.put("error", "not hex");
             return result;
         }
-        
+
         BigInteger min = new BigInteger(param.get("start"), 16);
         BigInteger max = new BigInteger(param.get("end"), 16);
-        
+
         BigInteger range = max.subtract(min);
         result.put("range", range.toString(10));
         return result;
     }
-    
+
     @RequestMapping(value = "/the/insert", method = RequestMethod.POST)
     @ResponseBody
     public Map<String, Object> insert(@RequestBody Map<String, String> param)
@@ -152,7 +123,7 @@ public class BlockchainController
             result.put("error", "key is null");
             return result;
         }
-        
+
         try
         {
             byte[] biKey = keyGenerator.convertKeyByBase58Key(key);
@@ -170,11 +141,7 @@ public class BlockchainController
             Map<String, String> key2Addr = new HashMap<>();
             key2Addr.put("privatekey", keystring);
             key2Addr.put("publickey", addr);
-            KeyCache.keyQueue.offer(key2Addr);
-            synchronized (LOCK)
-            {
-                LOCK.notifyAll();
-            }
+//            KeyCache.keyQueue.offer(key2Addr);
             result.put("success", "success");
             return result;
         }
@@ -185,7 +152,7 @@ public class BlockchainController
             return result;
         }
     }
-    
+
     @RequestMapping(value = "/the/query", method = RequestMethod.GET)
     @ResponseBody
     public Map<String, Map<String, Long>> query(@RequestParam("addr") String addr)
@@ -195,11 +162,11 @@ public class BlockchainController
         {
             return result;
         }
-        
-        
+
+
         Map<String, String> params = new HashMap<>();
         params.put("active", addr);
-        
+
         Map<String, String> headers = new HashMap<>();
         headers.put("Connection", "keep-alive");
         try
@@ -215,7 +182,7 @@ public class BlockchainController
         }
         return result;
     }
-    
+
     /**
      * 脑钱包
      */
@@ -226,14 +193,14 @@ public class BlockchainController
         Map<String, String> result = new HashMap<>();
         byte[] bytes = blockchainModel.getPhrase().getBytes();
         byte[] privateKey = Sha256Hash.hash(bytes);
-        
+
         String pri = keyGenerator.keyGen(privateKey, true);
         String pub = keyGenerator.addressGen(privateKey);
         result.put("privateKey", pri);
         result.put("publicKey", pub);
         return result;
     }
-    
+
     /**
      * 私钥详情
      */

@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class StartUpListener /*implements ApplicationListener<ApplicationReadyEvent>*/
 {
-    private Logger logger = LoggerFactory.getLogger(StartUpListener.class);
+    private static final Logger logger = LoggerFactory.getLogger(StartUpListener.class);
     
     @Autowired
     private KeyGeneratorWatchedService keyGeneratorWatchedService;
@@ -27,7 +27,7 @@ public class StartUpListener /*implements ApplicationListener<ApplicationReadyEv
     public void onApplicationEvent(ApplicationReadyEvent event)
     {
         logger.info("main onApplicationEvent starting " + System.currentTimeMillis());
-        keyGeneratorWatchedService.main();
+//        keyGeneratorWatchedService.main();
         logger.info("main onApplicationEvent started " + System.currentTimeMillis());
     }
 }

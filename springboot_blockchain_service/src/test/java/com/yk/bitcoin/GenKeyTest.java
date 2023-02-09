@@ -109,7 +109,7 @@ public class GenKeyTest
         StringBuilder randomBinaryKeyString = new StringBuilder();
         for (int i = 0; i < 256; i++)
         {
-            randomBinaryKeyString.append((new Random().nextInt(10) + 1) % 2 == 0 ? "0" : "1");
+            randomBinaryKeyString.append((new Random().nextInt(100) + 1) % 2 == 0 ? "0" : "1");
         }
         System.out.println(randomBinaryKeyString);
         // 二进制字符串转换为byte[]

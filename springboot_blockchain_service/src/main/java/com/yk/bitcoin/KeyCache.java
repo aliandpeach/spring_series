@@ -1,12 +1,11 @@
 package com.yk.bitcoin;
 
+import com.yk.bitcoin.model.Task;
+
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class KeyCache
 {
-    public static BlockingQueue<Map<String, String>> keyQueue = new LinkedBlockingQueue<>();
-
-    public static final Object LOCK = new Object();
+    public static final Map<String, Task> TASK_INFO = new ConcurrentHashMap<>();
 }
