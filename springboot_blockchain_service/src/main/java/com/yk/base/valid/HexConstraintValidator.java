@@ -7,7 +7,7 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.math.BigInteger;
 
-public class HexConstraintValidator implements ConstraintValidator<HexValid, Object>
+public class HexConstraintValidator implements ConstraintValidator<HexValid, String>
 {
     BigInteger min = new BigInteger("0", 16);
     BigInteger max = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
@@ -18,16 +18,16 @@ public class HexConstraintValidator implements ConstraintValidator<HexValid, Obj
     }
 
     @Override
-    public boolean isValid(Object o, ConstraintValidatorContext constraintValidatorContext)
+    public boolean isValid(String hex, ConstraintValidatorContext constraintValidatorContext)
     {
-        if (null == o || StringUtils.isBlank(o.toString()))
+        if (StringUtils.isBlank(hex))
         {
-            return false;
+            return true;
         }
-        boolean hex = HexUtil.isHexNumber(String.valueOf(o));
-        BigInteger integer = new BigInteger(o.toString(), 16);
+        boolean isHexNumber = HexUtil.isHexNumber("0x" + hex);
+        BigInteger integer = new BigInteger(hex, 16);
         int i = integer.compareTo(min);
         int k = integer.compareTo(max);
-        return hex && i > 0 && k < 0;
+        return isHexNumber && i > 0 && k < 0;
     }
 }

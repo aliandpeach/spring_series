@@ -6,12 +6,15 @@ import com.yk.bitcoin.KeyGenerator;
 import com.yk.bitcoin.model.Chunk;
 import com.yk.bitcoin.model.Key;
 import com.yk.bitcoin.model.Task;
+import com.yk.exception.BlockchainException;
 import com.yk.queue.BoundedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.locks.Lock;
 
 public abstract class AbstractKeyGenerator implements Runnable
 {
@@ -94,5 +97,44 @@ public abstract class AbstractKeyGenerator implements Runnable
                 error.error("{} Thread.sleep error", this.getName(), e);
             }
         }
+    }
+
+    public static AbstractKeyGenerator createKeyGenerator(int type, KeyGenerator generator,
+                                                          BlockchainProperties blockchainProperties,
+                                                          BoundedBlockingQueue<Chunk> queue,
+                                                          BlockingQueue<Chunk> retry,
+                                                          BigInteger min,
+                                                          BigInteger max, Lock lock)
+    {
+        AbstractKeyGenerator abstractKeyGenerator;
+        switch (type)
+        {
+            case 0:
+                abstractKeyGenerator = new KeyGeneratorRunner(generator, blockchainProperties, queue, retry, min, max, lock);
+                break;
+            case 1:
+                abstractKeyGenerator = new RandomKeyGeneratorRunner(generator, blockchainProperties, queue, retry);
+                break;
+            default:
+                throw new BlockchainException(0, "Unexpected value: " + type);
+        }
+        return abstractKeyGenerator;
+    }
+
+    public static String getKeyGeneratorName(int type)
+    {
+        String name;
+        switch (type)
+        {
+            case 0:
+                name = KeyGeneratorRunner.class.getName();
+                break;
+            case 1:
+                name = RandomKeyGeneratorRunner.class.getName();
+                break;
+            default:
+                throw new BlockchainException(0, "Unexpected value: " + type);
+        }
+        return name;
     }
 }

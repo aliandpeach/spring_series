@@ -2,13 +2,16 @@ package com.yk.demo;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.yk.base.config.BlockchainProperties;
+import com.yk.bitcoin.KeyCache;
 import com.yk.bitcoin.KeyGenerator;
 import com.yk.bitcoin.KeyGeneratorWatchedService;
 import com.yk.bitcoin.model.Task;
 import com.yk.bitcoin.model.TaskForm;
+import com.yk.bitcoin.produce.AbstractKeyGenerator;
 import com.yk.crypto.Sha256Hash;
 import com.yk.demo.model.BlockchainModel;
 import com.yk.demo.model.GroupInterface;
+import com.yk.exception.BlockchainException;
 import com.yk.httprequest.HttpClientUtil;
 import com.yk.util.ConvertUtil;
 import org.slf4j.Logger;
@@ -52,7 +55,14 @@ public class BlockchainController
     @ResponseBody
     public Map<String, String> opt(@PathVariable("status") String status, @RequestBody @Validated TaskForm body)
     {
-        keyGeneratorWatchedService.main(new Task("", new BigInteger(body.getMin(), 16), new BigInteger(body.getMax(), 16)));
+        boolean started = KeyCache.TASK_INFO.computeIfAbsent(AbstractKeyGenerator.getKeyGeneratorName(body.getType()), Task::new).getState() == 1;
+        if (started)
+        {
+            throw new BlockchainException(0, "已经启动");
+        }
+        BigInteger min = new BigInteger(body.getMin(), 16);
+        BigInteger max = new BigInteger(body.getMin(), 16);
+        keyGeneratorWatchedService.main(new Task(AbstractKeyGenerator.getKeyGeneratorName(body.getType()), min, max));
         return new HashMap<>(Collections.singletonMap("status", "started"));
     }
 

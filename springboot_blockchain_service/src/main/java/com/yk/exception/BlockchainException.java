@@ -10,6 +10,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class BlockchainException extends RuntimeException
 {
+    private static final long serialVersionUID = 2698578246254095945L;
     /**
      * 错误码
      */
