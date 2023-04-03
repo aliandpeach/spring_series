@@ -12,7 +12,7 @@ public class DataService
     public interface ILibrarySub extends ILibrary
     {
         static DataService data = new DataService();
-        static ILibrary INSTANCE = new LibraryImpl();
+        ILibrary INSTANCE = new LibraryImpl();
     }
 
     public ILibrary get()

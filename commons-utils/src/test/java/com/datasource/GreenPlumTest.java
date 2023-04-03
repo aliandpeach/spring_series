@@ -17,6 +17,8 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -262,13 +264,23 @@ public class GreenPlumTest
         }
     }
 
-    public static void main(String[] args) throws SQLException, IOException
+    public static void main(String[] args) throws SQLException, IOException, ClassNotFoundException
+    {
+        Class.forName("org.postgresql.Driver");
+        DriverManager.setLoginTimeout(10);
+        Connection conn = DriverManager.getConnection("jdbc:postgresql://192.170.23.165:5432/postgres", "postgres", "Spinfo@0123");
+        System.out.println(System.currentTimeMillis());
+        DatabaseMetaData metaData = conn.getMetaData();
+        System.out.println(System.currentTimeMillis());
+    }
+
+    public static void main2(String[] args) throws SQLException, IOException
     {
         DruidDataSource dataSource = new DruidDataSource();
 //        dataSource.setDriverClassName("com.pivotal.jdbc.GreenplumDriver");
 //        dataSource.setUrl("jdbc:pivotal:greenplum://192.170.24.45:5432;DatabaseName=postgres");
         dataSource.setDriverClassName("org.postgresql.Driver");
-        dataSource.setUrl("jdbc:postgresql://192.170.24.45:5432/postgres?gssEncMode=disable");
+        dataSource.setUrl("jdbc:postgresql://192.170.23.165:5432/postgres?gssEncMode=disable");
         dataSource.setUsername("gpadmin");
         dataSource.setPassword("gpadmin");
 //        dataSource.setDbType("oracle");

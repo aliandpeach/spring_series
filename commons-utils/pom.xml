@@ -274,6 +274,14 @@
             <version>3.8.0</version>
             <scope>test</scope>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.vividsolutions/jts-core -->
+        <dependency>
+            <groupId>com.vividsolutions</groupId>
+            <artifactId>jts-core</artifactId>
+            <version>1.14.0</version>
+        </dependency>
+
     </dependencies>
     <build>
         <resources>

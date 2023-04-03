@@ -56,6 +56,7 @@ public class WaitNotifyTest
         String k2 = test.computeIfPresent("b", (t, t2) -> "b"); // 有就插入覆盖数据, 返回插入的数据; 没有就不操作, 返回null
         String k3 = test.computeIfAbsent("c", t -> "c"); // 没有就插入数据, 返回插入的数据; 有就不插入, 返回已有数据
         String k4 = test.compute("d", (a, b) -> "d");
+        String k5 = test.put("e", "e");
         System.out.println(test);
 
 

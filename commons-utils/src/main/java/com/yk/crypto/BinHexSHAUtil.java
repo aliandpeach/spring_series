@@ -2,6 +2,8 @@ package com.yk.crypto;
 
 import java.math.BigInteger;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class BinHexSHAUtil
 {
@@ -240,5 +242,41 @@ public class BinHexSHAUtil
             t--;
         }
         return r;
+    }
+
+    /**
+     * 获取字符串中所有的16进制子字符串，并将这些子字符串转换为char类型后再放入原来的位置
+     */
+    public static String replaceHexToChar()
+    {
+        String input = "Hello0x01|0x02$0x100x120x12World";
+        Pattern _pattern = Pattern.compile("0x[0-9a-fA-F]{2}");
+        Matcher _matcher = _pattern.matcher(input);
+        StringBuffer output = new StringBuffer();
+        while (_matcher.find())
+        {
+            String hexString = _matcher.group().substring(2); //去掉"0x"
+            char c = (char) Integer.parseInt(hexString, 16);
+            _matcher.appendReplacement(output, Character.toString(c));
+        }
+        _matcher.appendTail(output);
+        return output.toString();
+    }
+
+    /**
+     * 0x01类型的16进制字符串，删除0x开头
+     */
+    public static String hexToChar(String hex)
+    {
+        char c = (char) Integer.parseInt(hex, 16);
+        return Character.toString(c);
+    }
+
+    /**
+     * int转换为byte
+     */
+    public static byte intToByte(int i)
+    {
+        return (byte) (0xff & i);
     }
 }

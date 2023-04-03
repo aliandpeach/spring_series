@@ -1,4 +1,4 @@
-package com.queue;
+package com.yk.queue;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.locks.Condition;

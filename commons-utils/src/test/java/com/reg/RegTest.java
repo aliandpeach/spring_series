@@ -1,7 +1,17 @@
 package com.reg;
 
+import com.yk.crypto.BinHexSHAUtil;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -79,5 +89,61 @@ public class RegTest
         System.out.println(UUID.randomUUID().toString().replace("-", ""));
         System.out.println(UUID.randomUUID().toString().replace("-", ""));
         System.out.println(UUID.randomUUID().toString().replace("-", ""));
+    }
+
+    @Test
+    public void test2() throws Exception
+    {
+        String split = "q0x020x1010|0x10";
+        String regx = "0x[0-9a-fA-F]{2}";
+        Pattern pattern = Pattern.compile(regx);
+        Matcher matcher = pattern.matcher(split);
+        while (matcher.find())
+        {
+            String str = matcher.group();
+            System.out.println(str);
+        }
+
+        String max_hex = Integer.toHexString(2147483647);
+        int jj = Integer.parseInt("7fffffff", 16); // 最大7fffffff
+        byte bb = (byte) (0xff & 0x7f);
+
+        String _str_char = BinHexSHAUtil.hexToChar("1d");
+
+        // 组装一个包含0x01等16进制字符的字符串
+        int _i = Integer.parseInt("01", 16);
+        String _str = "hello" + ((char) _i) + "|" + ((char) _i) + "world";
+        System.out.print(_str);
+
+        System.out.println();
+        String _split = (((char) Integer.parseInt("01", 16)) + "\\|" + ((char) Integer.parseInt("01", 16)));
+        System.out.println(_split);
+        System.out.println(String.join(",", _str.split(_split)));
+
+        System.out.println();
+        ByteArrayInputStream bin = new ByteArrayInputStream(_str.getBytes(StandardCharsets.UTF_8));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(bin, StandardCharsets.UTF_8));
+        int ch;
+        while ((ch = reader.read()) != -1)
+        {
+            System.out.print((char) ch);
+        }
+
+        // 包含0x01字符的字符串写入文件
+        FileOutputStream out = new FileOutputStream(new File("D:\\1text_" + System.currentTimeMillis() + ".txt"));
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
+        String special = "0x01";
+        int i = Integer.parseInt("01", 16);
+        int j = Integer.parseInt("a0", 16);
+        String str = "input" + ((char) i) + "|" + ((char) j) + "test";
+        writer.write(str);
+        writer.flush();
+
+        // 包含0x01字符的字符串写入文件
+        FileOutputStream _out = new FileOutputStream(new File("D:\\2text_" + System.currentTimeMillis() + ".txt"));
+        int iiiii = Integer.parseInt("a0a0", 16);
+        byte[] temp = new byte[]{(byte) 'i', (byte) 'n', 'p', (byte) 't', BinHexSHAUtil.intToByte(Integer.parseInt("a0", 16))};
+        _out.write(temp);
+        _out.flush();
     }
 }

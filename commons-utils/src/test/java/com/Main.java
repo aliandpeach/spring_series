@@ -1,5 +1,7 @@
 package com;
 
+import java.util.Base64;
+
 /**
  * 描述
  *
@@ -11,10 +13,27 @@ public class Main
 {
     public static void main(String[] args)
     {
-        DataService dataService1 = new DataService();
+
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                DataService dataService1 = new DataService();
+                dataService1.get();
+            }
+        }).start();
+        new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                DataService dataService1 = new DataService();
+                dataService1.get();
+            }
+        }).start();
         DataService dataService2 = new DataService();
-        boolean is = dataService1.get().equals(dataService2.get());
-        boolean is2 = dataService1.get() == (dataService2.get());
+        dataService2.get();
         System.out.println();
     }
 }

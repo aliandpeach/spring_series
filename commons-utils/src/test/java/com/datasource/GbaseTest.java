@@ -50,40 +50,38 @@ public class GbaseTest
      * @param dataSource
      * @param table
      * @param delimiter
-     * @param file
-     * @return
      */
-    public static long importData(DataSource dataSource,
-                                  String ftpUser,
-                                  String ftpPasswd,
-                                  String ftpIp,
-                                  String ftpPath,
+    public static void importData(DataSource dataSource,
+                                  String type,
+                                  String user,
+                                  String passwd,
+                                  String ip,
+                                  String path,
                                   String table,
-                                  String delimiter)
+                                  String delimiter,
+                                  String enclosed,
+                                  String terminated)
     {
         PreparedStatement statement = null;
-        Connection con = null;
-        try
+        StringBuilder sb = new StringBuilder();
+        try (Connection connection = dataSource.getConnection())
         {
             logger.info("import data begin");
-            con = dataSource.getConnection();
-            StringBuffer sb = new StringBuffer();
-            sb.append("LOAD DATA CONCURRENT INFILE 'ftp://").append(ftpUser).append(":")
-                    .append(ftpPasswd).append("@").append(ftpIp).append(ftpPath).append("' ");
+            sb.append("LOAD DATA CONCURRENT INFILE '").append(type).append("://").append(user).append(":")
+                    .append(passwd).append("@").append(ip).append(path).append("' ");
             sb.append("REPLACE into TABLE ").append(table).append(" ");
+            sb.append("CHARACTER SET utf8 ");
             sb.append("FIELDS TERMINATED BY '").append(delimiter).append("' ");
-            sb.append("LINES TERMINATED BY '\\n';");
+            sb.append("ENCLOSED BY '").append(enclosed).append("' ");
+            sb.append("LINES TERMINATED BY '").append(terminated).append("';");
             String sql = sb.toString();
             logger.info("import data begin,  sql  is {}", sql);
-            statement = con.prepareStatement(sql);
+            statement = connection.prepareStatement(sql);
             statement.execute();
-            return 0;
         }
         catch (Exception e)
         {
-            logger.error(e.getMessage(), e);
-            e.printStackTrace();
-            return 0L;
+            logger.error("gbase importData {} error", sb, e);
         }
         finally
         {
@@ -92,17 +90,6 @@ public class GbaseTest
                 try
                 {
                     statement.close();
-                }
-                catch (SQLException e)
-                {
-                    logger.error(e.getMessage(), e);
-                }
-            }
-            if (con != null)
-            {
-                try
-                {
-                    con.close();
                 }
                 catch (SQLException e)
                 {
@@ -138,7 +125,7 @@ public class GbaseTest
         dataSource.setTimeBetweenEvictionRunsMillis(60000);
         // 连接保持空闲而不被驱逐的最小时间
         dataSource.setMinEvictableIdleTimeMillis(300000);
-        System.out.println(System.currentTimeMillis());
+        /*System.out.println(System.currentTimeMillis());
         Connection conn = dataSource.getConnection();
         PreparedStatement statement = conn.prepareStatement("select `name`,`address`,`age` from test01 where (`name` is not null and `name`<> '')  or (`address` is not null and `address`<> '')  or (`age` is not null and `age`<> '')  limit 0,5");
         ResultSet _rs = statement.executeQuery();
@@ -147,8 +134,15 @@ public class GbaseTest
             String col1 = _rs.getString(1);
             String col2 = _rs.getString(2);
             String col3 = _rs.getString(3);
-        }
-//        GbaseTest.importData(dataSource, "yangkai", "Admin0123", "192.168.20.252", "/xxx/data_1000w_4.txt", "test_one.data_1000w_4", ";");
+        }*/
+        GbaseTest.importData(dataSource,
+                "ftp",
+                "yangkai",
+                "Spinfo@0123",
+                "192.190.20.252",
+                "/data_1000_1.csv",
+                "gclusterdb.data_100w_1_yangkai",
+                ",", "\"", "\r\n");
         System.out.println(System.currentTimeMillis());
     }
 
