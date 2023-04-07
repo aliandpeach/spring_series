@@ -1,7 +1,5 @@
 package com.yk.demo;
 
-import com.yk.base.valid.GroupConstant;
-import com.yk.bitcoin.model.TaskForm;
 import com.yk.demo.dao.DemoDAO;
 import com.yk.demo.dao.IOtherDAO;
 import com.yk.demo.model.BlockchainModel;
@@ -126,6 +124,13 @@ public class DemoController
         List<DemoModel> list2 = demoDAO.queryByName2(name);
         list2 = otherDAO.queryBy(name);
         return demoDAO.queryByName(name);
+    }
+
+    @GetMapping(value = "/current")
+    @ResponseBody
+    public FileInfoParam current(@RequestBody FileInfoParam body)
+    {
+        return body;
     }
 
     /**
@@ -265,12 +270,5 @@ public class DemoController
     public FileInfos uploadXml(@RequestBody @Validated FileInfos fileInfos)
     {
         return fileInfos;
-    }
-
-    @GetMapping(value = "/current")
-    @ResponseBody
-    public FileInfoParam current(@RequestBody FileInfoParam body)
-    {
-        return null;
     }
 }

@@ -47,6 +47,7 @@ public class KeyGeneratorWatchedService
             return;
         }
         context.updateTaskStop();
+        TASK_CONTEXT.remove(task);
     }
 
     public void start(Task task)

@@ -30,7 +30,7 @@ public class RandomKeyGeneratorRunner extends AbstractKeyGenerator
             StringBuilder randomBinaryKeyString = new StringBuilder();
             for (int i = 0; i < 256; i++)
             {
-                randomBinaryKeyString.append((random.nextInt(100 + 1 - 1) + 1) % 2 == 0 ? "0" : "1");
+                randomBinaryKeyString.append(random.nextInt(2));
             }
             byte[] byteKey = BinHexSHAUtil.binaryString2bytes(randomBinaryKeyString.toString());
 

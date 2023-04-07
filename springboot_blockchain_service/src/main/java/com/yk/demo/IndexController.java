@@ -24,16 +24,7 @@ public class IndexController
     {
         ModelAndView model = new ModelAndView("index");
 
-        Context context = null;
-        for (Map.Entry<Task, Context> entry : KeyCache.TASK_CONTEXT.entrySet())
-        {
-            context = entry.getValue();
-            if (context.getTask().getState() == 1)
-            {
-                break;
-            }
-        }
-
+        Context context = KeyCache.runningTaskContext();
         if (null == context || context.getTask() == null)
         {
             model.addObject("run", false);

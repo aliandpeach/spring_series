@@ -39,11 +39,21 @@ public abstract class AbstractKeyGenerator implements Runnable
         return context.queryTaskStatus() == 0;
     }
 
+    public boolean forceStopped()
+    {
+        return context.queryTaskStatus() == -1;
+    }
+
     @Override
     public void run()
     {
         while (true)
         {
+            if (forceStopped())
+            {
+                status.info("{} force stopped! current thread = {}", this.getName(), Thread.currentThread().getName());
+                break;
+            }
             if (stopped() && context.getRetry().size() == 0)
             {
                 status.info("{} stopped! current thread = {}", this.getName(), Thread.currentThread().getName());
@@ -58,6 +68,10 @@ public abstract class AbstractKeyGenerator implements Runnable
                     continue;
                 }
 
+                if (stopped())
+                {
+                    break;
+                }
                 List<Key> keyList = createKey(context.getChunkDataLength());
                 if (null == keyList || keyList.isEmpty())
                 {

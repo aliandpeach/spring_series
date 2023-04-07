@@ -41,6 +41,12 @@ public class KeyWatchedRunner implements Runnable
     @Override
     public void run()
     {
+        boolean forceStopped = context.queryTaskStatus() == -1;
+        if (forceStopped)
+        {
+            status.info("KeyWatchedRunner force stopped! " + "current thread = " + Thread.currentThread().getName());
+            return;
+        }
         boolean stopped = context.queryTaskStatus() == 0;
         if (stopped && context.getQueue().size() == 0)
         {

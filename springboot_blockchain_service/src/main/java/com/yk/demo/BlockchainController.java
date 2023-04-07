@@ -58,7 +58,7 @@ public class BlockchainController
     @ResponseBody
     public Map<String, String> opt(@RequestBody @Validated(GroupConstant.SequentialCombination1.class) TaskForm body)
     {
-        Context context = KeyCache.TASK_CONTEXT.get(new Task(AbstractKeyGenerator.getKeyGeneratorName(body.getType())));
+        Context context = KeyCache.runningTaskContext();
         if (null != context && context.queryTaskStatus() == 1 && body.getState() == 1)
         {
             throw new BlockchainException(0, "已经启动");
@@ -89,7 +89,7 @@ public class BlockchainController
     @ResponseBody
     public Map<String, Object> theRange(@RequestBody @Validated(GroupConstant.SequentialCombination2.class) TaskForm body)
     {
-        Context context = KeyCache.TASK_CONTEXT.get(new Task(AbstractKeyGenerator.getKeyGeneratorName(body.getType())));
+        Context context = KeyCache.runningTaskContext();
         if (context == null)
         {
             throw new BlockchainException(0, "任务不存在");
@@ -192,15 +192,7 @@ public class BlockchainController
     @ResponseBody
     public Map<String, Object> current(TaskForm body)
     {
-        Context context = null;
-        for (Map.Entry<Task, Context> entry : KeyCache.TASK_CONTEXT.entrySet())
-        {
-            context = entry.getValue();
-            if (context.getTask().getState() == 1)
-            {
-                break;
-            }
-        }
+        Context context = KeyCache.runningTaskContext();
         if (context == null)
         {
             throw new BlockchainException(0, "任务不存在");
