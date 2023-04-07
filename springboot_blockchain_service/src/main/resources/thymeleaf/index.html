@@ -12,8 +12,12 @@
 </head>
 <body>
     <div>
-        <button th:disabled="${run}" id="start">开始</button>
-        <button th:disabled="${!run}" id="stop">停止</button>
+        <select id="taskType" th:value="${type}">
+            <option value="0" th:selected="${type == 0}">递增</option>
+            <option value="1" th:selected="${type == 1}">随机</option>
+        </select>
+        <button th:disabled="${run}" id="start" value="1">开始</button>
+        <button th:disabled="${!run}" id="stop" value="0">停止</button>
         <span id="_status" class="bold" th:text="${status}"></span>
     </div>
     <div>
@@ -87,10 +91,14 @@
 
     $(function () {
         $("#start").click(function () {
-            todo(this.id);
+            var _taskType = $("#taskType").val();
+            var _opt = this.value;
+            todo(_opt, _taskType);
         });
         $("#stop").click(function () {
-            todo(this.id);
+            var _taskType = $("#taskType").val();
+            var _opt = this.value;
+            todo(_opt, _taskType);
         });
         $("#calc").unbind("click").bind("click", function () {
             calc();
@@ -112,12 +120,12 @@
         });
     });
 
-    function todo(status) {
+    function todo(_opt, _taskType) {
         $.ajax({
             type: "post",
             contentType: "application/json",
-            url: "/block/chain/" + status,
-            data: '{"min": "' + $("#minKey").val() + '", "max": "' + $("#maxKey").val() + '"}',
+            url: "/block/chain/option",
+            data: JSON.stringify({"min": $("#minKey").val(), "max": $("#maxKey").val(), "type":_taskType, "state":_opt}),
             async: true,
             success: function (result) {
                 var _status = result.status;
@@ -125,6 +133,18 @@
                 window.location.href = "/";
             }
         });
+        /*$.ajax({
+            type: "post",
+            contentType: "application/json",
+            url: "/block/chain/option",
+            data: '{"min": "' + $("#minKey").val() + '", "max": "' + $("#maxKey").val() + '", "type":"' + _taskType + '", "state":"' + _opt + '"}',
+            async: true,
+            success: function (result) {
+                var _status = result.status;
+                $("#_status").html(_status);
+                window.location.href = "/";
+            }
+        });*/
     }
     function calc() {
         $.ajax({
@@ -141,11 +161,26 @@
     }
 
     function current() {
+        var _taskType = $("#taskType").val();
+        /*$.ajax({
+            type: "get",
+            contentType: "application/json",
+            url: "/block/chain/current",
+            data: {"type": _taskType},
+            async: true,
+            success: function (result) {
+                var current_min = result.min;
+                var current_size = result.size;
+                $("#current_min").html("当前生成的最小地址：" + current_min);
+                $("#current_size").html("正在计算的地址数量：" + current_size);
+            }
+        });*/
+
         $.ajax({
             type: "get",
             contentType: "application/x-www-form-urlencoded",
-            url: "/block/chain/the/min",
-            data: '',
+            url: "/block/chain/current",
+            data: 'type=' + _taskType,
             async: true,
             success: function (result) {
                 var current_min = result.min;

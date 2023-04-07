@@ -111,7 +111,7 @@
         <logger name="base" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="base"/>
         </logger>
-        <logger name="com.yk" level="info" includeLocation="true" additivity="false">
+        <logger name="com.yk" level="debug" includeLocation="true" additivity="false">
             <appender-ref ref="base"/>
         </logger>
         <logger name="watched" level="info" includeLocation="true" additivity="false">

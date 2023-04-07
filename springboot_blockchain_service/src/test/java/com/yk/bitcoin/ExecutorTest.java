@@ -30,8 +30,16 @@ public class ExecutorTest
         BigInteger min = new BigInteger("1");
         BigInteger max = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
 
+        Context context = new Context(new Task(AbstractKeyGenerator.getKeyGeneratorName(0)));
+        context.getTask().setMin(min);
+        context.getTask().setMax(max);
+        context.setQueue(queue);
+        context.setRetry(retry);
+        context.setLock(lock);
+        context.setChunkDataLength(20);
+
         AtomicInteger integer = new AtomicInteger(0);
-        AbstractKeyGenerator keyGeneratorRunner = new KeyGeneratorRunner(new KeyGenerator(), new BlockchainProperties(), queue, retry, min, max, lock);
+        AbstractKeyGenerator keyGeneratorRunner = new KeyGeneratorRunner(new KeyGenerator(), context);
         ScheduledExecutorService executor = Executors.newScheduledThreadPool(1, new ThreadFactory()
         {
             @Override
@@ -46,7 +54,7 @@ public class ExecutorTest
             executor.scheduleWithFixedDelay(keyGeneratorRunner, 0, 1, TimeUnit.SECONDS);
         }
         System.out.println();
-        KeyCache.TASK_INFO.computeIfAbsent(KeyGeneratorRunner.class.getName(), t -> new Task(t, min, max, 1));
+        context.updateTaskStart();
         Thread.sleep(1000);
         executor.shutdown();
     }

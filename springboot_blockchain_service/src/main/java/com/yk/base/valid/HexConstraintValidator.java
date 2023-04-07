@@ -9,8 +9,8 @@ import java.math.BigInteger;
 
 public class HexConstraintValidator implements ConstraintValidator<HexValid, String>
 {
-    BigInteger min = new BigInteger("0", 16);
-    BigInteger max = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF", 16);
+    private static final BigInteger min = new BigInteger("0", 16);
+    private static final BigInteger max = new BigInteger("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140", 16);
 
     @Override
     public void initialize(HexValid constraintAnnotation)

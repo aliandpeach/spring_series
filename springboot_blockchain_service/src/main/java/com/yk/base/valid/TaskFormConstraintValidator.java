@@ -21,6 +21,6 @@ public class TaskFormConstraintValidator implements ConstraintValidator<TaskForm
         {
             return true;
         }
-        return taskForm.getType() == 0 && (StringUtils.isNotBlank(taskForm.getMin()) && StringUtils.isNotBlank(taskForm.getMin()));
+        return taskForm.getType() == 0 && (StringUtils.isNotBlank(taskForm.getMin()) && StringUtils.isNotBlank(taskForm.getMax()));
     }
 }

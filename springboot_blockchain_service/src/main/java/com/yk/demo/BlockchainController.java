@@ -1,7 +1,10 @@
 package com.yk.demo;
 
+import cn.hutool.core.util.HexUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.yk.base.config.BlockchainProperties;
+import com.yk.base.valid.GroupConstant;
+import com.yk.bitcoin.Context;
 import com.yk.bitcoin.KeyCache;
 import com.yk.bitcoin.KeyGenerator;
 import com.yk.bitcoin.KeyGeneratorWatchedService;
@@ -9,6 +12,7 @@ import com.yk.bitcoin.model.Task;
 import com.yk.bitcoin.model.TaskForm;
 import com.yk.bitcoin.produce.AbstractKeyGenerator;
 import com.yk.crypto.Sha256Hash;
+import com.yk.crypto.Utils;
 import com.yk.demo.model.BlockchainModel;
 import com.yk.demo.model.GroupInterface;
 import com.yk.exception.BlockchainException;
@@ -20,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -51,37 +54,59 @@ public class BlockchainController
     @Autowired
     private KeyGeneratorWatchedService keyGeneratorWatchedService;
 
-    @RequestMapping(value = "/{status}", method = RequestMethod.POST, produces = "application/json")
+    @RequestMapping(value = "/option", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public Map<String, String> opt(@PathVariable("status") String status, @RequestBody @Validated TaskForm body)
+    public Map<String, String> opt(@RequestBody @Validated(GroupConstant.SequentialCombination1.class) TaskForm body)
     {
-        boolean started = KeyCache.TASK_INFO.computeIfAbsent(AbstractKeyGenerator.getKeyGeneratorName(body.getType()), Task::new).getState() == 1;
-        if (started)
+        Context context = KeyCache.TASK_CONTEXT.get(new Task(AbstractKeyGenerator.getKeyGeneratorName(body.getType())));
+        if (null != context && context.queryTaskStatus() == 1 && body.getState() == 1)
         {
             throw new BlockchainException(0, "已经启动");
         }
-        BigInteger min = new BigInteger(body.getMin(), 16);
-        BigInteger max = new BigInteger(body.getMin(), 16);
-        keyGeneratorWatchedService.main(new Task(AbstractKeyGenerator.getKeyGeneratorName(body.getType()), min, max));
-        return new HashMap<>(Collections.singletonMap("status", "started"));
-    }
+        if (null != context && context.queryTaskStatus() == 0 && body.getState() == 0)
+        {
+            throw new BlockchainException(0, "已经停止");
+        }
 
-    @RequestMapping(value = "/the/min", method = RequestMethod.GET)
-    @ResponseBody
-    public Map<String, Object> theMin()
-    {
-        Map<String, Object> result = new HashMap<>();
-        return result;
+        if (null == context || (context.queryTaskStatus() == 0 && body.getState() == 1))
+        {
+            BigInteger min = body.getType() == 1 ? null : new BigInteger(body.getMin(), 16);
+            BigInteger max = body.getType() == 1 ? null : new BigInteger(body.getMax(), 16);
+            Task task = new Task(AbstractKeyGenerator.getKeyGeneratorName(body.getType()), min, max);
+            task.setType(body.getType());
+            keyGeneratorWatchedService.start(task);
+            return new HashMap<>(Collections.singletonMap("status", "started"));
+        }
+        if (context.queryTaskStatus() == 1 && body.getState() == 0)
+        {
+            keyGeneratorWatchedService.stop(new Task(AbstractKeyGenerator.getKeyGeneratorName(context.getTask().getType())));
+            return new HashMap<>(Collections.singletonMap("status", "stopped"));
+        }
+        return new HashMap<>(Collections.singletonMap("status", "nothing"));
     }
 
     @RequestMapping(value = "/the/range", method = RequestMethod.GET)
     @ResponseBody
-    public Map<String, Object> theRange()
+    public Map<String, Object> theRange(@RequestBody @Validated(GroupConstant.SequentialCombination2.class) TaskForm body)
     {
+        Context context = KeyCache.TASK_CONTEXT.get(new Task(AbstractKeyGenerator.getKeyGeneratorName(body.getType())));
+        if (context == null)
+        {
+            throw new BlockchainException(0, "任务不存在");
+        }
         Map<String, Object> result = new HashMap<>();
-
-//        BigInteger range = max.subtract(min);
-//        result.put("range", range.toString(16).toUpperCase());
+        try
+        {
+            context.getLock().lock();
+            BigInteger min = context.getTask().getMin();
+            BigInteger max = context.getTask().getMax();
+            BigInteger range = max.subtract(min);
+            result.put("range", range.toString(16).toUpperCase());
+        }
+        finally
+        {
+            context.getLock().unlock();
+        }
         return result;
     }
 
@@ -146,7 +171,7 @@ public class BlockchainController
                 result.put("error", "key is incorrect");
                 return result;
             }
-            String addr = keyGenerator.addressGen(biKey);
+            String addr = keyGenerator.addressGen(biKey, true);
             String keystring = keyGenerator.keyGen(biKey, true);
             Map<String, String> key2Addr = new HashMap<>();
             key2Addr.put("privatekey", keystring);
@@ -161,6 +186,42 @@ public class BlockchainController
             result.put("error", "key is null");
             return result;
         }
+    }
+
+    @RequestMapping(value = "/current", method = RequestMethod.GET)
+    @ResponseBody
+    public Map<String, Object> current(TaskForm body)
+    {
+        Context context = null;
+        for (Map.Entry<Task, Context> entry : KeyCache.TASK_CONTEXT.entrySet())
+        {
+            context = entry.getValue();
+            if (context.getTask().getState() == 1)
+            {
+                break;
+            }
+        }
+        if (context == null)
+        {
+            throw new BlockchainException(0, "任务不存在");
+        }
+        if (context.getTask().getType() == 1)
+        {
+            throw new BlockchainException(0, "任务是随机任务");
+        }
+        Map<String, Object> result = new HashMap<>();
+        try
+        {
+            context.getLock().lock();
+            result.put("min", HexUtil.encodeHexStr(Utils.bigIntegerToBytes(context.getTask().getMin(), 32)));
+            result.put("max", HexUtil.encodeHexStr(Utils.bigIntegerToBytes(context.getTask().getMax(), 32)));
+            result.put("size", context.getTask().getMax().subtract(context.getTask().getMin()));
+        }
+        finally
+        {
+            context.getLock().unlock();
+        }
+        return result;
     }
 
     @RequestMapping(value = "/the/query", method = RequestMethod.GET)
@@ -205,7 +266,7 @@ public class BlockchainController
         byte[] privateKey = Sha256Hash.hash(bytes);
 
         String pri = keyGenerator.keyGen(privateKey, true);
-        String pub = keyGenerator.addressGen(privateKey);
+        String pub = keyGenerator.addressGen(privateKey, true);
         result.put("privateKey", pri);
         result.put("publicKey", pub);
         return result;
@@ -226,7 +287,7 @@ public class BlockchainController
         {
             return result;
         }
-        String pub = keyGenerator.addressGen(privateKey);
+        String pub = keyGenerator.addressGen(privateKey, true);
         result.put("publicKey", pub);
         return result;
     }

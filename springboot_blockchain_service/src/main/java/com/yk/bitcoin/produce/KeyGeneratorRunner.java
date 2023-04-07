@@ -2,6 +2,7 @@ package com.yk.bitcoin.produce;
 
 import cn.hutool.core.util.HexUtil;
 import com.yk.base.config.BlockchainProperties;
+import com.yk.bitcoin.Context;
 import com.yk.bitcoin.KeyGenerator;
 import com.yk.bitcoin.model.Chunk;
 import com.yk.bitcoin.model.Key;
@@ -19,33 +20,20 @@ public class KeyGeneratorRunner extends AbstractKeyGenerator
 {
     private final BigInteger one = new BigInteger("1", 16);
 
-    private BigInteger min;
-
-    private final BigInteger max;
-
-    private final Lock lock;
-
     public KeyGeneratorRunner(KeyGenerator generator,
-                              BlockchainProperties blockchainProperties,
-                              BoundedBlockingQueue<Chunk> queue,
-                              BlockingQueue<Chunk> retry,
-                              BigInteger min,
-                              BigInteger max, Lock lock)
+                              Context context)
     {
-        super(generator, blockchainProperties, queue, retry);
-        this.min = min;
-        this.max = max;
-        this.lock = lock;
+        super(generator, context);
     }
 
     @Override
-    public List<Key> createKey()
+    public List<Key> createKey(int length)
     {
         try
         {
-            lock.lock();
+            context.getLock().lock();
             List<Key> result = new ArrayList<>();
-            for (int i = 0; i < blockchainProperties.getDataLen(); i++)
+            for (int i = 0; i < length; i++)
             {
                 Key key = getKey();
                 if (null == key)
@@ -58,29 +46,29 @@ public class KeyGeneratorRunner extends AbstractKeyGenerator
         }
         finally
         {
-            lock.unlock();
+            context.getLock().unlock();
         }
     }
 
     private Key getKey()
     {
-        if (null == min || null == max)
+        if (null == context.getTask().getMin() || null == context.getTask().getMax())
         {
             return null;
         }
 
         byte[] byteKey;
-        if (!(min.compareTo(max) < 0))
+        if (!(context.getTask().getMin().compareTo(context.getTask().getMax()) < 0))
         {
             return null;
         }
         try
         {
-            byteKey = Utils.bigIntegerToBytes(min, 32);
+            byteKey = Utils.bigIntegerToBytes(context.getTask().getMin(), 32);
         }
         catch (RuntimeException e)
         {
-            error.error("Utils.bigIntegerToBytes error : " + min.toString(16), e);
+            error.error("Utils.bigIntegerToBytes error : " + context.getTask().getMin().toString(16), e);
             return null;
         }
 
@@ -90,9 +78,9 @@ public class KeyGeneratorRunner extends AbstractKeyGenerator
         try
         {
             String prk = generator.keyGen(byteKey, true);
-            String puk = generator.addressGen(byteKey);
+            String puk = generator.addressGen(byteKey, true);
             recordLogger.info(Thread.currentThread().getName() + ", " + prk + ", " + puk);
-            setMin(min.add(one));
+            context.getTask().setMin(context.getTask().getMin().add(one));
             return new Key(prk, puk);
         }
         catch (Exception e)
@@ -100,16 +88,6 @@ public class KeyGeneratorRunner extends AbstractKeyGenerator
             error.error("KeyGeneratorRunner private key generator keyGen error", e);
             return null;
         }
-    }
-
-    public BigInteger getMin()
-    {
-        return min;
-    }
-
-    public void setMin(BigInteger min)
-    {
-        this.min = min;
     }
 
     @Override

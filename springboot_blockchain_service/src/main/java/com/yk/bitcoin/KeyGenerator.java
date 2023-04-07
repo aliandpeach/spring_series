@@ -1,7 +1,6 @@
 package com.yk.bitcoin;
 
 import com.yk.crypto.Base58;
-import com.yk.crypto.BinHexSHAUtil;
 import com.yk.crypto.Sha256Hash;
 import com.yk.crypto.Utils;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
@@ -12,11 +11,42 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.spec.ECGenParameterSpec;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 public class KeyGenerator
 {
     private ECNamedCurveParameterSpec spec = ECNamedCurveTable.getParameterSpec("secp256k1");
+
+    public Map<byte[], byte[]> create() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException
+    {
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC");
+        ECGenParameterSpec ecSpec = new ECGenParameterSpec("secp256k1");
+        keyGen.initialize(ecSpec, new SecureRandom());
+
+        KeyPair kp = keyGen.generateKeyPair();
+        PublicKey publicKey = kp.getPublic();
+        PrivateKey privateKey = kp.getPrivate();
+        // 64字节私钥
+        return new HashMap<>(Collections.singletonMap(privateKey.getEncoded(), publicKey.getEncoded()));
+    }
+
+    public byte[] generatePublicKeyByPrivate(byte[] privateKey, boolean compressed)
+    {
+        // 使用上述的私钥 根据椭圆曲线生成公钥
+        ECPoint pointQ = spec.getG().multiply(new BigInteger(1, privateKey));
+        return pointQ.getEncoded(compressed);
+    }
 
     public String keyGen(byte[] privateKey, boolean compressed)
     {
@@ -62,11 +92,11 @@ public class KeyGenerator
         return privateString;
     }
 
-    public String addressGen(byte[] privateKey)
+    public String addressGen(byte[] privateKey, boolean compressed)
     {
         // 使用上述的私钥 根据椭圆曲线生成公钥
         ECPoint pointQ = spec.getG().multiply(new BigInteger(1, privateKey));
-        byte[] publicKey = pointQ.getEncoded(true);
+        byte[] publicKey = pointQ.getEncoded(compressed);
         byte[] sha256Bytes = Sha256Hash.hash(publicKey);
 
         RIPEMD160Digest digest = new RIPEMD160Digest();
@@ -108,21 +138,21 @@ public class KeyGenerator
 
     public byte[] convertKeyByBase58Key(String base58Key)
     {
-        byte[] keyWtihChecksumBytes = Base58.decode(base58Key);
-        if (keyWtihChecksumBytes.length < 37 || keyWtihChecksumBytes.length > 38)
+        byte[] keyWithChecksumBytes = Base58.decode(base58Key);
+        if (keyWithChecksumBytes.length < 37 || keyWithChecksumBytes.length > 38)
         {
             return null;
         }
 
-        boolean compressed = keyWtihChecksumBytes.length == 38;
-        byte[] newkey = new byte[keyWtihChecksumBytes.length - 4];
-        ByteBuffer byteBuffer = ByteBuffer.allocate(keyWtihChecksumBytes.length);
-        byteBuffer.put(keyWtihChecksumBytes);
+        boolean compressed = keyWithChecksumBytes.length == 38;
+        byte[] newKey = new byte[keyWithChecksumBytes.length - 4];
+        ByteBuffer byteBuffer = ByteBuffer.allocate(keyWithChecksumBytes.length);
+        byteBuffer.put(keyWithChecksumBytes);
         byteBuffer.flip();
-        byteBuffer.get(newkey, 0, newkey.length);
+        byteBuffer.get(newKey, 0, newKey.length);
 
         byte[] key = new byte[32];
-        System.arraycopy(newkey, 1, key, 0, key.length);
+        System.arraycopy(newKey, 1, key, 0, key.length);
         return key;
     }
 

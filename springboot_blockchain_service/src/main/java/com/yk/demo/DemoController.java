@@ -1,5 +1,7 @@
 package com.yk.demo;
 
+import com.yk.base.valid.GroupConstant;
+import com.yk.bitcoin.model.TaskForm;
 import com.yk.demo.dao.DemoDAO;
 import com.yk.demo.dao.IOtherDAO;
 import com.yk.demo.model.BlockchainModel;
@@ -170,7 +172,7 @@ public class DemoController
      *
            $.ajax({
                type: "post",
-               dataType: "json",
+               dataType: "json",    // The type of data that you're expecting back from the serve
                contentType: "application/x-www-form-urlencoded",
                url: "/demo/fileInfoParam/3",
                data: {"id": "1", "name": "2"},
@@ -182,7 +184,7 @@ public class DemoController
 
            $.ajax({
                type: "post",
-               dataType: "json",
+               dataType: "json",    // The type of data that you're expecting back from the serve
                contentType: "application/x-www-form-urlencoded",
                url: "/demo/fileInfoParam/3",
                data: 'id=7&name=8',
@@ -263,5 +265,12 @@ public class DemoController
     public FileInfos uploadXml(@RequestBody @Validated FileInfos fileInfos)
     {
         return fileInfos;
+    }
+
+    @GetMapping(value = "/current")
+    @ResponseBody
+    public FileInfoParam current(@RequestBody FileInfoParam body)
+    {
+        return null;
     }
 }

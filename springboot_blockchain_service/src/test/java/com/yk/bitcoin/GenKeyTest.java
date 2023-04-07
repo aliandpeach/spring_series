@@ -11,9 +11,12 @@ import org.junit.Test;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -134,7 +137,7 @@ public class GenKeyTest
         System.out.println(hexKey);
         System.out.println(_hexKey);
         String prk = keyGenerator.keyGen(key, true);
-        String pub = keyGenerator.addressGen(key);
+        String pub = keyGenerator.addressGen(key, true);
         System.out.println(prk);
         System.out.println(pub);
     }
@@ -166,7 +169,7 @@ public class GenKeyTest
             try
             {
                 String prk = keyGenerator.keyGen(key, true);
-                String puk = keyGenerator.addressGen(key);
+                String puk = keyGenerator.addressGen(key, true);
                 System.out.println("key= " + prk + ", address= " + puk);
             }
             catch (Exception e)
@@ -188,7 +191,7 @@ public class GenKeyTest
         // 5JsqvMN5CjwpM36wo8RbR2rM1GommssZubfb5KSJf815uLqG511
         System.out.println(pri);
         System.out.println(pri2);
-        System.out.println(keyGenerator.addressGen(bytes));
+        System.out.println(keyGenerator.addressGen(bytes, true));
     }
     
     @Test
@@ -204,7 +207,7 @@ public class GenKeyTest
             System.out.println(hex);
         }
 
-        byte[] bytes = "nothing".getBytes();
+        byte[] bytes = "0".getBytes();
         bytes = Sha256Hash.hash(bytes);
         String hex_ = BinHexSHAUtil.byteArrayToHex(bytes);
         System.out.println("hex=" + hex_);
@@ -215,7 +218,7 @@ public class GenKeyTest
         KeyGenerator keyGenerator = new KeyGenerator();
         String pri = keyGenerator.keyGen(privateKey, true);
         System.out.println(pri);
-        String pub = keyGenerator.addressGen(privateKey);
+        String pub = keyGenerator.addressGen(privateKey, true);
         System.out.println(pub);
     }
     
@@ -299,7 +302,27 @@ public class GenKeyTest
         System.out.println(compressed);
         System.out.println(uncompressed);
         
-        String addr = generator.addressGen(key);
+        String addr = generator.addressGen(key, true);
         System.out.println(addr);
+    }
+
+    @Test
+    public void createTest() throws InvalidAlgorithmParameterException, NoSuchAlgorithmException
+    {
+        KeyGenerator generator = new KeyGenerator();
+        SecureRandom random = new SecureRandom();
+        byte[] key = new byte[32];
+        random.nextBytes(key);
+
+        String keyStr = generator.keyGen(key, true);
+        String keyStr2 = generator.keyGen(key, false);
+        System.out.println("compressed : " + keyStr);
+        System.out.println("uncompressed : " + keyStr2);
+
+        System.out.println("compressed : " + generator.addressGen(key, true));
+        System.out.println("uncompressed : " + generator.addressGen(key, false));
+
+        byte[] _key = generator.convertKeyByBase58Key(keyStr);
+        System.out.println();
     }
 }

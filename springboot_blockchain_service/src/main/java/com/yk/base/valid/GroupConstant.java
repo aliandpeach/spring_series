@@ -4,14 +4,13 @@ import javax.validation.GroupSequence;
 
 public class GroupConstant
 {
-    // 组序列
+    // 按照顺序验证
     @GroupSequence({A.class, B.class, C.class})
     public interface SequentialCombination1
     {
     }
 
-    // 组序列
-    @GroupSequence({A.class, B.class})
+    @GroupSequence({C.class, D.class})
     public interface SequentialCombination2
     {
     }
@@ -27,6 +26,10 @@ public class GroupConstant
     }
 
     public interface C
+    {
+
+    }
+    public interface D
     {
 
     }

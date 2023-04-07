@@ -11,7 +11,9 @@ import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -52,7 +54,7 @@ public class ControllerExceptionHandler
         {
             baseResponse = handleBaseException(e.getCause());
         }
-        baseResponse.setMessage("字段验证错误，请完善后重试！");
+//        baseResponse.setMessage("字段验证错误，请完善后重试！");
         return baseResponse;
     }
 
@@ -76,8 +78,7 @@ public class ControllerExceptionHandler
             MissingServletRequestParameterException e)
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
-        baseResponse.setMessage(
-                String.format("请求字段缺失, 类型为 %s，名称为 %s", e.getParameterType(), e.getParameterName()));
+        baseResponse.setMessage(String.format("请求字段缺失, 类型为 %s，名称为 %s", e.getParameterType(), e.getParameterName()));
         return baseResponse;
     }
 
@@ -87,8 +88,8 @@ public class ControllerExceptionHandler
     {
         BaseResponse<Map<String, String>> baseResponse = handleBaseException(e);
         baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-        baseResponse.setMessage("字段验证错误，请完善后重试！");
-        baseResponse.setData(mapWithValidError(e.getConstraintViolations()));
+        Map<String, String> error = mapWithValidError(e.getConstraintViolations());
+        baseResponse.setMessage(error.toString());
         return baseResponse;
     }
 
@@ -99,10 +100,8 @@ public class ControllerExceptionHandler
     {
         BaseResponse<Map<String, String>> baseResponse = handleBaseException(e);
         baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-        baseResponse.setMessage("字段验证错误，请完善后重试！");
-        Map<String, String> errMap =
-                mapWithFieldError(e.getBindingResult().getFieldErrors());
-        baseResponse.setData(errMap);
+        Map<String, String> errMap = mapWithFieldError(e.getBindingResult());
+        baseResponse.setMessage(errMap.toString());
         return baseResponse;
     }
 
@@ -131,9 +130,7 @@ public class ControllerExceptionHandler
     public BaseResponse<?> handleHttpMediaTypeNotSupportedException(
             HttpMediaTypeNotSupportedException e)
     {
-        BaseResponse<?> baseResponse = handleBaseException(e);
-        baseResponse.setMessage(e.getMessage());
-        return baseResponse;
+        return handleBaseException(e);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -143,7 +140,7 @@ public class ControllerExceptionHandler
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
         baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
-        baseResponse.setMessage("缺失请求主体");
+//        baseResponse.setMessage("缺失请求主体");
         return baseResponse;
     }
 
@@ -154,8 +151,6 @@ public class ControllerExceptionHandler
         BaseResponse<?> baseResponse = handleBaseException(e);
         HttpStatus status = HttpStatus.BAD_GATEWAY;
         baseResponse.setStatus(status.value());
-        baseResponse.setStatus(status.value());
-        baseResponse.setMessage(status.getReasonPhrase());
         return baseResponse;
     }
 
@@ -175,7 +170,6 @@ public class ControllerExceptionHandler
     {
         BaseResponse<Object> baseResponse = handleBaseException(e);
         baseResponse.setStatus(e.getStatus());
-        baseResponse.setData(e.getMessage());
         return baseResponse;
     }
 
@@ -186,27 +180,31 @@ public class ControllerExceptionHandler
         BaseResponse<?> baseResponse = handleBaseException(e);
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         baseResponse.setStatus(status.value());
-        baseResponse.setStatus(status.value());
-        baseResponse.setMessage(status.getReasonPhrase());
         return baseResponse;
     }
 
     /**
      * 将字段验证错误转换为标准的map型，key:value = field:message
      *
-     * @param fieldErrors 字段错误组
      * @return 如果返回null，则表示未出现错误
      */
-    public static Map<String, String> mapWithFieldError(@Nullable List<FieldError> fieldErrors)
+    public static Map<String, String> mapWithFieldError(BindingResult bindingResult)
     {
-        if (CollectionUtils.isEmpty(fieldErrors))
+        if (!bindingResult.hasErrors())
         {
             return Collections.emptyMap();
         }
-
+        List<FieldError> fieldErrors = bindingResult.getFieldErrors();
         Map<String, String> errMap = new HashMap<>(4);
-        fieldErrors.forEach(
-                filedError -> errMap.put(filedError.getField(), filedError.getDefaultMessage()));
+        if (fieldErrors.size() > 0)
+        {
+            fieldErrors.forEach(
+                    filedError -> errMap.put(filedError.getField(), filedError.getDefaultMessage()));
+            return errMap;
+        }
+
+        ObjectError objectError = bindingResult.getAllErrors().get(0);
+        errMap.put("message", objectError.getDefaultMessage());
         return errMap;
     }
 

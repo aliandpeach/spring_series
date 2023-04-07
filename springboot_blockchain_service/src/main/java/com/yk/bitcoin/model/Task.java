@@ -4,7 +4,6 @@ import lombok.Data;
 
 import java.math.BigInteger;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
 
 @Data
 public class Task
@@ -37,9 +36,7 @@ public class Task
 
     private int state; // 0 停止 1 启动 2 暂停
 
-    private ExecutorService producerService;
-
-    private ExecutorService consumerService;
+    private int type;
 
     @Override
     public boolean equals(Object o)

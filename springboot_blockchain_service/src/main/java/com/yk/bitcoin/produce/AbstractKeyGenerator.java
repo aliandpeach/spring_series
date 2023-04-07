@@ -1,20 +1,14 @@
 package com.yk.bitcoin.produce;
 
-import com.yk.base.config.BlockchainProperties;
-import com.yk.bitcoin.KeyCache;
+import com.yk.bitcoin.Context;
 import com.yk.bitcoin.KeyGenerator;
 import com.yk.bitcoin.model.Chunk;
 import com.yk.bitcoin.model.Key;
-import com.yk.bitcoin.model.Task;
 import com.yk.exception.BlockchainException;
-import com.yk.queue.BoundedBlockingQueue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigInteger;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.locks.Lock;
 
 public abstract class AbstractKeyGenerator implements Runnable
 {
@@ -28,30 +22,21 @@ public abstract class AbstractKeyGenerator implements Runnable
 
     final KeyGenerator generator;
 
-    final BlockchainProperties blockchainProperties;
+    final Context context;
 
-    final BoundedBlockingQueue<Chunk> queue;
-
-    final BlockingQueue<Chunk> retry;
-
-    public AbstractKeyGenerator(KeyGenerator generator,
-                                BlockchainProperties blockchainProperties,
-                                BoundedBlockingQueue<Chunk> queue,
-                                BlockingQueue<Chunk> retry)
+    public AbstractKeyGenerator(KeyGenerator generator, Context context)
     {
         this.generator = generator;
-        this.blockchainProperties = blockchainProperties;
-        this.queue = queue;
-        this.retry = retry;
+        this.context = context;
     }
 
-    public abstract List<Key> createKey();
+    public abstract List<Key> createKey(int length);
 
     public abstract String getName();
 
-    public boolean queryTaskStatus()
+    public boolean stopped()
     {
-        return KeyCache.TASK_INFO.computeIfAbsent(this.getName(), t -> new Task(this.getName())).getState() == 0;
+        return context.queryTaskStatus() == 0;
     }
 
     @Override
@@ -59,21 +44,21 @@ public abstract class AbstractKeyGenerator implements Runnable
     {
         while (true)
         {
-            if (queryTaskStatus() && retry.size() == 0)
+            if (stopped() && context.getRetry().size() == 0)
             {
                 status.info("{} stopped! current thread = {}", this.getName(), Thread.currentThread().getName());
                 break;
             }
             try
             {
-                Chunk _chunk = retry.poll();
+                Chunk _chunk = context.getRetry().poll();
                 if (null != _chunk)
                 {
-                    queue.put(_chunk);
+                    context.getQueue().put(_chunk);
                     continue;
                 }
 
-                List<Key> keyList = createKey();
+                List<Key> keyList = createKey(context.getChunkDataLength());
                 if (null == keyList || keyList.isEmpty())
                 {
                     continue;
@@ -81,7 +66,7 @@ public abstract class AbstractKeyGenerator implements Runnable
 
                 Chunk chunk = new Chunk();
                 chunk.getDataList().addAll(keyList);
-                queue.put(chunk);
+                context.getQueue().put(chunk);
             }
             catch (Exception e)
             {
@@ -99,21 +84,18 @@ public abstract class AbstractKeyGenerator implements Runnable
         }
     }
 
-    public static AbstractKeyGenerator createKeyGenerator(int type, KeyGenerator generator,
-                                                          BlockchainProperties blockchainProperties,
-                                                          BoundedBlockingQueue<Chunk> queue,
-                                                          BlockingQueue<Chunk> retry,
-                                                          BigInteger min,
-                                                          BigInteger max, Lock lock)
+    public static AbstractKeyGenerator createKeyGenerator(int type,
+                                                          KeyGenerator generator,
+                                                          Context context)
     {
         AbstractKeyGenerator abstractKeyGenerator;
         switch (type)
         {
             case 0:
-                abstractKeyGenerator = new KeyGeneratorRunner(generator, blockchainProperties, queue, retry, min, max, lock);
+                abstractKeyGenerator = new KeyGeneratorRunner(generator, context);
                 break;
             case 1:
-                abstractKeyGenerator = new RandomKeyGeneratorRunner(generator, blockchainProperties, queue, retry);
+                abstractKeyGenerator = new RandomKeyGeneratorRunner(generator, context);
                 break;
             default:
                 throw new BlockchainException(0, "Unexpected value: " + type);

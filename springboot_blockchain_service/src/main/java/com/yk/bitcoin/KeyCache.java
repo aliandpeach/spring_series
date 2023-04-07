@@ -7,5 +7,5 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class KeyCache
 {
-    public static final Map<String, Task> TASK_INFO = new ConcurrentHashMap<>();
+    public static final Map<Task, Context> TASK_CONTEXT = new ConcurrentHashMap<>();
 }
