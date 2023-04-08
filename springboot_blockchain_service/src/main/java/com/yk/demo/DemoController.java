@@ -68,8 +68,6 @@ public class DemoController
                   // debugger
               }
         });
-
-        GET 方法在最新的标准中可以向body中增加数据， springboot获取参数，目前只支持url拼接的params和form-data, 但不支持 x-www-form-urlencoded和raw
      */
     @GetMapping("/fileInfoParam")
     @ResponseBody
@@ -101,11 +99,9 @@ public class DemoController
              data: {"id": "1", "name": "2"},
               async: true,
               success: function (result) {
-                  // debugger
+                  console.log(result);
               }
          });
-
-         GET 方法在最新的标准中可以向body中增加数据， springboot获取参数，目前只支持url拼接的params和form-data, 但不支持 x-www-form-urlencoded和raw
      */
     @GetMapping("/map")
     @ResponseBody
@@ -115,7 +111,7 @@ public class DemoController
     }
 
     /**
-     * GET 方法在最新的标准中可以向body中增加数据， springboot获取参数，目前只支持url拼接的params和form-data, 但不支持 x-www-form-urlencoded和raw
+     *
      */
     @GetMapping("/query")
     @ResponseBody
@@ -124,13 +120,6 @@ public class DemoController
         List<DemoModel> list2 = demoDAO.queryByName2(name);
         list2 = otherDAO.queryBy(name);
         return demoDAO.queryByName(name);
-    }
-
-    @GetMapping(value = "/current")
-    @ResponseBody
-    public FileInfoParam current(@RequestBody FileInfoParam body)
-    {
-        return body;
     }
 
     /**
