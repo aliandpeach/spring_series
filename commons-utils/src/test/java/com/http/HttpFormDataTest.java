@@ -1,19 +1,20 @@
 package com.http;
 
 import cn.hutool.json.JSONObject;
-import com.google.common.base.Objects;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.yk.httprequest.HttpClientUtil;
 import com.yk.httprequest.HttpFormDataUtil;
 import com.yk.httprequest.JSONUtil;
+import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.junit.Test;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +24,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * HttpFormDataTest
+ * HttpFormDataTest -- 该测试类下所有的 postFormData方法都可替换为 postFormDataByHttpClient
  *
  * @author yangk
  * @version 1.0
@@ -53,116 +54,57 @@ public class HttpFormDataTest
      * ------WebKitFormBoundarykHWy2Qaa9Q8z5JJi--
      */
     @Test
-    public void sendFormData() throws Exception
+    public void multipleUploadWithRequestPartParams() throws Exception
     {
-        String url = "https://192.168.10.122:21111/import/upload/multiple/json";
+        String url = "https://192.168.31.158:21111/import/upload/multiple/request/part/params";
 
         JSONObject jsonObject = new JSONObject();
         String fileId = UUID.randomUUID().toString().replace("-", "");
-        jsonObject.put(fileId, "5-1.txt");
+        jsonObject.put(fileId, "env.txt");
 
         Map<String, String> filePathMap = new HashMap<>();
-        filePathMap.put(fileId, "F:\\test_share_dir\\5\\5-1.txt");
-
-        String boundary = "WebKitFormBoundary2ikDa4yTuM4d47aa";
-        Map<String, Object> headers = new HashMap<>();
-        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormData(url, filePathMap, jsonObject.toJSONString(0), headers, false, boundary, "Content-Type: application/json");
-        System.out.println(response);
-
-    }
-
-    @Test
-    public void sendFormDataXML() throws Exception
-    {
-        String url = "https://192.168.31.205:443/base/event/file/analysis/upload/xml";
-
-        JAXBContext context = JAXBContext.newInstance(FileInfos.class);
-        Marshaller marshaller = context.createMarshaller();
-
-        FileInfos fileInfos = new FileInfos();
-        Map<String, String> filePathMap = new HashMap<>();
-
-        String fileId = UUID.randomUUID().toString().replace("-", "");
-
-        filePathMap.put(fileId, "F:\\test_share_dir\\5\\5-1.txt");
-
-        List<FileInfoParam> flist = new ArrayList<>();
-        FileInfoParam info = new FileInfoParam();
-        info.setId(fileId);
-        info.setName("5-1.txt");
-        flist.add(info);
-        fileInfos.setFileInfoParamList(flist);
-
-        String str;
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream())
-        {
-            marshaller.marshal(fileInfos, outputStream);
-            str = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
-        }
-
-        String boundary = "WebKitFormBoundary2ikDa4yTuM4d47aa";
-        Map<String, Object> headers = new HashMap<>();
-        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormData(url, filePathMap, str, headers, true, boundary, "Content-Type: application/xml");
-        System.out.println(response);
-
-    }
-    @Test
-    public void sendFormDataXMLByHttpClient() throws Exception
-    {
-        String url = "https://192.168.31.205:443/base/event/file/analysis/upload/xml";
-
-        JAXBContext context = JAXBContext.newInstance(FileInfos.class);
-        Marshaller marshaller = context.createMarshaller();
-
-        FileInfos fileInfos = new FileInfos();
-        Map<String, String> filePathMap = new HashMap<>();
-
-        String fileId = UUID.randomUUID().toString().replace("-", "");
-
-        filePathMap.put(fileId, "F:\\test_share_dir\\5\\5-1.txt");
-
-        List<FileInfoParam> flist = new ArrayList<>();
-        FileInfoParam info = new FileInfoParam();
-        info.setId(fileId);
-        info.setName("5-1.txt");
-        flist.add(info);
-        fileInfos.setFileInfoParamList(flist);
-
-        String str;
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream())
-        {
-            marshaller.marshal(fileInfos, outputStream);
-            str = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
-        }
+        filePathMap.put(fileId, "D:\\env.txt");
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil
-                .postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "params", "application/xml");
+        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormData(url,
+                filePathMap,
+                Collections.singletonMap("params", jsonObject.toJSONString(0)),
+                headers,
+                proxyInfo,
+                boundary,
+                "application/json");
         System.out.println(response);
 
     }
+
     @Test
-    public void sendFormDataJson() throws Exception
+    public void multipleUploadValidatedItem() throws Exception
     {
-        String url = "https://192.168.31.122:21111/import/upload/multiple/json";
+        String url = "https://192.168.31.158:21111/import/upload/multiple/validated/item";
+
+        Map<String, String> nameWithContent = new HashMap<>();
+        nameWithContent.put("name", "env.txt");
+        nameWithContent.put("value", "env.txt");
+
         Map<String, String> filePathMap = new HashMap<>();
-
         String fileId = UUID.randomUUID().toString().replace("-", "");
-
-        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk_pub.pem");
-
-        String str = JSONUtil.toJson(new HashMap<String, String>(Collections.singletonMap(fileId, "5-1.txt")));
+        filePathMap.put(fileId, "D:\\env.txt");
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "params", "application/json");
+        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
+
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormData(url,
+                filePathMap,
+                nameWithContent,
+                headers,
+                proxyInfo,
+                boundary,
+                "text/plain");
         System.out.println(response);
 
     }
@@ -171,22 +113,24 @@ public class HttpFormDataTest
      * 上传文件接口, 附带json格式的参数
      */
     @Test
-    public void sendFormDataJson3() throws Exception
+    public void uploadMultipleRequestParams() throws Exception
     {
-        String url = "https://192.168.10.122:21111/import/upload/multiple/json3";
+        String url = "https://192.168.31.158:21111/import/upload/multiple/request/params";
+
         Map<String, String> filePathMap = new HashMap<>();
-
         String fileId = UUID.randomUUID().toString().replace("-", "");
+        filePathMap.put(fileId, "D:\\env.txt");
 
-        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk_pub.pem");
-
-        String str = JSONUtil.toJson(new HashMap<String, String>(Collections.singletonMap(fileId, "5-1.txt")));
+        Map<String, String> nameWithContent = new HashMap<>();
+        nameWithContent.put("_key", "aaa");
+        nameWithContent.put("_value", "bbb");
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "params", "application/json");
+        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormData(url,
+                filePathMap, nameWithContent, headers, proxyInfo, boundary, "application/json");
         System.out.println(response);
 
     }
@@ -194,157 +138,131 @@ public class HttpFormDataTest
      * 上传文件接口, 附带json格式的参数
      */
     @Test
-    public void sendFormDataJson4() throws Exception
+    public void multipleUploadRequestParamStringName() throws Exception
     {
-        String url = "https://192.168.10.122:21111/import/upload/multiple/json4";
+        String url = "https://192.168.31.158:21111/import/upload/multiple/request/param/name";
+
         Map<String, String> filePathMap = new HashMap<>();
-
         String fileId = UUID.randomUUID().toString().replace("-", "");
-
-        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk_pub.pem");
-
-        String str = JSONUtil.toJson(new HashMap<String, String>(Collections.singletonMap(fileId, "sdk_pub.txt")));
+        filePathMap.put(fileId, "D:\\env.txt");
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
+        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
         HttpFormDataUtil.HttpResponse response = HttpFormDataUtil
-                .postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "level", "text/plain");
+                .postFormData(url,
+                        filePathMap,
+                        Collections.singletonMap("level", "level-test-123"),
+                        headers,
+                        proxyInfo,
+                        boundary,
+                        "text/plain");
         System.out.println(response);
 
     }
 
     @Test
-    public void sendFormDataJson5() throws Exception
+    public void uploadMultipleRequestPartItems() throws Exception
     {
-        String url = "https://192.168.10.122:21111/import/upload/multiple/json5";
+        String url = "https://192.168.31.158:21111/import/upload/multiple/request/part/items";
+
         Map<String, String> filePathMap = new HashMap<>();
-
-        String fileId1 = UUID.randomUUID().toString().replace("-", "");
-
-        filePathMap.put(fileId1, "C:\\Users\\yk\\Desktop\\1.txt");
-        String fileId2 = UUID.randomUUID().toString().replace("-", "");
-
-        filePathMap.put(fileId2, "C:\\Users\\yk\\Desktop\\2.txt");
-
-        Map<String, String> map = new HashMap<String, String>(Collections.singletonMap("name", "sdk_pub.txt"));
-        map.put("value", fileId1);
-        String str = JSONUtil.toJson(map);
-
-        String boundary = UUID.randomUUID().toString().replace("-", "");
-        Map<String, Object> headers = new HashMap<>();
-//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil
-                .postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "item", "application/json");
-        System.out.println(response);
-
-    }
-    @Test
-    public void sendFormDataJson6() throws Exception
-    {
-        String url = "https://192.168.10.122:21111/import/upload/multiple/json6";
-        Map<String, String> filePathMap = new HashMap<>();
-
         String fileId = UUID.randomUUID().toString().replace("-", "");
-
-        filePathMap.put(fileId, "D:\\workspace\\SIMP_DBS_D_\\SIMPLE-DBS-SDK\\src\\main\\resources\\yangkai\\sdk_pub.pem");
+        filePathMap.put(fileId, "D:\\env.txt");
 
         List<Map<String, String>> list = new ArrayList<>();
-        Map<String, String> map = new HashMap<String, String>(Collections.singletonMap("name", "sdk_pub.txt"));
-        map.put("value", fileId);
+        Map<String, String> map = new HashMap<>();
+        map.put("name", "env.txt-1");
+        map.put("value", "env.txt-1");
         list.add(map);
+        Map<String, String> _map = new HashMap<>();
+        _map.put("name", "env.txt-2");
+        _map.put("value", "env.txt-2");
+        list.add(_map);
         String str = JSONUtil.toJson(list);
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8080, "http");
+        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
         HttpFormDataUtil.HttpResponse response = HttpFormDataUtil
-                .postFormDataByHttpClient(url, filePathMap, str, headers, proxyInfo, boundary, "items", "application/json");
+                .postFormData(url, filePathMap, Collections.singletonMap("items", str), headers, proxyInfo, boundary, "application/json");
         System.out.println(response);
 
     }
 
     @Test
-    public void sendPostBytes() throws Exception
+    public void multipleUploadRequestPartStringName() throws Exception
     {
-        String content = "abc123中文";
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postText("https://192.168.10.122:21112/import/upload/multiple/bytes", content);
+        String url = "https://192.168.31.158:21111/import/upload/multiple/request/part/string/name";
+
+        Map<String, String> filePathMap = new HashMap<>();
+        String fileId = UUID.randomUUID().toString().replace("-", "");
+        filePathMap.put(fileId, "D:\\env.txt");
+
+        List<Map<String, String>> list = new ArrayList<>();
+        Map<String, String> map = new HashMap<>();
+        map.put("name", "json-1");
+        map.put("value", "json-1");
+        list.add(map);
+        Map<String, String> _map = new HashMap<>();
+        _map.put("name", "json-2");
+        _map.put("value", "json-2");
+        list.add(_map);
+        String str = JSONUtil.toJson(list);
+
+        String boundary = UUID.randomUUID().toString().replace("-", "");
+        Map<String, Object> headers = new HashMap<>();
+        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil
+                .postFormData(url, filePathMap, Collections.singletonMap("json", str), headers, proxyInfo, boundary, "text/plain");
         System.out.println(response);
     }
 
-    @XmlRootElement(name = "files")
-    @XmlAccessorType(XmlAccessType.FIELD)
-    private static class FileInfos
-    {
-        @XmlElement(name = "file")
-        private List<FileInfoParam> fileInfoParamList;
-
-        public List<FileInfoParam> getFileInfoParamList()
-        {
-            return fileInfoParamList;
-        }
-
-        public void setFileInfoParamList(List<FileInfoParam> fileInfoParamList)
-        {
-            this.fileInfoParamList = fileInfoParamList;
-        }
-    }
-
-
-    @XmlRootElement
-    @XmlAccessorType(XmlAccessType.FIELD)
-    private static class FileInfoParam
-    {
-        private String id;
-
-        private String name;
-
-        @Override
-        public boolean equals(Object o)
-        {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            FileInfoParam that = (FileInfoParam) o;
-            return Objects.equal(id, that.id);
-        }
-
-        @Override
-        public int hashCode()
-        {
-            return Objects.hashCode(id);
-        }
-
-        public String getId()
-        {
-            return id;
-        }
-
-        public void setId(String id)
-        {
-            this.id = id;
-        }
-
-        public String getName()
-        {
-            return name;
-        }
-
-        public void setName(String name)
-        {
-            this.name = name;
-        }
-    }
-
-    /**
-     * 上传文件接口, 附带json格式的参数
-     */
     @Test
-    public void getHtml() throws Exception
+    public void uploadBytes() throws Exception
     {
-        String url = "https://192.168.116.205/temporary_upload/bmj-new-install-1.5.0.0.7.v5.zip";
-        new HttpClientUtil().getBytes(url, new HashMap<>(), new HashMap<>(), "a.html", System.currentTimeMillis() + "", "F:\\iworkspace\\_downloadx");
+        byte[] content = "abc123.中文".getBytes(StandardCharsets.UTF_8);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
+        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postBytes("https://192.168.31.158:21111/import/upload/multiple/bytes", content, proxyInfo);
+        System.out.println(response);
+    }
+
+    @Test
+    public void downloadBytes() throws Exception
+    {
+        String url = "https://192.168.31.158:21111/import/download/bytes";
+        new HttpClientUtil(new HttpClientUtil.Config().ofProxy(new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http")))
+                .downloadPost(url,
+                new HashMap<>(),
+                new HashMap<>(Collections.singletonMap("download.name", "1681887110033_白鹿原1.mp4")),
+                new HttpClientUtil.HttpResponseHandler()
+                {
+                    @Override
+                    public void handleHttpResponse(HttpResponse response) throws IOException
+                    {
+                        IOUtils.copy(response.getEntity().getContent(), new FileOutputStream(new File("D:\\download\\1681887110033_白鹿原1.mp4")));
+                    }
+                });
+    }
+
+    @Test
+    public void download() throws Exception
+    {
+        String url = "https://192.168.31.158:21111/import/download";
+        new HttpClientUtil(new HttpClientUtil.Config().ofProxy(new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http")))
+                .downloadPost(url,
+                new HashMap<>(),
+                new HashMap<>(Collections.singletonMap("download.name", "1681887110033_白鹿原1.mp4")),
+                new HttpClientUtil.HttpResponseHandler()
+                {
+                    @Override
+                    public void handleHttpResponse(HttpResponse response) throws IOException
+                    {
+                        IOUtils.copy(response.getEntity().getContent(), new FileOutputStream(new File("D:\\download\\1681887110033_白鹿原1.mp4")));
+                    }
+                });
     }
 }

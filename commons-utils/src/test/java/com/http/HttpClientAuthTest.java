@@ -1,11 +1,13 @@
 package com.http;
 
 import cn.hutool.core.util.HexUtil;
+import cn.hutool.json.JSON;
 import com.crypto.sm.SM2Test;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.yk.httprequest.HttpClientUtil;
 import com.yk.httprequest.JSONUtil;
 import org.apache.http.client.config.RequestConfig;
+import org.apache.http.entity.ContentType;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -175,7 +177,7 @@ public class HttpClientAuthTest
         HttpClientUtil.Config config = new HttpClientUtil.Config();
 //        config.setProxyInfo(new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http"));
         config.setSocketTimeout(120000);
-        Map<String, String> body = new HashMap<>(Collections.singletonMap("jobId", "8303261fd4eb44249ab76a69a17ff46d"));
+        Map<String, Object> body = new HashMap<>(Collections.singletonMap("jobId", "8303261fd4eb44249ab76a69a17ff46d"));
         body.put("url", "http://zjjcmspublic.oss-cn-hangzhou-zwynet-d01-a.internet.cloud.zj.gov.cn/jcms_files/jcms1/web3431/site/old/webmagic/eWebEditor/uploadfile/20140723085535625.jpg");
 
         Map<String, String> headers = new HashMap<>();
@@ -248,7 +250,7 @@ public class HttpClientAuthTest
 //        config.setSslKeyManager(true);
 //        config.setProxyInfo(new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http"));
         config.setSocketTimeout(120000);
-        Map<String, String> body = new HashMap<>(Collections.singletonMap("jobId", "8303261fd4eb44249ab76a69a17ff46d"));
+        Map<String, Object> body = new HashMap<>(Collections.singletonMap("jobId", "8303261fd4eb44249ab76a69a17ff46d"));
         body.put("id", "123456789");
         body.put("text", sb.toString());
 

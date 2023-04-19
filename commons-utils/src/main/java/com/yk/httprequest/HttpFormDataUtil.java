@@ -30,6 +30,7 @@ import javax.net.ssl.X509TrustManager;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -50,6 +51,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -76,22 +78,22 @@ public class HttpFormDataUtil
 
     public static HttpResponse postFormData(String urlStr,
                                             Map<String, String> filePathMap,
-                                            String content,
+                                            Map<String, String> nameWithContent,
                                             Map<String, Object> headers,
-                                            boolean proxy,
+                                            HttpClientUtil.ProxyInfo proxyInfo,
                                             String boundary,
-                                            String contentType) throws
-            Exception
+                                            String contentType) throws Exception
     {
         HttpResponse response;
-        HttpsURLConnection conn = getHttpsURLConnection(urlStr, headers, proxy);
+        HttpsURLConnection conn = getHttpsURLConnection(urlStr, headers, proxyInfo);
 
         //发送参数数据
         try (BufferedOutputStream out = new BufferedOutputStream(conn.getOutputStream()))
         {
-            if (null != content)
+            if (null != nameWithContent && nameWithContent.size() > 0)
             {
-                writeSimpleFormField(boundary, out, content, contentType);
+                for (Map.Entry<String, String> _entry : nameWithContent.entrySet())
+                    writeSimpleFormField(boundary, out, _entry.getValue(), contentType, _entry.getKey());
             }
 
             //发送文件类型参数
@@ -122,11 +124,10 @@ public class HttpFormDataUtil
 
     public static HttpResponse postFormDataByHttpClient(String urlStr,
                                                         Map<String, String> filePathMap,
-                                                        String content,
+                                                        Map<String, String> nameWithContent,
                                                         Map<String, Object> headers,
                                                         HttpClientUtil.ProxyInfo proxyInfo,
                                                         String boundary,
-                                                        String paramName,
                                                         String contentType)
     {
         HttpResponse response;
@@ -147,22 +148,33 @@ public class HttpFormDataUtil
             Constructor<?>[] constructors = clazz.getDeclaredConstructors();
             Constructor<?> constructor = Arrays.stream(constructors).filter(c -> c.getParameterCount() == 3).findFirst().orElseThrow(() -> new RuntimeException("Constructor<?> null"));
             constructor.setAccessible(true);
-            Header header = new Header();
-            header.addField(new MinimalField(MIME.CONTENT_DISPOSITION, "form-data; name=\"" + paramName + "\"\r\nContent-Type: " + contentType)); // 重点在这句
-            header.addField(new MinimalField(MIME.CONTENT_TYPE, contentType));
-            header.addField(new MinimalField(MIME.CONTENT_TRANSFER_ENC, "binary"));
-            FormBodyPart bodyPart = (FormBodyPart) constructor.newInstance(paramName, new ByteArrayBody(content.getBytes(StandardCharsets.UTF_8), ContentType.create(contentType), null), header);
+            for (Map.Entry<String, String> _entry : nameWithContent.entrySet())
+            {
+                // 最初版是利用反射构建 FormBodyPart
+                Header header = new Header();
+                // 重点在这句, 没有设置contentType, FormData中同时传递的json数据无法被controller解析
+                header.addField(new MinimalField(MIME.CONTENT_DISPOSITION, "form-data; name=\"" + _entry.getKey() + "\"\r\nContent-Type: " + contentType));
+                header.addField(new MinimalField(MIME.CONTENT_TYPE, contentType));
+                header.addField(new MinimalField(MIME.CONTENT_TRANSFER_ENC, "binary"));
+                FormBodyPart bodyPart = (FormBodyPart) constructor.newInstance(_entry.getKey(),
+                        new ByteArrayBody(_entry.getValue().getBytes(StandardCharsets.UTF_8), ContentType.create(contentType), null),
+                        header);
+//                builder.addPart(bodyPart);
+            }
 
-            FormBodyPartBuilder formBodyPartBuilder = FormBodyPartBuilder.create();
-            formBodyPartBuilder.addField(MIME.CONTENT_DISPOSITION, "form-data; name=\"params\"\r\nContent-Type: " + contentType);
-            formBodyPartBuilder.addField(MIME.CONTENT_TYPE, contentType);
-            formBodyPartBuilder.addField(MIME.CONTENT_TRANSFER_ENC, "binary");
-            formBodyPartBuilder.setName(paramName);
-            formBodyPartBuilder.setBody(new ByteArrayBody(content.getBytes(StandardCharsets.UTF_8), ContentType.create(contentType), null));
-            FormBodyPart formBodyPart = formBodyPartBuilder.build();
-
-
-            builder.addPart(bodyPart);
+            for (Map.Entry<String, String> _entry : nameWithContent.entrySet())
+            {
+                // 第二版是利用FormBodyPartBuilder 构建 FormBodyPart
+                FormBodyPartBuilder formBodyPartBuilder = FormBodyPartBuilder.create();
+                // 重点在这句, 没有设置contentType, FormData中同时传递的json数据无法被controller解析
+                formBodyPartBuilder.addField(MIME.CONTENT_DISPOSITION, "form-data; name=\"" + _entry.getKey() + "\"\r\nContent-Type: " + contentType);
+                formBodyPartBuilder.addField(MIME.CONTENT_TYPE, contentType);
+                formBodyPartBuilder.addField(MIME.CONTENT_TRANSFER_ENC, "binary");
+                formBodyPartBuilder.setName(_entry.getKey());
+                formBodyPartBuilder.setBody(new ByteArrayBody(_entry.getValue().getBytes(StandardCharsets.UTF_8), ContentType.create(contentType), null));
+                FormBodyPart formBodyPart = formBodyPartBuilder.build();
+                builder.addPart(formBodyPart);
+            }
 
             if (filePathMap != null && !filePathMap.isEmpty())
             {
@@ -227,7 +239,7 @@ public class HttpFormDataUtil
      * @return
      * @throws IOException
      */
-    private static HttpsURLConnection getHttpsURLConnection(String urlStr, Map<String, Object> headers, boolean proxyBoolean) throws
+    private static HttpsURLConnection getHttpsURLConnection(String urlStr, Map<String, Object> headers, HttpClientUtil.ProxyInfo proxyInfo) throws
             Exception
     {
         HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier()
@@ -262,9 +274,9 @@ public class HttpFormDataUtil
         HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
         URL url = new URL(null, urlStr, new sun.net.www.protocol.https.Handler());
         HttpsURLConnection conn = null;
-        if (proxyBoolean)
+        if (null != proxyInfo && proxyInfo.isProxy() && null != proxyInfo.getHostname() && proxyInfo.getPort() > 0)
         {
-            InetSocketAddress addr = new InetSocketAddress("127.0.0.1", 8080);
+            InetSocketAddress addr = new InetSocketAddress(proxyInfo.getHostname(), proxyInfo.getPort());
             Proxy proxy = new Proxy(Proxy.Type.HTTP, addr);
             conn = (HttpsURLConnection) url.openConnection(proxy);
         }
@@ -369,13 +381,13 @@ public class HttpFormDataUtil
      * @param out
      * @throws IOException
      */
-    private static void writeSimpleFormField(String boundary, BufferedOutputStream out, String content, String contentType) throws
+    private static void writeSimpleFormField(String boundary, BufferedOutputStream out, String content, String contentType,  String contentName) throws
             IOException
     {
         StringBuilder sb = new StringBuilder();
         sb.append(BOUNDARY_PREFIX).append(boundary).append(LINE_END);
-        sb.append(String.format("Content-Disposition: form-data; name=\"%s\"", "params")).append(LINE_END);
-        sb.append(contentType);
+        sb.append(String.format("Content-Disposition: form-data; name=\"%s\"", contentName)).append(LINE_END);
+        sb.append("Content-Type: ").append(contentType);
         sb.append(LINE_END);
         sb.append(LINE_END);
         sb.append(content).append(LINE_END);
@@ -385,24 +397,20 @@ public class HttpFormDataUtil
     /**
      * 发送文本内容 发送 byte[] 到controller，controller参数为 @RequestBody byte[] bytes
      *
-     * @param urlStr
-     * @param content
-     * @return
      * @throws IOException
      */
-    public static HttpResponse postText(String urlStr, String content) throws Exception
+    public static HttpResponse postBytes(String urlStr, byte []content, HttpClientUtil.ProxyInfo proxyInfo) throws Exception
     {
-        HttpsURLConnection conn = getHttpsURLConnection(urlStr, new HashMap<>(), true);
+        HttpsURLConnection conn = getHttpsURLConnection(urlStr, new HashMap<>(), proxyInfo);
         conn.setRequestMethod("POST");
-        conn.setRequestProperty("Content-Type", "text/plain");
         conn.setDoOutput(true);
         conn.setConnectTimeout(30 * 1000);
         conn.setReadTimeout(30 * 1000);
 
-        try (BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8));
-             StringReader reader = new StringReader(content))
+        try (BufferedOutputStream writer = new BufferedOutputStream(conn.getOutputStream());
+             ByteArrayInputStream reader = new ByteArrayInputStream(content))
         {
-            char[] buffer = new char[4096];
+            byte[] buffer = new byte[4096];
             int len;
             while ((len = reader.read(buffer)) != -1)
             {

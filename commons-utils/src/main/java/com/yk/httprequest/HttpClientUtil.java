@@ -1,8 +1,8 @@
 package com.yk.httprequest;
 
-import cn.hutool.core.util.HexUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -28,6 +28,8 @@ import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -51,9 +53,7 @@ import javax.net.ssl.X509TrustManager;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
@@ -62,7 +62,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.UnrecoverableKeyException;
@@ -207,31 +206,13 @@ public class HttpClientUtil
         return httpContext;
     }
 
-    public String getBytes(String url, Map<String, String> headers, Map<String, String> params, String fileName, String dir, String rootDir)
-    {
-
-        HttpGet httpGet = null;
-        try
-        {
-            url = initUrlParams(url, params);
-            httpGet = new HttpGet(url);
-            initHeader(httpGet, headers);
-
-            httpGet.setConfig(requestConfig);
-            return httpClient.execute(httpGet, new CurResponseHandlerBytes(fileName, dir, rootDir));
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException("getBytes error", e);
-        }
-        finally
-        {
-            if (null != httpGet)
-                httpGet.releaseConnection();
-        }
-    }
-
-    public <T> T post(String url, Map<String, String> headers, Map<String, String> body, final TypeReference<T> typeReference)
+    /**
+     * 发送一般的json格式请求, 返回json格式数据, 通过Jackson 转换为对象
+     */
+    public <T> T post(String url,
+                      Map<String, String> headers,
+                      Map<String, Object> body,
+                      final TypeReference<T> typeReference)
     {
         HttpPost httpPost = null;
         try
@@ -246,7 +227,7 @@ public class HttpClientUtil
             httpPost.setEntity(builder.build());
 
             httpPost.setConfig(requestConfig);
-            return httpClient.execute(httpPost, new CurResponseHandler<T>(typeReference));
+            return httpClient.execute(httpPost, new JsonResponseHandler<T>(typeReference));
         }
         catch (Exception e)
         {
@@ -259,7 +240,58 @@ public class HttpClientUtil
         }
     }
 
-    public <T> T postURLEncoded(String url, Map<String, String> headers, Map<String, String> body, final TypeReference<T> typeReference)
+    public void downloadPost(String url,
+                             Map<String, String> headers,
+                             Map<String, String> body,
+                             HttpResponseHandler httpResponseHandler)
+    {
+        HttpPost httpPost = null;
+        try
+        {
+            httpPost = new HttpPost(url);
+            initHeader(httpPost, headers);
+
+            EntityBuilder builder = EntityBuilder.create();
+            builder.setText(cn.hutool.json.JSONUtil.toJsonStr(body));
+            builder.setContentType(ContentType.APPLICATION_JSON);
+            builder.setContentEncoding(StandardCharsets.UTF_8.name());
+            httpPost.setEntity(builder.build());
+
+            httpPost.setConfig(requestConfig);
+            httpResponseHandler.handleHttpResponse(httpClient.execute(httpPost));
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException("T post error", e);
+        }
+        finally
+        {
+            if (null != httpPost)
+                httpPost.releaseConnection();
+        }
+    }
+
+    /**
+     * post请求编码格式:application/x-www-form-urlencoded, 请求体为格式为:
+     *
+     *
+     * POST /upload/xxx HTTP/1.1
+     * User-Agent: PostmanRuntime/7.26.8
+     * Accept:
+     * Postman-Token: 469662a0-65ec-4329-a7e0-3743c6122da0
+     * Host: 192.168.31.158:21111
+     * Accept-Encoding: gzip, deflate
+     * Connection: close
+     * Content-Type: application/x-www-form-urlencoded
+     * Content-Length: 18
+     *
+     * _key=123&_name=235
+     *
+     */
+    public <T> T postFormUrlencoded(String url,
+                                    Map<String, String> headers,
+                                    Map<String, String> body,
+                                    final TypeReference<T> typeReference)
     {
         HttpPost httpPost = null;
         try
@@ -274,7 +306,7 @@ public class HttpClientUtil
             httpPost.setEntity(builder.build());
 
             httpPost.setConfig(requestConfig);
-            return httpClient.execute(httpPost, new CurResponseHandler<T>(typeReference));
+            return httpClient.execute(httpPost, new JsonResponseHandler<T>(typeReference));
         }
         catch (Exception e)
         {
@@ -287,6 +319,75 @@ public class HttpClientUtil
         }
     }
 
+    /**
+     * 发送POST请求请求体为 multipart/form-data, 该方法能上传文件以及其他参数, 如果需要传递application/json等特殊其他参数, 则使用HttpFormDataUtil.postFormData
+     */
+    public <T> T postFormData(String url,
+                              Map<String, String> headers,
+                              Map<String, String> body,
+                              String localFile,
+                              final TypeReference<T> typeReference)
+    {
+        HttpPost httpPost = null;
+        try
+        {
+            httpPost = new HttpPost(url);
+            initHeader(httpPost, headers);
+
+            MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
+            ContentType contentType = ContentType.create(ContentType.TEXT_PLAIN.getMimeType(), StandardCharsets.UTF_8);
+            Optional.ofNullable(body).orElse(new HashMap<>()).forEach((key, value) -> multipartEntityBuilder.addPart(key, new StringBody(value, contentType)));
+            if (StringUtils.isNotBlank(localFile) && !new File(localFile).exists())
+                multipartEntityBuilder.addBinaryBody(new File(localFile).getName(), new File(localFile));
+            httpPost.setEntity(multipartEntityBuilder.build());
+
+            httpPost.setConfig(requestConfig);
+            return httpClient.execute(httpPost, new JsonResponseHandler<T>(typeReference));
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException("T post error", e);
+        }
+        finally
+        {
+            if (null != httpPost)
+                httpPost.releaseConnection();
+        }
+    }
+
+    public String postXml(String url,
+                          Map<String, String> headers,
+                          String xml)
+    {
+        HttpPost httpPost = null;
+        try
+        {
+            httpPost = new HttpPost(url);
+            initHeader(httpPost, headers);
+
+            EntityBuilder builder = EntityBuilder.create();
+            builder.setText(xml);
+            builder.setContentType(ContentType.APPLICATION_XML);
+            builder.setContentEncoding(StandardCharsets.UTF_8.name());
+            httpPost.setEntity(builder.build());
+
+            httpPost.setConfig(requestConfig);
+            return EntityUtils.toString(httpClient.execute(httpPost).getEntity());
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException("T post error", e);
+        }
+        finally
+        {
+            if (null != httpPost)
+                httpPost.releaseConnection();
+        }
+    }
+
+    /**
+     * 返回json格式数据, 通过Jackson 转换为对象
+     */
     public <T> T get(String url,
                      Map<String, String> headers,
                      Map<String, String> params,
@@ -302,7 +403,7 @@ public class HttpClientUtil
             initHeader(httpGet, headers);
 
             httpGet.setConfig(requestConfig);
-            return httpClient.execute(httpGet, new CurResponseHandler<>(tTypeReference));
+            return httpClient.execute(httpGet, new JsonResponseHandler<>(tTypeReference));
         }
         catch (IOException e)
         {
@@ -327,6 +428,32 @@ public class HttpClientUtil
         }
     }
 
+    public void downloadGet(String url,
+                            Map<String, String> headers,
+                            Map<String, String> params, HttpResponseHandler httpResponseHandler)
+    {
+
+        HttpGet httpGet = null;
+        try
+        {
+            url = initUrlParams(url, params);
+            httpGet = new HttpGet(url);
+            initHeader(httpGet, headers);
+
+            httpGet.setConfig(requestConfig);
+            httpResponseHandler.handleHttpResponse(httpClient.execute(httpGet));
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException("downloadGet error", e);
+        }
+        finally
+        {
+            if (null != httpGet)
+                httpGet.releaseConnection();
+        }
+    }
+
     public String getString(String url, Map<String, String> headers, Map<String, String> params)
     {
         HttpGet httpGet = null;
@@ -337,7 +464,7 @@ public class HttpClientUtil
             initHeader(httpGet, headers);
 
             httpGet.setConfig(requestConfig);
-            return httpClient.execute(httpGet, new CurResponseHandlerString());
+            return EntityUtils.toString(httpClient.execute(httpGet).getEntity());
         }
         catch (IOException e)
         {
@@ -365,7 +492,7 @@ public class HttpClientUtil
         {
             builder = new URIBuilder(url);
             URIBuilder finalBuilder = builder;
-            params.entrySet().forEach(entry -> finalBuilder.setParameter(entry.getKey(), entry.getValue()));
+            params.forEach(finalBuilder::setParameter);
             url = builder.build().toString();
         }
         catch (URISyntaxException e)
@@ -386,18 +513,34 @@ public class HttpClientUtil
             return;
         }
         httpRequestBase.addHeader("ContentType", "application/json");
-        headers.entrySet().forEach((entry) ->
-        {
-            httpRequestBase.addHeader(entry.getKey(), entry.getValue());
-        });
+        headers.forEach(httpRequestBase::addHeader);
     }
 
-    static class CurResponseHandler<T> implements ResponseHandler<T>
+    static class XmlResponseHandler implements ResponseHandler<String>
+    {
+        @Override
+        public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException
+        {
+            int status = response.getStatusLine().getStatusCode();
+            if (status < 200 || status >= 300)
+            {
+                throw new IOException("response status is not correct");
+            }
+            HttpEntity httpEntity = response.getEntity();
+            if (null == httpEntity)
+            {
+                throw new IOException("httpEntity is null");
+            }
+            return EntityUtils.toString(httpEntity);
+        }
+    }
+
+    static class JsonResponseHandler<T> implements ResponseHandler<T>
     {
 
         private final TypeReference<T> typeReference;
 
-        public CurResponseHandler(TypeReference<T> typeReference)
+        public JsonResponseHandler(TypeReference<T> typeReference)
         {
             this.typeReference = typeReference;
         }
@@ -415,90 +558,8 @@ public class HttpClientUtil
             {
                 throw new IOException("httpEntity is null");
             }
-            return JSONUtil.fromJson(response.getEntity().getContent(), typeReference);
-        }
-    }
-
-    static class CurResponseHandlerString implements ResponseHandler<String>
-    {
-
-        @Override
-        public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException
-        {
-            int status = response.getStatusLine().getStatusCode();
-            if (status < 200 || status >= 300)
-            {
-                return null;
-            }
-            HttpEntity httpEntity = response.getEntity();
-            if (null != httpEntity)
-            {
-                return EntityUtils.toString(httpEntity);
-            }
-            return null;
-        }
-    }
-
-    static class CurResponseHandlerBytes implements ResponseHandler<String>
-    {
-        private String fileName;
-
-        private String dir;
-
-        private String targetDir;
-
-        public CurResponseHandlerBytes(String fileName, String dir, String rootDir)
-        {
-            this.fileName = fileName;
-            this.dir = dir;
-            targetDir = rootDir + File.separator + this.dir + File.separator;
-            if (!new File(targetDir).exists())
-            {
-                new File(targetDir).mkdirs();
-            }
-        }
-
-
-        @Override
-        public String handleResponse(HttpResponse response) throws IOException
-        {
-            int status = response.getStatusLine().getStatusCode();
-            if (status < 200 || status >= 300)
-            {
-                return null;
-            }
-            String algorithm = "SHA-256";
-            MessageDigest messageDigest;
-            try
-            {
-                messageDigest = MessageDigest.getInstance(algorithm);
-            }
-            catch (NoSuchAlgorithmException e)
-            {
-                throw new IOException("MessageDigest instance error SHA-256");
-            }
-            HttpEntity httpEntity = response.getEntity();
-            if (null != httpEntity && null != httpEntity.getContent())
-            {
-                try (InputStream inputStream = httpEntity.getContent();
-                     FileOutputStream randomAccessFile = new FileOutputStream(new File(targetDir + fileName));)
-                {
-
-                    byte[] buffer = new byte[8128 * 50];
-                    int len = 0;
-                    while ((len = inputStream.read(buffer)) != -1)
-                    {
-                        messageDigest.update(buffer, 0, len);
-                        randomAccessFile.write(buffer, 0, len);
-                    }
-                    return HexUtil.encodeHexStr(messageDigest.digest());
-                }
-                finally
-                {
-                    System.gc();
-                }
-            }
-            return null;
+            String string = EntityUtils.toString(httpEntity);
+            return JSONUtil.fromJson(string, typeReference);
         }
     }
 
@@ -663,5 +724,10 @@ public class HttpClientUtil
         {
             return false;
         }
+    }
+
+    public interface HttpResponseHandler
+    {
+        void handleHttpResponse(HttpResponse response) throws IOException;
     }
 }
