@@ -12,9 +12,9 @@ public class BlockchainException extends RuntimeException
 {
     private static final long serialVersionUID = 2698578246254095945L;
     /**
-     * 错误码
+     * 业务错误码
      */
-    protected int status;
+    protected int code;
     /**
      * 错误信息
      */

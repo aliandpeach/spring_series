@@ -14,6 +14,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindException;
@@ -31,8 +32,10 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.ValidationException;
 import java.util.Map;
 
@@ -51,6 +54,10 @@ public class BlockchainErrorController implements ErrorController
     @Autowired(required = false)
     private HttpServletRequest request;
 
+    @Getter
+    @Autowired(required = false)
+    private HttpServletResponse response;
+
     /**
      * 支持HTML的错误视图
      */
@@ -65,7 +72,7 @@ public class BlockchainErrorController implements ErrorController
      */
     @RequestMapping(value = ERROR_PATH, method = {RequestMethod.GET, RequestMethod.POST}, produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
-    public Object body()
+    public BaseResponse<?> body()
     {
         return assemblyBody(getRequest());
     }
@@ -89,7 +96,7 @@ public class BlockchainErrorController implements ErrorController
         String message = String.valueOf(errorAttributes.get("message"));
         BaseResponse<?> baseResponse = new BaseResponse<>();
         baseResponse.setMessage(message);
-        baseResponse.setStatus((int) errorAttributes.get("status"));
+        baseResponse.setCode((int) errorAttributes.get("code"));
         return baseResponse;
     }
 
@@ -117,14 +124,22 @@ public class BlockchainErrorController implements ErrorController
     private Map<String, Object> getErrorAttributes(HttpServletRequest request)
     {
         WebRequest requestAttributes = new ServletWebRequest(request);
-        Map<String, Object> errorAttributes =
-                this.errorAttributes.getErrorAttributes(requestAttributes, ErrorAttributeOptions.of(ErrorAttributeOptions.Include.MESSAGE, ErrorAttributeOptions.Include.EXCEPTION));
+        Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(requestAttributes,
+                ErrorAttributeOptions.of(ErrorAttributeOptions.Include.MESSAGE, ErrorAttributeOptions.Include.EXCEPTION));
         Throwable ex = this.errorAttributes.getError(requestAttributes);
+
+        Object statusObject = request.getAttribute("javax.servlet.error.status_code");
+        Object statusObject1 = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+        Object exceptionObject = request.getAttribute("javax.servlet.error.exception");
+
+        errorAttributes.put("code", 1); // 这里理论上要和ControllerExceptionHandler里面保持一致的(按照不同的Exception给出不同的code)
+        response.setStatus(null == errorAttributes.get("status") ? HttpStatus.BAD_REQUEST.value() : Integer.parseInt(errorAttributes.get("status").toString()));
         if (ex instanceof BlockchainException)
         {
             log.error("customer exception：[{}]", ex.getMessage());
             errorAttributes.put("message", ex.getMessage());
-            errorAttributes.put("status", ((BlockchainException) ex).getStatus());
+            errorAttributes.put("code", ((BlockchainException) ex).getCode());
+            response.setStatus(HttpStatus.OK.value()); // 业务异常中, 返回200由请求者根据code去判断业务(或跳转或弹框)
         }
         else if (ex instanceof BindException)
         {
@@ -133,9 +148,7 @@ public class BlockchainErrorController implements ErrorController
             if (bindingResult.hasErrors())
             {
                 FieldError fieldError = bindingResult.getFieldErrors().get(0);
-                errorAttributes.put(
-                        "message", StrBuilder.create(fieldError.getField(), fieldError.getDefaultMessage()).toString()
-                );
+                errorAttributes.put("message", StrBuilder.create(fieldError.getField(), fieldError.getDefaultMessage()).toString());
             }
         }
         else if (ex instanceof DataAccessException)
@@ -179,8 +192,7 @@ public class BlockchainErrorController implements ErrorController
         {
             ValidationException e = (ValidationException) ex;
 
-            errorAttributes.put(
-                    "message", e.getCause() instanceof ValidateException ? e.getCause().getMessage() : ex.getMessage());
+            errorAttributes.put("message", e.getCause() instanceof ValidateException ? e.getCause().getMessage() : ex.getMessage());
         }
         else
         {

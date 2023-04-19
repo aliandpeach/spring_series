@@ -1,6 +1,7 @@
 package com.yk.exception;
 
 import cn.hutool.core.text.StrBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
+import javax.servlet.ServletException;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
 import java.io.PrintWriter;
@@ -87,7 +89,7 @@ public class ControllerExceptionHandler
     public BaseResponse<?> handleConstraintViolationException(ConstraintViolationException e)
     {
         BaseResponse<Map<String, String>> baseResponse = handleBaseException(e);
-        baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        baseResponse.setCode(1);
         Map<String, String> error = mapWithValidError(e.getConstraintViolations());
         baseResponse.setMessage(error.toString());
         return baseResponse;
@@ -99,7 +101,7 @@ public class ControllerExceptionHandler
             MethodArgumentNotValidException e)
     {
         BaseResponse<Map<String, String>> baseResponse = handleBaseException(e);
-        baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        baseResponse.setCode(2);
         Map<String, String> errMap = mapWithFieldError(e.getBindingResult());
         baseResponse.setMessage(errMap.toString());
         return baseResponse;
@@ -111,7 +113,7 @@ public class ControllerExceptionHandler
             HttpRequestMethodNotSupportedException e)
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
-        baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        baseResponse.setCode(3);
         return baseResponse;
     }
 
@@ -121,7 +123,7 @@ public class ControllerExceptionHandler
             HttpMediaTypeNotAcceptableException e)
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
-        baseResponse.setStatus(HttpStatus.NOT_ACCEPTABLE.value());
+        baseResponse.setCode(4);
         return baseResponse;
     }
 
@@ -130,7 +132,9 @@ public class ControllerExceptionHandler
     public BaseResponse<?> handleHttpMediaTypeNotSupportedException(
             HttpMediaTypeNotSupportedException e)
     {
-        return handleBaseException(e);
+        BaseResponse<?> baseResponse = handleBaseException(e);
+        baseResponse.setCode(5);
+        return baseResponse;
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -139,7 +143,7 @@ public class ControllerExceptionHandler
             HttpMessageNotReadableException e)
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
-        baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        baseResponse.setCode(6);
 //        baseResponse.setMessage("缺失请求主体");
         return baseResponse;
     }
@@ -150,7 +154,7 @@ public class ControllerExceptionHandler
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
         HttpStatus status = HttpStatus.BAD_GATEWAY;
-        baseResponse.setStatus(status.value());
+        baseResponse.setCode(7);
         return baseResponse;
     }
 
@@ -158,8 +162,8 @@ public class ControllerExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleUploadSizeExceededException(MaxUploadSizeExceededException e)
     {
-        BaseResponse<Object> response = handleBaseException(e);
-        response.setStatus(HttpStatus.BAD_REQUEST.value());
+        BaseResponse<?> response = handleBaseException(e);
+        response.setCode(8);
         response.setMessage("当前请求超出最大限制：" + e.getMaxUploadSize() + " bytes");
         return response;
     }
@@ -168,8 +172,20 @@ public class ControllerExceptionHandler
     // @ResponseStatus(HttpStatus.BAD_REQUEST) // http协议返回的status code 就是 @ResponseStatus指定的值, 不指定一律返回 200
     public BaseResponse<?> blockchainException(BlockchainException e)
     {
-        BaseResponse<Object> baseResponse = handleBaseException(e);
-        baseResponse.setStatus(e.getStatus());
+        BaseResponse<?> baseResponse = new BaseResponse<>();
+        baseResponse.setCode(9);
+        baseResponse.setMessage(e.getMessage());
+        return baseResponse;
+    }
+
+    @ExceptionHandler(ServletException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public BaseResponse<?> servletException(ServletException e)
+    {
+        BaseResponse<?> baseResponse = new BaseResponse<>();
+        baseResponse.setCode(10);
+        Throwable ex = e.getCause();
+        baseResponse.setMessage(e.getMessage() + (null != ex && StringUtils.isNotBlank(ex.getMessage()) ? "\n" + ex.getMessage() : ""));
         return baseResponse;
     }
 
@@ -179,7 +195,8 @@ public class ControllerExceptionHandler
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-        baseResponse.setStatus(status.value());
+        baseResponse.setCode(11);
+        baseResponse.setMessage(e.getMessage());
         return baseResponse;
     }
 

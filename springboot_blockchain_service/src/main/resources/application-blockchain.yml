@@ -76,6 +76,10 @@ server:
     key-store-password: Admin@123
     client-auth: NONE
   #address: 0.0.0.0
+  tomcat:
+    connection-timeout: 8000
+#  undertow:
+#    always-set-keep-alive: false
 block:
   chain:
     execute: true

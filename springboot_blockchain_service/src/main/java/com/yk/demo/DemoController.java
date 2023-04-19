@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -166,7 +167,7 @@ public class DemoController
      *
            $.ajax({
                type: "post",
-               dataType: "json",    // The type of data that you're expecting back from the serve
+               dataType: "json",    // The type of data that you're expecting back from the server
                contentType: "application/x-www-form-urlencoded",
                url: "/demo/fileInfoParam/3",
                data: {"id": "1", "name": "2"},
@@ -178,7 +179,7 @@ public class DemoController
 
            $.ajax({
                type: "post",
-               dataType: "json",    // The type of data that you're expecting back from the serve
+               dataType: "json",    // The type of data that you're expecting back from the server
                contentType: "application/x-www-form-urlencoded",
                url: "/demo/fileInfoParam/3",
                data: 'id=7&name=8',
@@ -254,10 +255,84 @@ public class DemoController
     /**
      * 注解 @Validated 配合 FileInfos内部 属性 @Valid List<FileInfoParam>  可以校验 List<FileInfoParam>集合内部的对象的属性
      */
-    @PostMapping(value = "/upload/multiple/xml", consumes = "application/xml", produces = "application/xml")
+    @PostMapping(value = "/request/body/xml", consumes = "application/xml", produces = "application/xml")
     @ResponseBody
-    public FileInfos uploadXml(@RequestBody @Validated FileInfos fileInfos)
+    public FileInfos xml(@RequestBody @Validated FileInfos fileInfos)
     {
         return fileInfos;
+    }
+
+    /**
+     * 接收参数格式:
+     *
+     * POST /demo/request/part/object HTTP/1.1
+     * User-Agent: PostmanRuntime/7.26.8
+     * Accept:
+     * Postman-Token: 064a8c62-3dee-4143-b4b2-15ff3113458c
+     * Host: 192.168.31.158:21111
+     * Accept-Encoding: gzip, deflate
+     * Connection: close
+     * Content-Type: multipart/form-data; boundary=--------------------------777582379408141727964937
+     * Content-Length: 219
+     *
+     * ----------------------------777582379408141727964937
+     * Content-Disposition: form-data; name="demoModel"
+     * Content-Type: application/json
+     *
+     * {"id": "1", "name":"2"}
+     * ----------------------------777582379408141727964937--
+     */
+    @PostMapping(value = "/request/part/object")
+    @ResponseBody
+    public DemoModel part(@RequestPart DemoModel demoModel)
+    {
+        return demoModel;
+    }
+
+
+    /**
+     * 接收两种参数格式:
+     *
+     * ### 1.
+     * POST /demo/request/object HTTP/1.1
+     * User-Agent: PostmanRuntime/7.26.8
+     * Accept:
+     * Postman-Token: 50b3a5ac-6aa4-4f76-ab6d-f3132b0c4dce
+     * Host: 192.168.31.158:21111
+     * Accept-Encoding: gzip, deflate
+     * Connection: close
+     * Content-Type: multipart/form-data; boundary=--------------------------817472830912193668206114
+     * Content-Length: 262
+     *
+     * ----------------------------817472830912193668206114
+     * Content-Disposition: form-data; name="name"
+     *
+     * 2
+     * ----------------------------817472830912193668206114
+     * Content-Disposition: form-data; name="id"
+     *
+     * 3
+     * ----------------------------817472830912193668206114--
+     *
+     * ############################################################################################################
+     * ### 2.
+     * POST /demo/request/object HTTP/1.1
+     * User-Agent: PostmanRuntime/7.26.8
+     * Accept:
+     * Postman-Token: 5f48acc2-96fc-4cf2-9f9e-a241fd535087
+     * Host: 192.168.31.158:21111
+     * Accept-Encoding: gzip, deflate
+     * Connection: close
+     * Content-Type: application/x-www-form-urlencoded
+     * Content-Length: 15
+     *
+     * id=123&name=235
+     *
+     */
+    @PostMapping(value = "/request/object")
+    @ResponseBody
+    public DemoModel object(DemoModel demoModel)
+    {
+        return demoModel;
     }
 }

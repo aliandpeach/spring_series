@@ -1,7 +1,6 @@
 package com.yk.exception;
 
 import lombok.Data;
-import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
@@ -9,9 +8,9 @@ import org.springframework.lang.Nullable;
 public class BaseResponse<T>
 {
     /**
-     * 响应代码
+     * 业务响应代码
      */
-    private int status;
+    private int code;
     /**
      * 响应消息
      */
@@ -27,9 +26,9 @@ public class BaseResponse<T>
     {
     }
     
-    public BaseResponse(Integer status, String message, T data)
+    public BaseResponse(Integer code, String message, T data)
     {
-        this.status = status;
+        this.code = code;
         this.message = message;
         this.data = data;
     }
@@ -44,7 +43,7 @@ public class BaseResponse<T>
     @NonNull
     public static <T> BaseResponse<T> ok(@Nullable String message, @Nullable T data)
     {
-        return new BaseResponse<>(HttpStatus.OK.value(), message, data);
+        return new BaseResponse<>(0, message, data);
     }
     
     /**
@@ -68,6 +67,6 @@ public class BaseResponse<T>
      */
     public static <T> BaseResponse<T> ok(@Nullable T data)
     {
-        return new BaseResponse<>(HttpStatus.OK.value(), HttpStatus.OK.getReasonPhrase(), data);
+        return new BaseResponse<>(0, "ok", data);
     }
 }

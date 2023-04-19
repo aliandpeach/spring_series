@@ -121,6 +121,24 @@ public class KeyGenerator
         return bitcoinAddress;
     }
 
+    public String addressBy(byte[] bytes)
+    {
+        byte[] networkID = new BigInteger("00", 16).toByteArray();
+
+        byte[] extendedRipemd160Bytes = add(networkID, bytes);
+
+        byte[] twiceSha256Bytes = Sha256Hash.hash(Sha256Hash.hash(extendedRipemd160Bytes));
+
+        byte[] checksumPub = new byte[4];
+
+        System.arraycopy(twiceSha256Bytes, 0, checksumPub, 0, 4);
+
+        byte[] binaryBitcoinAddressBytes = add(extendedRipemd160Bytes, checksumPub);
+
+        String bitcoinAddress = Base58.encode(binaryBitcoinAddressBytes);
+        return bitcoinAddress;
+    }
+
     /**
      * 两个byte[]数组相加
      *

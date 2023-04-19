@@ -29,8 +29,8 @@
         formEl[0].submit();
     };
 
-    common.prototype._http = (function () {
-        function _ajax (url, type, data, download){
+    common.prototype._downloadBlob = (function () {
+        function _d (url, type, data){
             var xhr = new XMLHttpRequest();
             var _promise = new Promise(function (resolve, reject) {
                 xhr.open(type, url, true); // true -> async
@@ -41,30 +41,25 @@
                 };
                 xhr.onload = function () {
                     if (this.status === 200) {
-                        if (download) {
-                            var blob = this.response;
-                            resolve(blob);
-                            return;
-                        }
-                        var result = JSON.parse(this.responseText);
-                        resolve(result);
+                        var blob = this.response;
+                        resolve(blob);
                     }
                 };
                 xhr.onerror = function (e) {
                     reject(e);
                 };
                 xhr.timeout = 0; // 设置超时时间, 0表示永不超时
-                xhr.responseType = !download ? 'json' : 'blob'; // 'json' 'text' 'document'
+                xhr.responseType = 'blob'; // 'json' 'text' 'document'
                 xhr.setRequestHeader("Content-Type","application/json");
                 type && type.toUpperCase() === 'GET' ? xhr.send() : xhr.send(data); // null || new FormData || 'a=1&b=2' || 'json'
             });
             return _promise
         };
-        return {ajax : _ajax}; // _http.ajax('', '', '').then(console.log, console.error);
+        return {download : _d}; // _http.ajax('', '', '').then(console.log, console.error);
     })();
 
     common.prototype._request = {
-        ajax : function _ajax (url, type, data){
+        http : function _ajax (url, type, data){
             var xhr = new XMLHttpRequest();
             var _promise = new Promise(function (resolve, reject) {
                 xhr.open(type, url, true);

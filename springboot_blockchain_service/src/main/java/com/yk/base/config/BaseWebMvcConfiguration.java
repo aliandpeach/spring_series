@@ -1,5 +1,8 @@
 package com.yk.base.config;
 
+import com.yk.demo.upload.FileUploadInterceptor;
+import com.yk.demo.upload.UploadFilter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
@@ -14,8 +17,8 @@ import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -126,9 +129,7 @@ public class BaseWebMvcConfiguration implements WebMvcConfigurer
     @Override
     public void addInterceptors(InterceptorRegistry registry)
     {
-//        registry.addInterceptor(new LoginInterceptor())
-//                .addPathPatterns("/**")
-//                .excludePathPatterns("/goLogin", "/login");
+        registry.addInterceptor(new FileUploadInterceptor()).addPathPatterns("/**");
     }
 
     /**
@@ -140,5 +141,14 @@ public class BaseWebMvcConfiguration implements WebMvcConfigurer
         converters.add(new StringHttpMessageConverter(StandardCharsets.UTF_8));
         converters.add(new ByteArrayHttpMessageConverter());
         converters.add(new MappingJackson2HttpMessageConverter());
+    }
+
+    @Bean
+    FilterRegistrationBean<UploadFilter> uploadFilter()
+    {
+        FilterRegistrationBean<UploadFilter> bean = new FilterRegistrationBean<>();
+        bean.setFilter(new UploadFilter());
+        bean.setUrlPatterns(Collections.singletonList("/*"));
+        return bean;
     }
 }

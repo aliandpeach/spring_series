@@ -16,7 +16,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -145,19 +144,11 @@ public class GenKeyTest
     @Test
     public void genKey()
     {
-        KeyGenerator keyGenerator = new KeyGenerator();
-        StringBuilder max256BinaryString = new StringBuilder();
-        for (int i = 0; i < 256; i++)
-        {
-            max256BinaryString.append("1");
-        }
-        byte[] max32bytes = BinHexSHAUtil.binaryString2bytes(max256BinaryString.toString());
-        // ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-        String maxHex = HexUtil.encodeHexStr(max32bytes);
-
         BigInteger zero = new BigInteger("0", 16);
         BigInteger one = new BigInteger("1", 16);
         BigInteger max = new BigInteger("10", 16);
+
+        KeyGenerator keyGenerator = new KeyGenerator();
         for (BigInteger i = zero; i.compareTo(max) < 0; i = i.add(one))
         {
             byte[] barray = i.toByteArray();
@@ -185,7 +176,6 @@ public class GenKeyTest
         KeyGenerator keyGenerator = new KeyGenerator();
         byte[] bytes = new byte[32];
         new SecureRandom(Sha256Hash.hash("0".getBytes(StandardCharsets.UTF_8))).nextBytes(bytes);
-//        new SecureRandom("address".getBytes(StandardCharsets.UTF_8)).nextBytes(bytes);
         String pri = keyGenerator.keyGen(bytes, false);
         String pri2 = keyGenerator.keyGen(bytes, true);
         // 5JsqvMN5CjwpM36wo8RbR2rM1GommssZubfb5KSJf815uLqG511
@@ -195,30 +185,24 @@ public class GenKeyTest
     }
     
     @Test
-    public void genKey3() throws Exception
+    public void genKey3()
     {
-        SecureRandom random = new SecureRandom();
-        for (int i = 0; i < 1; i++)
-        {
-            byte[] bytes = new byte[32];
-            random.nextBytes(bytes);
-            String binaryString = BinHexSHAUtil.bytes2BinaryString(bytes);
-            String hex = HexUtil.encodeHexStr(bytes);
-            System.out.println(hex);
-        }
-
         byte[] bytes = "0".getBytes();
-        bytes = Sha256Hash.hash(bytes);
-        String hex_ = BinHexSHAUtil.byteArrayToHex(bytes);
-        System.out.println("hex=" + hex_);
-//        hex_ = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364140";
-        byte[] privateKey = Utils.bigIntegerToBytes(new BigInteger(hex_, 16), 32);
+        byte[] privateKey = Utils.bigIntegerToBytes(new BigInteger(bytes), 32);
         String binaryString = BinHexSHAUtil.bytes2BinaryString(privateKey);
-        // System.out.println(binaryString); 1FYMZEHnszCHKTBdFZ2DLrUuk3dGwYKQxh|1BgGZ9tcN4rm9KBzDn7KprQz87SZ26SAMH
         KeyGenerator keyGenerator = new KeyGenerator();
         String pri = keyGenerator.keyGen(privateKey, true);
         System.out.println(pri);
         String pub = keyGenerator.addressGen(privateKey, true);
+        System.out.println(pub);
+    }
+
+    @Test
+    public void genKey4()
+    {
+        byte[] keys = Utils.bigIntegerToBytes(new BigInteger("0"), 32);
+        KeyGenerator keyGenerator = new KeyGenerator();
+        String pub = keyGenerator.addressBy(keys);
         System.out.println(pub);
     }
     

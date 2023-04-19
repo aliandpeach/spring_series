@@ -1,6 +1,8 @@
 package com.yk.demo.upload;
 
 import lombok.Data;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
@@ -49,6 +51,8 @@ import java.util.Map;
 @RequestMapping("/import")
 public class UploadController
 {
+    private static final Logger _logger = LoggerFactory.getLogger(UploadController.class);
+
     /**
      * from 提交的内容必须包含名称 fileName_1
      * <p>
@@ -64,11 +68,11 @@ public class UploadController
      * @return
      * @throws IOException
      */
-    @PostMapping("/upload/multiple")
+    @PostMapping("/upload/multiple/files")
     @ResponseBody
-    public Map<String, List<String>> multipleUpload(@RequestPart(required = false, name = "fileName_1") MultipartFile[] files1,
-                                                    @RequestPart(required = false, name = "fileName_2") MultipartFile[] files2,
-                                                    MultipartHttpServletRequest request) throws
+    public Map<String, List<String>> multipleUploadFiles(@RequestPart(required = false, name = "fileName_1") MultipartFile[] files1,
+                                                         @RequestPart(required = false, name = "fileName_2") MultipartFile[] files2,
+                                                         MultipartHttpServletRequest request) throws
             IOException
     {
         // List<MultipartFile> files = request.getFiles("fileName_1");
@@ -78,47 +82,43 @@ public class UploadController
         Map<String, List<String>> result = new HashMap<>();
         result.putIfAbsent("failed", new ArrayList<>());
         result.putIfAbsent("success", new ArrayList<>());
-        multiValueMaps.entrySet().forEach(t ->
+        String root = System.getProperty("user.dir");
+        multiValueMaps.forEach((key, value) -> value.forEach(f ->
         {
-            t.getValue().forEach(f ->
+            try
             {
-                try
-                {
-                    f.transferTo(new File("D:\\opt\\" + System.currentTimeMillis() + "_" + f.getOriginalFilename()));
-                    result.get("success").add(f.getOriginalFilename());
-                }
-                catch (IOException e)
-                {
-                    result.get("failed").add(f.getOriginalFilename());
-                }
-            });
-        });
-//        String fileName = file[0].getOriginalFilename();
-//        String filePath = "D:\\opt\\" + System.currentTimeMillis() + "_" + fileName;
-//
-//        File dest = new File(filePath);
-//        Files.copy(file[0].getInputStream(), dest.toPath());
+                f.transferTo(new File(root + File.separator + f.getOriginalFilename()));
+                result.get("success").add(f.getOriginalFilename());
+            }
+            catch (IOException e)
+            {
+                result.get("failed").add(f.getOriginalFilename());
+            }
+        }));
         return result;
     }
     
-    @PostMapping("/upload/single")
+    @PostMapping("/upload/multipart/http/request")
     @ResponseBody
-    public String singleUpload(MultipartHttpServletRequest request) throws
-            IOException
+    public String uploadMultipartHttpRequest(MultipartHttpServletRequest request) throws IOException
     {
-        MultipartFile uploadFile = request.getFile("_uploadSingle_one");
+        String root = System.getProperty("user.dir");
+        MultipartFile uploadFile = request.getFile("_upload_single_one");
+        // 若是_upload_single_one下传入的文件数量大于1, 使用下面的方法
+        // List<MultipartFile> uploadFiles = request.getFiles("_upload_single_one");
         long cur = System.currentTimeMillis();
-        uploadFile.transferTo(new File("D:\\opt\\" + cur + "_" + uploadFile.getOriginalFilename()));
+        uploadFile.transferTo(new File(root + File.separator + cur + "_" + uploadFile.getOriginalFilename()));
         return "SUCCESS:" + cur + "_" + uploadFile.getOriginalFilename();
     }
     
-    @PostMapping("/upload/single2")
+    @PostMapping("/upload/multipart/file")
     @ResponseBody
-    public String singleUpload2(@RequestPart("_uploadSingle_two") MultipartFile uploadFile) throws
+    public String uploadMultipartFile(@RequestPart("_upload_single_two") MultipartFile uploadFile) throws
             IOException
     {
+        String root = System.getProperty("user.dir");
         long cur = System.currentTimeMillis();
-        uploadFile.transferTo(new File("D:\\opt\\" + cur + "_" + uploadFile.getOriginalFilename()));
+        uploadFile.transferTo(new File(root + File.separator + cur + "_" + uploadFile.getOriginalFilename()));
         return "SUCCESS:" + cur + "_" + uploadFile.getOriginalFilename();
     }
     
@@ -135,55 +135,83 @@ public class UploadController
      *    b. @ResponseStatus(HttpStatus.BAD_REQUEST)
      * 4. 全局统一处理 ControllerExceptionHandler
      */
-    @PostMapping("/upload/multiple/json")
+    @PostMapping("/upload/multiple/request/part/params")
     @ResponseBody
-    public Map<String, List<String>> multipleUpload2(MultipartHttpServletRequest request,
+    public Map<String, Object> multipleUploadParams(MultipartHttpServletRequest request,
                                                     @RequestPart(required = false, name = "params") Map<String, String> params,
                                                     HttpServletResponse response)
     {
-        Map<String, List<String>> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
         Map<String, MultipartFile> map = request.getFileMap();
-        result.putIfAbsent("failed1", new ArrayList<>());
-        result.putIfAbsent("success1", new ArrayList<>());
+        List<String> r = new ArrayList<>();
+        String root = System.getProperty("user.dir");
         map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
         {
             try
             {
-                t.getValue().transferTo(new File("D:\\opt\\" + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
-                result.get("success1").add(t.getValue().getOriginalFilename());
+                t.getValue().transferTo(new File(root + File.separator + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
+                r.add(t.getValue().getOriginalFilename());
+                result.put("success", r);
             }
             catch (IOException e)
             {
-                result.get("failed1").add(t.getValue().getOriginalFilename());
+                r.add(t.getValue().getOriginalFilename());
+                result.put("failed", r);
             }
         });
+        result.put("params", params);
         return result;
     }
 
     /**
-     * 上传文件接口, 附带json格式参数, 可以使用postman调用 (params得到的结果是 {"params" : "value"} )
+     * 可以使用postman调用, 需要分别传入 item中的name和value属性
+     *
+     * POST /upload/multiple/request/params HTTP/1.1
+     * User-Agent: PostmanRuntime/7.26.8
+     * Host: 192.190.10.122:21111
+     * Accept-Encoding: gzip, deflate
+     * Connection: close
+     * Content-Type: multipart/form-data; boundary=--------------------------570002456370464510172609
+     * Content-Length: 614
+     *
+     * ----------------------------570002456370464510172609
+     * Content-Disposition: form-data; name="1"; filename="test_secret17.txt"
+     * Content-Type: text/plain
+     *
+     * -文件字节参数-
+     * Content-Disposition: form-data; name="_key" // _key是params中的key, 111是对应的值
+     *
+     * 111
+     * ----------------------------570002456370464510172609
+     * Content-Disposition: form-data; name="_value" // _value是params中的key, 222是对应的值
+     *
+     * 222
+     * ----------------------------570002456370464510172609--
      */
-    @PostMapping("/upload/multiple/json3")
+    @PostMapping("/upload/multiple/request/params")
     @ResponseBody
-    public Map<String, List<String>> multipleUpload3(MultipartHttpServletRequest request, @RequestParam Map<String, String> params)
+    public Map<String, Object> multipleUploadRequestParam(MultipartHttpServletRequest request, @RequestParam Map<String, String> params)
     {
         String value = params.get("params");
-        Map<String, List<String>> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
         Map<String, MultipartFile> map = request.getFileMap();
-        result.putIfAbsent("failed1", new ArrayList<>());
-        result.putIfAbsent("success1", new ArrayList<>());
+        List<String> r = new ArrayList<>();
+        String root = System.getProperty("user.dir");
         map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
         {
             try
             {
-                t.getValue().transferTo(new File("D:\\opt\\" + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
-                result.get("success1").add(t.getValue().getOriginalFilename());
+                t.getValue().transferTo(new File(root + File.separator + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
+                r.add(t.getValue().getOriginalFilename());
+                result.put("success", r);
             }
             catch (IOException e)
             {
-                result.get("failed1").add(t.getValue().getOriginalFilename());
+                r.add(t.getValue().getOriginalFilename());
+                result.put("failed", r);
             }
         });
+        result.put("params", params);
         return result;
     }
 
@@ -213,40 +241,43 @@ public class UploadController
      *
      * -文件字节参数-
      * ----------------------------153054330803524445015047
-     * Content-Disposition: form-data; name="level"
+     * Content-Disposition: form-data; name="level"  // String level = 011111
      *
-     * 11111
+     * 011111
      * ----------------------------153054330803524445015047--
      */
-    @PostMapping("/upload/multiple/json4")
+    @PostMapping("/upload/multiple/request/param/name")
     @ResponseBody
     @Validated
-    public Map<String, List<String>> multipleUpload4(MultipartHttpServletRequest request,
+    public Map<String, Object> multipleUploadRequestParamStringName(MultipartHttpServletRequest request,
                                                      @NotEmpty(message = "level is empty") @RequestParam(value = "level", required = false) String level)
     {
-        Map<String, List<String>> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
         Map<String, MultipartFile> map = request.getFileMap();
-        result.putIfAbsent("failed1", new ArrayList<>());
-        result.putIfAbsent("success1", new ArrayList<>());
+        List<String> r = new ArrayList<>();
+        String root = System.getProperty("user.dir");
         map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
         {
             try
             {
-                t.getValue().transferTo(new File("D:\\opt\\" + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
-                result.get("success1").add(t.getValue().getOriginalFilename());
+                t.getValue().transferTo(new File(root + File.separator + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
+                r.add(t.getValue().getOriginalFilename());
+                result.put("success", r);
             }
             catch (IOException e)
             {
-                result.get("failed1").add(t.getValue().getOriginalFilename());
+                r.add(t.getValue().getOriginalFilename());
+                result.put("failed", r);
             }
         });
+        result.put("level", level);
         return result;
     }
 
     /**
      * 可以使用postman调用, 需要分别传入 item中的name和value属性
      *
-     * POST /import/upload/multiple/json5 HTTP/1.1
+     * POST /upload/multiple/validated/item HTTP/1.1
      * User-Agent: PostmanRuntime/7.26.8
      * Host: 192.190.10.122:21111
      * Accept-Encoding: gzip, deflate
@@ -261,33 +292,63 @@ public class UploadController
      * -文件字节参数-
      * Content-Disposition: form-data; name="name"
      *
-     * 1
+     * 111
      * ----------------------------570002456370464510172609
      * Content-Disposition: form-data; name="value"
      *
-     * 2
+     * 222
      * ----------------------------570002456370464510172609--
      */
-    @PostMapping("/upload/multiple/json5")
+    @PostMapping("/upload/multiple/validated/item")
     @ResponseBody
-    public Map<String, List<String>> multipleUpload5(MultipartHttpServletRequest request, @Validated Item item)
+    public Map<String, Object> multipleUploadValidatedItem(MultipartHttpServletRequest request, @Validated Item item)
     {
-        Map<String, List<String>> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
         Map<String, MultipartFile> map = request.getFileMap();
-        result.putIfAbsent("failed1", new ArrayList<>());
-        result.putIfAbsent("success1", new ArrayList<>());
+        List<String> r = new ArrayList<>();
+        String root = System.getProperty("user.dir");
         map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
         {
             try
             {
-                t.getValue().transferTo(new File("D:\\opt\\" + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
-                result.get("success1").add(t.getValue().getOriginalFilename());
+                t.getValue().transferTo(new File(root + File.separator + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
+                r.add(t.getValue().getOriginalFilename());
+                result.put("success", r);
             }
             catch (IOException e)
             {
-                result.get("failed1").add(t.getValue().getOriginalFilename());
+                r.add(t.getValue().getOriginalFilename());
+                result.put("failed", r);
             }
         });
+        result.put("item", item);
+        return result;
+    }
+
+    //  不要这么写, file和body没法同时传值
+    @PostMapping("/upload/multiple/validated/request/body/item")
+    @ResponseBody
+    public Map<String, Object> multipleUploadValidatedRequestBodyItem(MultipartHttpServletRequest request,  @RequestBody @Validated Item item)
+    {
+        Map<String, Object> result = new HashMap<>();
+        Map<String, MultipartFile> map = request.getFileMap();
+        List<String> r = new ArrayList<>();
+        String root = System.getProperty("user.dir");
+        map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
+        {
+            try
+            {
+                t.getValue().transferTo(new File(root + File.separator + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
+                r.add(t.getValue().getOriginalFilename());
+                result.put("success", r);
+            }
+            catch (IOException e)
+            {
+                r.add(t.getValue().getOriginalFilename());
+                result.put("failed", r);
+            }
+        });
+        result.put("item-body", item);
         return result;
     }
 
@@ -313,26 +374,29 @@ public class UploadController
      * []
      * ----------------------------748011833044869520584701--
      */
-    @PostMapping("/upload/multiple/json6")
+    @PostMapping("/upload/multiple/request/part/items")
     @ResponseBody
-    public Map<String, List<String>> multipleUpload6(MultipartHttpServletRequest request, @RequestPart List<Item> items)
+    public Map<String, Object> uploadMultipleRequestPartItems(MultipartHttpServletRequest request, @RequestPart List<Item> items)
     {
-        Map<String, List<String>> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
         Map<String, MultipartFile> map = request.getFileMap();
-        result.putIfAbsent("failed1", new ArrayList<>());
-        result.putIfAbsent("success1", new ArrayList<>());
+        List<String> r = new ArrayList<>();
+        String root = System.getProperty("user.dir");
         map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
         {
             try
             {
-                t.getValue().transferTo(new File("D:\\opt\\" + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
-                result.get("success1").add(t.getValue().getOriginalFilename());
+                t.getValue().transferTo(new File(root + File.separator + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
+                r.add(t.getValue().getOriginalFilename());
+                result.put("success", r);
             }
             catch (IOException e)
             {
-                result.get("failed1").add(t.getValue().getOriginalFilename());
+                r.add(t.getValue().getOriginalFilename());
+                result.put("failed", r);
             }
         });
+        result.put("items", items);
         return result;
     }
 
@@ -353,55 +417,43 @@ public class UploadController
      *
      * -文件字节参数-
      * ----------------------------038190145852481148403885
-     * Content-Disposition: form-data; name="xxxx"
+     * Content-Disposition: form-data; name="json"
      *
      * -字符串参数-
      * ----------------------------038190145852481148403885--
      */
-    @PostMapping("/upload/multiple/json7")
+    @PostMapping("/upload/multiple/request/part/string/name")
     @ResponseBody
-    public Map<String, List<String>> multipleUpload7(MultipartHttpServletRequest request, @RequestPart(name = "name") String json)
+    public Map<String, Object> multipleUploadRequestPartStringName(MultipartHttpServletRequest request, @RequestPart(name = "json") String json)
     {
-        Map<String, List<String>> result = new HashMap<>();
+        Map<String, Object> result = new HashMap<>();
         Map<String, MultipartFile> map = request.getFileMap();
-        result.putIfAbsent("failed1", new ArrayList<>());
-        result.putIfAbsent("success1", new ArrayList<>());
+        List<String> r = new ArrayList<>();
+        String root = System.getProperty("user.dir");
         map.entrySet().stream().filter(t -> !t.getKey().equals("params")).forEach(t ->
         {
             try
             {
-                t.getValue().transferTo(new File("D:\\opt\\" + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
-                result.get("success1").add(t.getValue().getOriginalFilename());
+                t.getValue().transferTo(new File(root + File.separator + System.currentTimeMillis() + "_" + t.getValue().getOriginalFilename()));
+                r.add(t.getValue().getOriginalFilename());
+                result.put("success", r);
             }
             catch (IOException e)
             {
-                result.get("failed1").add(t.getValue().getOriginalFilename());
+                r.add(t.getValue().getOriginalFilename());
+                result.put("failed", r);
             }
         });
+        result.put("json", json);
         return result;
     }
 
     /**
-     * var xhr = new XMLHttpRequest();
-     * xhr.open("POST", '/import/upload/multiple/bytes', true);
-     * xhr.onload = function (e) {
-     * if (xhr.status === 200) {
-     *        debugger
-     *        var result = JSON.parse(this.responseText);
-     *        console.log(result);
-     *    }
-     * };
-     * var blob = new Blob(['abc123'], {type: 'text/plain'});
-     * xhr.send(blob);
      *
-     * @param bytes
-     * @return
-     * @throws IOException
      */
     @PostMapping(value = "/upload/multiple/bytes")
     @ResponseBody
-    public Map<String, String> bytes(@RequestBody byte[] bytes) throws
-            IOException
+    public Map<String, String> uploadBytes(@RequestBody byte[] bytes) throws IOException
     {
         String string = new String(bytes, StandardCharsets.ISO_8859_1);
         String string2 = new String(bytes, StandardCharsets.UTF_8);
@@ -411,7 +463,7 @@ public class UploadController
              StringWriter sw = new StringWriter())
         {
             int len = 0;
-            char[] buffer = new char[8092];
+            char[] buffer = new char[8192];
             while ((len = reader.read(buffer)) != -1)
             {
                 sw.write(buffer, 0, len);
@@ -425,10 +477,11 @@ public class UploadController
     
     @PostMapping("/download")
     @ResponseBody
-    public void download(HttpServletRequest request, HttpServletResponse response)
+    public void download(HttpServletRequest request, HttpServletResponse response, @RequestBody Map<String, String> params)
     {
-        String downloadName = request.getParameter("download.name");
-        try (InputStream input = new FileInputStream(downloadName);
+        Map<String, String[]> parameters = request.getParameterMap();
+        String downloadName = params.get("download.name");
+        try (InputStream input = new FileInputStream(System.getProperty("user.dir") + File.separator + downloadName);
              BufferedOutputStream bufferedOut = new BufferedOutputStream(response.getOutputStream()))
         {
             String filename = new String((System.currentTimeMillis() + downloadName).getBytes(), "ISO8859-1");
@@ -447,12 +500,12 @@ public class UploadController
         }
     }
     
-    @PostMapping(value = "/downloadBlob", produces = "application/octet-stream")
+    @PostMapping(value = "/download/bytes", produces = "application/octet-stream")
     @ResponseBody
-    public byte[] downloadBlob(@RequestBody Map<String, String> params)
+    public byte[] downloadBytes(@RequestBody Map<String, String> params)
     {
-        String filePath = params.get("download.name");
-        try (InputStream input = new FileInputStream(filePath);
+        String name = params.get("download.name");
+        try (InputStream input = new FileInputStream(System.getProperty("user.dir") + File.separator + name);
              ByteArrayOutputStream baos = new ByteArrayOutputStream())
         {
             int len;

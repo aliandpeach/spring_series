@@ -109,11 +109,38 @@
              Either JSSE or OpenSSL style configuration may be used. OpenSSL style
              configuration is used below.
         -->
+
+        <!-- keepAliveTimeout 和 connectionTimeout -->
+        <!-- keepAliveTimeout 表示保持的tcp长链接在没有请求进来开始计算, Keep-Alive Timeout时间内还没有请求进来就不再保留该长链接 -->
+        <!--
+            客户端浏览器向Web服务器发出的Http请求被响应后建立的TCP/IP连接并不会被立刻释放掉,而是会存在一段时间,这个时间叫Keep-Alive Timeout,
+            如果在Keep-Alive Timeout时间内没有新的Http请求从客户端发送到服务器端,
+            那么建立的TCP/IP连接就会被服务器端释放掉,如果在Keep-Alive Timeout时间内又有Http请求从客户端浏览器发送到了服务器端,
+            那么服务器端又会等待Keep-Alive Timeout时间后才会释放TCP/IP连接
+
+            从上面我们知道了如果服务器端启用了Keep-Alive机制,那么有两种情况建立的TCP/IP连接会被正常释放,
+            一是在Keep-Alive Timeout时间内没有新的Http请求复用TCP/IP连接,那么TCP/IP连接就会被服务器端释放,
+            二是当建立的TCP/IP连接被复用了max次后,max的值已经为0,服务器端也会释放TCP/IP连接
+
+            浏览器在请求的头部添加 Connection:Keep-Alive,以此告诉服务器"我支持长连接,你支持的话就和我建立长连接吧",
+            而倘若服务器的确支持长连接,那么就在响应头部添加"Connection:Keep-Alive", 从而告诉浏览器"我的确也支持,那我们建立长连接吧".
+            服务器还可以通过 Keep-Alive:timeout=10, max=100 的头部告诉浏览器"我希望10秒计算算超时时间,最长不能超过 100 秒"
+        -->
+
+        <!--
+            HTTP版本	描述
+            HTTP/1.0	在 HTTP/1.0 中,除非客户端在请求中发送 Connection: keep-alive 标头,否则连接不被视为持久连接.当服务器接受持久连接请求时,它会将 Connection: keep-alive 标头发送回客户端作为响应.之后,连接保持打开状态,客户端使用同一连接发送其他请求.连接将保持打开状态,直到客户端或服务器断开连接.
+            HTTP/1.1	在 HTTP/1.1 中,除非另有说明,否则所有连接都被视为持久连接,并且不需要额外的 Connection: keep-alive 标头来建立持久连接.例如,Apache httpd 1.3 和 2.0 的默认连接超时为 15 秒,而 Apache httpd 2.2 及更高版本仅为 5 秒.短超时的好处是可以快速交付多个网页组件,而不用太长时间运行多个服务器进程或线程而占用资源.
+            HTTP/2	    Connection 和 Keep-Alive 标头在 HTTP/2 中是不允许的.Chrome 和 Firefox 在 HTTP/2 响应中忽略这些标头,但如果服务器错误地返回这些标头,Safari 将不会加载网页.
+        -->
+
+        <!-- connectionTimeout 服务器在连接关闭之前等待客户端发出请求的最长时间, 也就是只建立了tcp连接, 但是没有真正的请求进来的一些请求(通过构造一些特殊的数据包,可实现这类tomcat慢攻击) -->
         <Connector port="443" protocol="org.apache.coyote.http11.Http11NioProtocol"
                    SSLEnabled="true"
                    maxThreads="500" scheme="https" secure="true"
                    URIEncoding="UTF-8"
                    connectionTimeout="8000"
+                   keepAliveTimeout="6000"
                    clientAuth="false"
                    allowTrace="false"
                    keystoreFile="${catalina.base}/conf/ssl/key.keystore"

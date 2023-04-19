@@ -19,37 +19,43 @@
     </script>
 </head>
 <body>
-    <form method="post" action="/import/upload/multiple" enctype="multipart/form-data" target="_upload_resp_iframe">
-        选择要上传的文件：<input accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" multiple="multiple" type="file" name="fileName_1"><br>
-        选择要上传的文件：<input accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" multiple="multiple" type="file" name="fileName_2"><br>
-        <hr>
-        <input type="hidden" name="upload.name" value="aaa.zip">
-        <input type="submit" value="提交">
-    </form>
-
-    <!--<form method="post" action="/import/upload/single" enctype="multipart/form-data" target="_upload_resp_iframe" style="margin-top: 10px">-->
-        <!--选择要上传的文件：<input accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" type="file" name="_uploadSingle_one"><br>-->
-        <!--<hr>-->
-        <!--<input type="submit" value="提交">-->
-    <!--</form>-->
-    <!--<form method="post" action="/import/upload/single2" enctype="multipart/form-data" target="_upload_resp_iframe" style="margin-top: 10px">-->
-        <!--选择要上传的文件：<input accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" type="file" name="_uploadSingle_two"><br>-->
-        <!--<hr>-->
-        <!--<input type="submit" value="提交">-->
-    <!--</form>-->
-
-    <div style="margin-top: 10px">
-        <form method="post" action="/import/upload/multiple/json" enctype="multipart/form-data" target="_upload_resp_iframe" style="margin-top: 10px">
-            选择要上传的文件：<input id="_upload_input1" accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" multiple="multiple" type="file" name="_upload_input1"><br>
-            <hr>
-            <input type="hidden" name="upload.name" value="aaa.zip">
+    <div id="div_multiple_files">
+        <form method="post" action="/import/upload/multiple/files" enctype="multipart/form-data" target="_upload_resp_iframe">
+            选择要上传的多文件：<input accept=".zip,.exe,.tar.gz,.txt,.mp4" placeholder="请选择文件" multiple="multiple" type="file" name="fileName_1"><br>
+            选择要上传的多文件：<input accept=".zip,.exe,.tar.gz,.txt,.mp4" placeholder="请选择文件" multiple="multiple" type="file" name="fileName_2"><br>
+            <input type="submit" value="提交">
+        </form>
+    </div>
+    <hr>
+    <div id="div_multipart_http_request" style="margin-top: 30px; ">
+        <form method="post" action="/import/upload/multipart/http/request" enctype="multipart/form-data" target="_upload_resp_iframe" style="margin-top: 10px">
+            选择要上传的单文件：<input accept=".zip,.exe,.tar.gz,.txt,.mp4" placeholder="请选择文件" type="file" name="_upload_single_one"><br>
+            <input type="submit" value="提交">
+        </form>
+    </div>
+    <hr>
+    <div id="div_multipart_file" style="margin-top: 30px">
+        <form method="post" action="/import/upload/multipart/file" enctype="multipart/form-data" target="_upload_resp_iframe" style="margin-top: 10px">
+            选择要上传的单文件：<input accept=".zip,.exe,.tar.gz,.txt,.mp4" placeholder="请选择文件" type="file" name="_upload_single_two"><br>
+            <input type="submit" value="提交">
+        </form>
+    </div>
+    <hr>
+    <div id="div_upload_input1" style="margin-top: 30px">
+        <form method="post" action="/import/upload/multiple/request/part/params" enctype="multipart/form-data" target="_upload_resp_iframe" style="margin-top: 10px">
+            选择要上传的文件：<input id="_upload_input1" accept=".zip,.exe,.tar.gz,.txt,.mp4" placeholder="请选择文件" multiple="multiple" type="file" name="_upload_input1"><br>
         </form>
         <button id="submitBtn">上传</button>
     </div>
+    <hr>
+    <div id="div_return_msg" style="margin-top: 30px">
+        <span id="returnMsg" style="margin-left:20px;font-size:15px;"></span>
+    </div>
+    <hr>
 
-    <span id="returnMsg" style="margin-left:20px;font-size:15px;"></span>
     <iframe style="display: none" onload="uploadOnload()" name="_upload_resp_iframe" id="_upload_resp_iframe"></iframe>
 
+    <hr>
     <div style="margin-top: 10px">
         <button id="downloadBtn">下载</button>
         <input id="download_name" name="download.name" value="" placeholder="路径">
@@ -59,14 +65,17 @@
 
     $(function () {
        $("#submitBtn").bind("click", function(){
-           sendForm();
+           uploadFileWithRequestPartParams();
        })
        $("#downloadBtn").bind("click", function(){
-           downloadBlob("download.name", $("#download_name").val());
+           downloadBytes("download.name", $("#download_name").val());
        })
     });
 
-    function sendForm() {
+    /**
+     * upload file with RequestPart params
+     */
+    function uploadFileWithRequestPartParams() {
         var formData = new FormData();
 		
 		var _files = $("#_upload_input1")[0].files;
@@ -80,7 +89,7 @@
         formData.append('params', new Blob([_params],{type: "application/json"}));
 
         $.ajax({
-            url: "/import/upload/multiple/json",
+            url: "/import/upload/multiple/request/part/params",
             type: "POST",
             contentType: false,
             processData: false,
@@ -93,26 +102,129 @@
         });
     }
 
-    function downloadBlob(_key, _name) {
+    function _xhrUploadFileWithRequestPartParams() {
+        var formData = new FormData();
+
+        var _files = $("#_upload_input1")[0].files;
+        var params = {};
+        for(var i = 0; i< _files.length; i++ ){
+            var id = new Date().getTime() + i + "";
+            formData.append(id, _files[i]);
+            params[id] = _files[i].name;
+        }
+        var _params = JSON.stringify(params);
+        formData.append('params', new Blob([_params],{type: "application/json"}));
+
+        common._request.http("/import/upload/multiple/request/part/params", "POST", formData).then(function(res){
+            console.log(res)
+        });
+    }
+
+    /**
+     * upload file with Item object
+     */
+    function uploadFileWithItem() {
+        var formData = new FormData();
+
+        var _files = $("#_upload_input1")[0].files;
+        for(var i = 0; i< _files.length; i++ ){
+            var id = new Date().getTime() + i + "";
+            formData.append(id, _files[i]);
+        }
+        formData.append('name', "name-1");
+        formData.append('value', "value-1");
+
+        $.ajax({
+            url: "/import/upload/multiple/validated/item",
+            type: "POST",
+            contentType: false,
+            processData: false,
+            dataType: "json",
+            data: formData,
+            async: true,
+            success: function (res) {
+                $("#returnMsg").html(JSON.stringify(res));
+            }
+        });
+    }
+
+    function _xhrUploadFileWithItem() {
+        var formData = new FormData();
+
+        var _files = $("#_upload_input1")[0].files;
+        for(var i = 0; i< _files.length; i++ ){
+            var id = new Date().getTime() + i + "";
+            formData.append(id, _files[i]);
+        }
+        formData.append('name', "name-2");
+        formData.append('value', "value-2");
+
+        common._request.http("/import/upload/multiple/validated/item", "POST", formData).then(function(res){
+            console.log(res)
+        });
+    }
+
+    /**
+     * upload bytes, controller接口参数为byte[]
+     */
+    function uploadBytes() {
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", '/import/upload/multiple/bytes', true);
+        xhr.onload = function (e) {
+            if (xhr.status === 200) {
+                var result = JSON.parse(this.responseText);
+                console.log(result);
+            }
+         };
+        var blob = new Blob(['abc123'], {type: 'text/plain'});
+        xhr.send(blob);
+    }
+
+    // 后台接口参数为byte[]
+    function uploadBytesFile() {
+        var div_upload_input1 = $("#div_upload_input1");
+        var _upload_input1 = $("#_upload_input1");
+        if (_upload_input1.length === 0
+            || _upload_input1[0] == null || _upload_input1[0].files.length === 0) {
+            div_upload_input1.css("border","1px solid red");
+            return;
+        }
+        div_upload_input1.css("border","0px solid red");
+        var _file = _upload_input1[0].files[0];
+        var blob = new Blob([_file], {type: 'application/octet-stream'});
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", '/import/upload/multiple/bytes', true);
+        xhr.onload = function (e) {
+            if (xhr.status === 200) {
+                var result = JSON.parse(this.responseText);
+                console.log(result);
+            }
+        };
+        xhr.send(blob);
+    }
+
+    /**
+     * download bytes, controller返回byte[]
+     */
+    function downloadBytes(_key, _name) {
         var _params = {};
         _params[_key] = _name;
-        common._http.ajax("/import/downloadBlob", "POST", JSON.stringify(_params), 1).then(function(blob){
+        common._downloadBlob.download("/import/download/bytes", "POST", JSON.stringify(_params)).then(function(blob){
             var link = document.createElement('a');
             link.href = window.URL.createObjectURL(new Blob([blob], {type: "application/octet-stream"}));
             link.download = _name;
             link.click();
             window.URL.revokeObjectURL(link.href);
-
-            // var reader = new FileReader();
-            // reader.readAsArrayBuffer(new Blob([blob], {type: "application/octet-stream"}));
-            // reader.onloadend = function (e) {
-            //     var a = document.createElement('a');
-            //     a.download = 'abc.exe';
-            //     a.href = e.target.result;
-            //     $("body").append(a);
-            //     a.click();
-            // }
         });
+    }
+
+    /**
+     * download
+     */
+    function download(_key, _name) {
+        var _params = {};
+        _params[_key] = _name;
+        common.download("/import/download", _params);
     }
 </script>
 </html>

@@ -1,7 +1,6 @@
 package com.yk;
 
 import org.apache.catalina.Context;
-import org.apache.catalina.connector.Connector;
 import org.apache.coyote.http11.Http11NioProtocol;
 import org.apache.tomcat.util.descriptor.web.SecurityCollection;
 import org.apache.tomcat.util.descriptor.web.SecurityConstraint;
@@ -10,15 +9,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.web.embedded.tomcat.TomcatConnectorCustomizer;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
+import org.springframework.boot.web.servlet.support.ErrorPageFilter;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.util.Collection;
 
 @SpringBootApplication
 @EnableAsync
@@ -34,6 +31,14 @@ public class BlockchainServiceApplication extends SpringBootServletInitializer
         SpringApplication application = new SpringApplication();
         application.run(BlockchainServiceApplication.class);
     }
+
+   /* @Bean("errorPageFilter")
+    public ErrorPageFilter errorPageFilter()
+    {
+        // ErrorPageFilter可以在拦截器等异常抛出时, dispatcher到/error页面, 然后统一执行异常回显,
+        // 而不必让tomcat内部执行 ApplicationFilterChain -> StandardWrapperValve.exception
+        return new ErrorPageFilter();
+    }*/
 
     @Bean
     public ServletWebServerFactory thymeleafContainerInitializer(ServerProperties serverProperties)
