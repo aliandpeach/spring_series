@@ -337,7 +337,7 @@ public class HttpClientUtil
             MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
             ContentType contentType = ContentType.create(ContentType.TEXT_PLAIN.getMimeType(), StandardCharsets.UTF_8);
             Optional.ofNullable(body).orElse(new HashMap<>()).forEach((key, value) -> multipartEntityBuilder.addPart(key, new StringBody(value, contentType)));
-            if (StringUtils.isNotBlank(localFile) && !new File(localFile).exists())
+            if (StringUtils.isNotBlank(localFile) && new File(localFile).exists())
                 multipartEntityBuilder.addBinaryBody(new File(localFile).getName(), new File(localFile));
             httpPost.setEntity(multipartEntityBuilder.build());
 

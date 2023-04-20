@@ -93,6 +93,24 @@ public class HttpClientDataTest
         System.out.println(response);
     }
 
+    @Test
+    public void multipleUploadValidatedItem() throws Exception
+    {
+        String url = "https://192.168.31.158:21111/import/upload/multiple/validated/item";
+
+        Map<String, String> nameWithContent = new HashMap<>();
+        nameWithContent.put("name", "env.txt1");
+        nameWithContent.put("value", "env.txt2");
+
+        Map<String, String> headers = new HashMap<>();
+
+        HttpClientUtil httpClientUtil = new HttpClientUtil(new HttpClientUtil.Config().ofProxy(new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http")));
+        Map<String, Object> response = httpClientUtil.postFormData(url, headers, nameWithContent, "D:\\env.txt", new TypeReference<Map<String, Object>>()
+        {
+        });
+        System.out.println(response);
+    }
+
     @XmlRootElement(name = "files")
     @XmlAccessorType(XmlAccessType.FIELD)
     private static class FileInfos
