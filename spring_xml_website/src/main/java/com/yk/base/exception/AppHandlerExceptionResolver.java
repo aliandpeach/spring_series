@@ -58,6 +58,7 @@ public class AppHandlerExceptionResolver extends SimpleMappingExceptionResolver
         if (handler instanceof HandlerMethod)
         {
             HandlerMethod method = (HandlerMethod) handler;
+            // 如果是RestController, 则方法上没有ResponseBody注解, 则怎么办
             ResponseBody body = method.getMethodAnnotation(ResponseBody.class);
             if (body == null)
             {

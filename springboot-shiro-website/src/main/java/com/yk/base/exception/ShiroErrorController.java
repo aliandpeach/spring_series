@@ -191,6 +191,7 @@ public class ShiroErrorController implements ErrorController
         }
         else if (ex instanceof ServletException)
         {
+            // 某些组件提供的接口拦截器, 例如shiro, 抛出自定义异常, 会被set到 ServletException 的cause 中
             ServletException e = (ServletException) ex;
             Throwable cause = e.getCause();
             if (cause instanceof ShiroException)

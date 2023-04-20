@@ -1,7 +1,7 @@
 FROM jdk8:321
 
-# VOLUME 指定了臨時檔案目錄為/tmp。
-# 其效果是在主機 /var/lib/docker 目錄下建立了一個臨時檔案，並連結到容器的/tmp
+# VOLUME 指定了临时目录为/tmp。
+# 其效果是在主机 /var/lib/docker 目錄下建立了一个临时档案，并连接到容器的/tmp
 VOLUME /tmp
 
 WORKDIR /usr/local/docker/springboot-docker-service
@@ -18,5 +18,5 @@ RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
 
 # CMD ["java","-Ddocker.path=/usr/local/docker/", "-Djava.security.egd=file:/dev/./urandom","-jar","/usr/local/docker/springboot-docker-service/springboot-docker-service.jar","--spring.config.location=/usr/local/docker/springboot-docker-service/*.yml"]
 
-# 执行springboot-docker-service.jar 為了縮短 Tomcat 啟動時間，新增一個系統屬性指向 “/dev/./urandom” 作為 Entropy Source
+# 执行springboot-docker-service.jar 为了缩短 Tomcat 启动时间，新增一个系统属性指向 “/dev/./urandom” 作为 Entropy Source
 ENTRYPOINT ["java","-Ddocker.path=/usr/local/docker/", "-Djava.security.egd=file:/dev/./urandom","-jar","/usr/local/docker/springboot-docker-service/springboot-docker-service.jar","--spring.config.location=/usr/local/docker/springboot-docker-service/*.yml"]

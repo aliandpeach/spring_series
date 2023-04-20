@@ -124,6 +124,7 @@
         以及对应的@RequestMapping上，仅仅配置这个，可以处理数据接口，但是无法映射静态资源，这时我们再添加一个<mvc:default-servlet-handler />配置即可
     -->
     <!--content-negotiation-manager为内容协商管理, 暂时不实现-->
+    <!-- @RequestParam @RequestPart 等注解通过 HandlerMethodArgumentResolver 解析, 内部调用readWithMessageConverters 方法, 通过注册的Converters解析   -->
     <mvc:annotation-driven> <!--content-negotiation-manager="contentNegotiationManager" conversion-service="conversionService"-->
         <!-- use for converting @RequestBody method parameters and @ResponseBody method return values -->
         <!-- 当Controller配置的是ResponseBody, 默认会使用message-converts -->
