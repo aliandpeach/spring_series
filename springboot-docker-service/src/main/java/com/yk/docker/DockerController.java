@@ -68,14 +68,13 @@ public class DockerController
     {
         private String name;
         private String id;
-        private boolean responseContentType;
     }
 
 
     /**
      * ByteArrayHttpMessageConverter
      */
-    @RequestMapping("/transfer")
+    @RequestMapping("/transfer/0")
     @ResponseBody
     public ResponseEntity<byte[]> transfer(@RequestPart("file") MultipartFile file,
                                            @RequestPart("indexModel") IndexModel indexModel,
@@ -88,10 +87,7 @@ public class DockerController
         try (InputStream input = file.getInputStream())
         {
             HttpHeaders headers = new HttpHeaders();
-            if (indexModel.responseContentType)
-            {
-                headers.add("Content-Type", MediaType.APPLICATION_OCTET_STREAM.toString());
-            }
+            headers.add("Content-Type", MediaType.APPLICATION_OCTET_STREAM.toString());
             return new ResponseEntity<>(IOUtils.toByteArray(input), headers, HttpStatus.OK);
         }
         catch (IOException e)
@@ -100,7 +96,32 @@ public class DockerController
         }
     }
 
-    @RequestMapping(value = "/transfer2", produces = {MediaType.APPLICATION_OCTET_STREAM_VALUE})
+    /**
+     * transferR和transfer 只有参数IndexModel 的差别
+     */
+    @RequestMapping("/transfer/1")
+    @ResponseBody
+    public ResponseEntity<byte[]> transferR(@RequestPart("file") MultipartFile file,
+                                           IndexModel indexModel,
+                                           HttpServletRequest request,
+                                           HttpServletResponse response)
+    {
+        String uuid = UUID.randomUUID().toString().replace("-", "");
+        String destPath = request.getServletContext().getRealPath("/") + uuid + File.separator + file.getOriginalFilename();
+        new File(destPath).getParentFile().mkdirs();
+        try (InputStream input = file.getInputStream())
+        {
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Type", MediaType.APPLICATION_OCTET_STREAM.toString());
+            return new ResponseEntity<>(IOUtils.toByteArray(input), headers, HttpStatus.OK);
+        }
+        catch (IOException e)
+        {
+            throw new DockerException("upload file error", 400);
+        }
+    }
+
+    @RequestMapping(value = "/transfer/2", produces = {MediaType.APPLICATION_OCTET_STREAM_VALUE})
     @ResponseBody
     public byte[] transfer2(@RequestPart("file") MultipartFile file,
                             @RequestPart("indexModel") IndexModel indexModel,
@@ -112,10 +133,7 @@ public class DockerController
         new File(destPath).getParentFile().mkdirs();
         try (InputStream input = file.getInputStream())
         {
-            if (indexModel.responseContentType)
-            {
-                response.setHeader("Content-Type", MediaType.APPLICATION_OCTET_STREAM.toString());
-            }
+            response.setHeader("Content-Type", MediaType.APPLICATION_OCTET_STREAM.toString());
             return IOUtils.toByteArray(input);
         }
         catch (IOException e)
@@ -127,7 +145,7 @@ public class DockerController
     /**
      * ByteArrayHttpMessageConverter
      */
-    @RequestMapping("/transfer3")
+    @RequestMapping("/transfer/3")
     @ResponseBody
     public void transfer3(@RequestPart("file") MultipartFile file, HttpServletRequest request, HttpServletResponse response)
     {

@@ -243,7 +243,7 @@ public class HttpFormDataTest
     public void downloadBytes() throws Exception
     {
         String url = "https://192.168.31.158:21111/import/download/bytes";
-        new HttpClientUtil(new HttpClientUtil.Config().ofProxy(new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http")))
+        byte[] result = new HttpClientUtil(new HttpClientUtil.Config().ofProxy(new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http")))
                 .post(url,
                         new HashMap<>(),
                         cn.hutool.json.JSONUtil.toJsonStr(new HashMap<>(Collections.singletonMap("download.name", "123.mp4"))),
@@ -255,6 +255,7 @@ public class HttpFormDataTest
                                 return IOUtils.toByteArray(response.getEntity().getContent());
                             }
                         });
+        System.out.println(result.length);
     }
 
     @Test
