@@ -81,7 +81,6 @@ public class HttpClientDataTest
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
         HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
         HttpFormDataUtil.BaseResponse response = HttpFormDataUtil.postFormData(url,
                 new HashMap<>(),

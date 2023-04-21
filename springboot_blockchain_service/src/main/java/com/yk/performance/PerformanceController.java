@@ -532,7 +532,6 @@ public class PerformanceController implements InitializingBean
         long start = System.currentTimeMillis();
         String boundary = "" + UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-//        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
         HttpFormDataUtil.BaseResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, Collections.singletonMap("params", str), headers, null, boundary, "application/xml");
         response.setNumber(counter.incrementAndGet());
         long end = System.currentTimeMillis();

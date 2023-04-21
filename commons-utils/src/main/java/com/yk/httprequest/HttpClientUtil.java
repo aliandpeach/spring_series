@@ -303,12 +303,43 @@ public class HttpClientUtil
             initHeader(httpPost, headers);
 
             MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
-            ContentType contentType = ContentType.create(ContentType.TEXT_PLAIN.getMimeType(), StandardCharsets.UTF_8);
-            Optional.ofNullable(body).orElse(new HashMap<>()).forEach((key, value) -> multipartEntityBuilder.addPart(key, new StringBody(value, contentType)));
+            ContentType _contentType = ContentType.create(ContentType.TEXT_PLAIN.getMimeType(), StandardCharsets.UTF_8);
+            Optional.ofNullable(body).orElse(new HashMap<>()).forEach((key, value) -> multipartEntityBuilder.addPart(key, new StringBody(value, _contentType)));
+
             Optional.ofNullable(localFile).orElse(new HashMap<>()).entrySet().stream()
                     .filter(_entry -> StringUtils.isNotBlank(_entry.getValue()) && new File(_entry.getValue()).exists() && StringUtils.isNotBlank(_entry.getKey()))
                     .forEach(t -> multipartEntityBuilder.addBinaryBody(t.getKey(), new File(t.getValue())));
             httpPost.setEntity(multipartEntityBuilder.build());
+
+            httpPost.setConfig(requestConfig);
+            return httpClient.execute(httpPost, responseHandler);
+        }
+        catch (Exception e)
+        {
+            throw new RuntimeException("T post error", e);
+        }
+        finally
+        {
+            if (null != httpPost)
+                httpPost.releaseConnection();
+        }
+    }
+
+    public <T> T postBytes(String url,
+                           Map<String, String> headers,
+                           byte[] content,
+                           ResponseHandler<T> responseHandler)
+    {
+        HttpPost httpPost = null;
+        try
+        {
+            httpPost = new HttpPost(url);
+            initHeader(httpPost, headers);
+
+            EntityBuilder entityBuilder = EntityBuilder.create();
+            entityBuilder.setBinary(content);
+            entityBuilder.setContentType(ContentType.APPLICATION_OCTET_STREAM);
+            httpPost.setEntity(entityBuilder.build());
 
             httpPost.setConfig(requestConfig);
             return httpClient.execute(httpPost, responseHandler);
@@ -455,7 +486,6 @@ public class HttpClientUtil
         {
             return;
         }
-        httpRequestBase.addHeader("ContentType", "application/json");
         headers.forEach(httpRequestBase::addHeader);
     }
 

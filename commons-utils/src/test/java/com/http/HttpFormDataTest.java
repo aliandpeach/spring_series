@@ -68,7 +68,6 @@ public class HttpFormDataTest
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
         HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
         HttpFormDataUtil.BaseResponse response = HttpFormDataUtil.postFormData(url,
                 filePathMap,
@@ -96,7 +95,6 @@ public class HttpFormDataTest
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
 
         HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
         HttpFormDataUtil.BaseResponse response = HttpFormDataUtil.postFormData(url,
@@ -128,7 +126,6 @@ public class HttpFormDataTest
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
         HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
         HttpFormDataUtil.BaseResponse response = HttpFormDataUtil.postFormData(url,
                 filePathMap, nameWithContent, headers, proxyInfo, boundary, "application/json");
@@ -149,7 +146,6 @@ public class HttpFormDataTest
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
         HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
         HttpFormDataUtil.BaseResponse response = HttpFormDataUtil
                 .postFormData(url,
@@ -185,7 +181,6 @@ public class HttpFormDataTest
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
         HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
         HttpFormDataUtil.BaseResponse response = HttpFormDataUtil
                 .postFormData(url, filePathMap, Collections.singletonMap("items", str), headers, proxyInfo, boundary, "application/json");
@@ -215,7 +210,6 @@ public class HttpFormDataTest
 
         String boundary = UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
-        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
         HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
         HttpFormDataUtil.BaseResponse response = HttpFormDataUtil
                 .postFormData(url, filePathMap, Collections.singletonMap("json", str), headers, proxyInfo, boundary, "text/plain");
@@ -225,9 +219,23 @@ public class HttpFormDataTest
     @Test
     public void uploadBytes() throws Exception
     {
+        String url = "https://192.168.31.158:21111/import/upload/multiple/bytes";
         byte[] content = "abc123.中文".getBytes(StandardCharsets.UTF_8);
         HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
-        HttpFormDataUtil.BaseResponse response = HttpFormDataUtil.postBytes("https://192.168.31.158:21111/import/upload/multiple/bytes", content, proxyInfo);
+        HttpFormDataUtil.BaseResponse response = HttpFormDataUtil.postBytes(url, new HashMap<>(), content, proxyInfo);
+        System.out.println(response);
+    }
+
+    @Test
+    public void uploadBytes2() throws Exception
+    {
+        String url = "https://192.168.31.158:21111/import/upload/multiple/bytes";
+        byte[] content = "abc123.中文".getBytes(StandardCharsets.UTF_8);
+        HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
+        Object response = new HttpClientUtil(new HttpClientUtil.Config().ofProxy(proxyInfo))
+                .postBytes(url, new HashMap<>(),
+                        content,
+                        new HttpClientUtil.JsonResponseHandler<>(new TypeReference<Object>() {}));
         System.out.println(response);
     }
 

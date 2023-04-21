@@ -385,10 +385,11 @@ public class HttpFormDataUtil
     }
 
     public static BaseResponse postBytes(String urlStr,
+                                         Map<String, Object> headers,
                                          byte[] content,
                                          HttpClientUtil.ProxyInfo proxyInfo) throws Exception
     {
-        return postBytes(urlStr, content, proxyInfo, new StringHttpResponseHandler());
+        return postBytes(urlStr, headers, content, proxyInfo, new StringHttpResponseHandler());
     }
 
     /**
@@ -397,11 +398,14 @@ public class HttpFormDataUtil
      * @throws IOException
      */
     public static <T> T postBytes(String urlStr,
+                                  Map<String, Object> headers,
                                   byte[] content,
                                   HttpClientUtil.ProxyInfo proxyInfo,
                                   HttpResponseHandler<T> httpResponseHandler) throws Exception
     {
-        HttpsURLConnection conn = getHttpsURLConnection(urlStr, new HashMap<>(), proxyInfo);
+        headers = Optional.ofNullable(headers).orElse(new HashMap<>());
+        headers.put("Content-Type", "application/octet-stream");
+        HttpsURLConnection conn = getHttpsURLConnection(urlStr, headers, proxyInfo);
         conn.setRequestMethod("POST");
         conn.setDoOutput(true);
         conn.setConnectTimeout(30 * 1000);
@@ -416,13 +420,12 @@ public class HttpFormDataUtil
             {
                 writer.write(buffer, 0, len);
             }
-
-            return getHttpResponse(conn, httpResponseHandler);
         }
         catch (Exception e)
         {
             throw new RuntimeException("HttpFormDataUtil.postBytes error", e);
         }
+        return getHttpResponse(conn, httpResponseHandler);
     }
 
     public interface HttpResponseHandler<T>
