@@ -2,6 +2,7 @@ package com.http;
 
 import cn.hutool.core.util.HexUtil;
 import cn.hutool.json.JSON;
+import cn.hutool.json.JSONNull;
 import com.crypto.sm.SM2Test;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.yk.httprequest.HttpClientUtil;
@@ -70,9 +71,7 @@ public class HttpClientAuthTest
         Map<String, String> result = new HttpClientUtil(config).get("https://192.168.31.205:443/base/event/file/analysis/analyze",
                 new HashMap<>(),
                 param,
-                new TypeReference<Map<String, String>>()
-                {
-                }, 1);
+                new HttpClientUtil.JsonResponseHandler<>(new TypeReference<Map<String, String>>() {}), 1);
         System.out.println(result);
     }
 
@@ -165,9 +164,7 @@ public class HttpClientAuthTest
         Map<String, Object> model = new HttpClientUtil(config).get("https://192.168.31.251:443/base/event/doc/query",
                 headers,
                 body,
-                new TypeReference<Map<String, Object>>()
-                {
-                }, 1);
+                new HttpClientUtil.JsonResponseHandler<>(new TypeReference<Map<String, Object>>() {}), 1);
         System.out.println(model);
     }
 
@@ -191,10 +188,8 @@ public class HttpClientAuthTest
 
         Map<String, Object> model = new HttpClientUtil(config).post("https://192.168.31.251:443/base/event/doc/upload",
                 headers,
-                body,
-                new TypeReference<Map<String, Object>>()
-                {
-                });
+                cn.hutool.json.JSONUtil.toJsonStr(body),
+                new HttpClientUtil.JsonResponseHandler<>(new TypeReference<Map<String, Object>>() {}));
         System.out.println(model);
     }
 
@@ -266,10 +261,8 @@ public class HttpClientAuthTest
         long start = System.currentTimeMillis();
         Model model = new HttpClientUtil(config).post("https://192.168.31.251/base/event/doc/text",
                 headers,
-                body,
-                new TypeReference<Model>()
-                {
-                });
+                cn.hutool.json.JSONUtil.toJsonStr(body),
+                new HttpClientUtil.JsonResponseHandler<>(new TypeReference<Model>() {}));
         System.out.println(Optional.ofNullable(model.getResult()).orElse(new ArrayList<>()).size());
         System.out.println(JSONUtil.toJson(model));
         System.out.println(System.currentTimeMillis() - start);

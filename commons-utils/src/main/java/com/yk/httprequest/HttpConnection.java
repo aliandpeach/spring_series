@@ -20,7 +20,7 @@ public class HttpConnection
     /**
      * get 请求
      */
-    public static HttpFormDataUtil.HttpResponse get(String url, Map<String, Object> param) throws IOException
+    public static <T> T get(String url, Map<String, Object> param, HttpFormDataUtil.HttpResponseHandler<T> httpResponseHandler) throws IOException
     {
         String params = param.entrySet().stream().map(t -> t.getKey() + "=" + t.getValue()).collect(Collectors.joining("&"));
         URL restServiceURL = new URL(url + (params.length() > 0 ? "?" + params : ""));
@@ -38,13 +38,13 @@ public class HttpConnection
             throw new RuntimeException("HTTP GET Request Failed with Error code : "
                     + httpsConnection.getResponseCode());
         }
-        return HttpFormDataUtil.getHttpResponse(httpsConnection);
+        return HttpFormDataUtil.getHttpResponse(httpsConnection, httpResponseHandler);
     }
 
     /**
      * post 请求
      */
-    public static HttpFormDataUtil.HttpResponse post(String url, Map<String, Object> param) throws IOException
+    public static <T> T post(String url, Map<String, Object> param, HttpFormDataUtil.HttpResponseHandler<T> httpResponseHandler) throws IOException
     {
         URL restServiceURL = new URL(url);
         HttpsURLConnection httpsConnection = (HttpsURLConnection) restServiceURL.openConnection();
@@ -79,7 +79,7 @@ public class HttpConnection
                 writer.write(buffer, 0, len);
             }
         }
-        return HttpFormDataUtil.getHttpResponse(httpsConnection);
+        return HttpFormDataUtil.getHttpResponse(httpsConnection, httpResponseHandler);
     }
 
     public static void downloadHttpsCert()

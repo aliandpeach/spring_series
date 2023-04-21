@@ -1,9 +1,7 @@
 package com.yk.httprequest;
 
-import cn.hutool.core.io.IoUtil;
-import cn.hutool.json.JSONUtil;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpHost;
+import lombok.Data;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -16,11 +14,11 @@ import org.apache.http.entity.mime.MIME;
 import org.apache.http.entity.mime.MinimalField;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.ByteArrayBody;
-import org.apache.http.entity.mime.content.ContentBody;
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
@@ -28,24 +26,16 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.StringBufferInputStream;
-import java.io.StringReader;
 import java.lang.reflect.Constructor;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -53,7 +43,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
+import java.util.Optional;
 
 /**
  * HttpFormDataUtil
@@ -76,7 +66,7 @@ public class HttpFormDataUtil
      */
     private static final String LINE_END = "\r\n";
 
-    public static HttpResponse postFormData(String urlStr,
+    public static BaseResponse postFormData(String urlStr,
                                             Map<String, String> filePathMap,
                                             Map<String, String> nameWithContent,
                                             Map<String, Object> headers,
@@ -84,7 +74,21 @@ public class HttpFormDataUtil
                                             String boundary,
                                             String contentType) throws Exception
     {
-        HttpResponse response;
+        return postFormData(urlStr, filePathMap, nameWithContent, headers, proxyInfo, boundary, contentType, new StringHttpResponseHandler());
+    }
+
+    public static <T> T postFormData(String urlStr,
+                                     Map<String, String> filePathMap,
+                                     Map<String, String> nameWithContent,
+                                     Map<String, Object> headers,
+                                     HttpClientUtil.ProxyInfo proxyInfo,
+                                     String boundary,
+                                     String contentType,
+                                     HttpResponseHandler<T> httpResponseHandler) throws Exception
+    {
+
+        headers = Optional.ofNullable(headers).orElse(new HashMap<>());
+        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
         HttpsURLConnection conn = getHttpsURLConnection(urlStr, headers, proxyInfo);
 
         //发送参数数据
@@ -111,18 +115,16 @@ public class HttpFormDataUtil
         }
         catch (Exception e)
         {
-            response = new HttpResponse(400, e.getMessage());
-            return response;
+            throw new RuntimeException("HttpFormDataUtil.postFormData error", e);
         }
-
-        return getHttpResponse(conn);
+        return getHttpResponse(conn, httpResponseHandler);
     }
 
     private static RequestConfig.Builder REQUEST_CONFIG_BUILDER = RequestConfig.custom()
             .setConnectTimeout(30 * 1000).setConnectionRequestTimeout(30 * 1000)
             .setSocketTimeout(650 * 1000);
 
-    public static HttpResponse postFormDataByHttpClient(String urlStr,
+    public static BaseResponse postFormDataByHttpClient(String urlStr,
                                                         Map<String, String> filePathMap,
                                                         Map<String, String> nameWithContent,
                                                         Map<String, Object> headers,
@@ -130,7 +132,18 @@ public class HttpFormDataUtil
                                                         String boundary,
                                                         String contentType)
     {
-        HttpResponse response;
+        return postFormDataByHttpClient(urlStr, filePathMap, nameWithContent, headers, proxyInfo, boundary, contentType, new StringHttpResponseHandler());
+    }
+
+    public static <T> T postFormDataByHttpClient(String urlStr,
+                                                 Map<String, String> filePathMap,
+                                                 Map<String, String> nameWithContent,
+                                                 Map<String, Object> headers,
+                                                 HttpClientUtil.ProxyInfo proxyInfo,
+                                                 String boundary,
+                                                 String contentType,
+                                                 HttpResponseHandler<T> httpResponseHandler)
+    {
         HttpPost post = new HttpPost(urlStr);
         try
         {
@@ -195,35 +208,12 @@ public class HttpFormDataUtil
             CloseableHttpResponse httpResponse =
                     // // 如果new HttpClientUtil不传入proxy信息, 也可以在这里传入requestConfig（前提是requestConfig.setProxy）
                     util.httpClient.execute(post/*, util.createHttpClientContext(REQUEST_CONFIG_BUILDER.setProxy(new HttpHost(proxyInfo.getHostname(), proxyInfo.getPort(), proxyInfo.getScheme())).build(), null, null)*/);
-            int responseCode = httpResponse.getStatusLine().getStatusCode();
-            HttpEntity httpEntity = httpResponse.getEntity();
-            try (InputStream input = httpEntity.getContent();
-                 InputStreamReader reader = new InputStreamReader(input, StandardCharsets.UTF_8.name());
-                 BufferedReader bufferedReader = new BufferedReader(reader))
-            {
-                StringBuilder responseContent = new StringBuilder();
-                String line;
-                while ((line = bufferedReader.readLine()) != null)
-                {
-                    responseContent.append(line);
-                }
-                if (responseCode != 200)
-                {
-                    logger.error("response error " + responseCode);
-                    logger.error("response error " + responseContent.toString());
-                }
-                response = new HttpResponse(responseCode, responseContent.toString());
-                return response;
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
+
+            return getHttpResponse(httpResponse, httpResponseHandler);
         }
         catch (Exception e)
         {
-            response = new HttpResponse(400, e.getMessage());
-            return response;
+            throw new RuntimeException("HttpFormDataUtil.postFormDataByHttpClient error ", e);
         }
         finally
         {
@@ -233,11 +223,6 @@ public class HttpFormDataUtil
 
     /**
      * 获得连接对象
-     *
-     * @param urlStr
-     * @param headers
-     * @return
-     * @throws IOException
      */
     private static HttpsURLConnection getHttpsURLConnection(String urlStr, Map<String, Object> headers, HttpClientUtil.ProxyInfo proxyInfo) throws
             Exception
@@ -313,25 +298,30 @@ public class HttpFormDataUtil
         return conn;
     }
 
-    public static HttpResponse getHttpResponse(HttpURLConnection conn)
+    public static <T> T getHttpResponse(HttpURLConnection conn, @Nullable HttpResponseHandler<T> httpResponseHandler) throws IOException
     {
-        HttpResponse response;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)))
+        if (null == httpResponseHandler)
         {
-            int responseCode = conn.getResponseCode();
-            StringBuilder responseContent = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null)
-            {
-                responseContent.append(line);
-            }
-            response = new HttpResponse(responseCode, responseContent.toString());
+            throw new RuntimeException("get http response error");
         }
-        catch (Exception e)
+        int _code = conn.getResponseCode();
+        if (_code >= 200 && _code <= 300)
+            return httpResponseHandler.handleHttpResponse(new HttpResponse<>(_code, conn.getInputStream(), conn.getHeaderFields()));
+
+        String _message = IOUtils.toString(conn.getErrorStream());
+        throw new RuntimeException(_message);
+    }
+
+    public static <T> T getHttpResponse(CloseableHttpResponse response, @Nullable HttpResponseHandler<T> httpResponseHandler) throws IOException
+    {
+        if (null == httpResponseHandler)
         {
-            response = new HttpResponse(400, e.getMessage());
+            throw new RuntimeException("get http response error");
         }
-        return response;
+        int _code = response.getStatusLine().getStatusCode();
+        if (_code >= 200 && _code <= 300)
+            return httpResponseHandler.handleHttpResponse(new HttpResponse<>(response.getStatusLine().getStatusCode(), response.getEntity().getContent(), null));
+        throw new RuntimeException(EntityUtils.toString(response.getEntity()));
     }
 
     /**
@@ -358,7 +348,7 @@ public class HttpFormDataUtil
             sb.append(String.format("Content-Disposition: form-data; name=\"%s\"; filename=\"%s\"", paramName, fileName)).append(LINE_END);
             sb.append("Content-Type: application/octet-stream" + LINE_END + LINE_END);
 
-            out.write(sb.toString().getBytes("UTF-8"));
+            out.write(sb.toString().getBytes(StandardCharsets.UTF_8));
 
             int bufSize = 8 * 1024;
             byte[] buffer = new byte[bufSize];
@@ -381,7 +371,7 @@ public class HttpFormDataUtil
      * @param out
      * @throws IOException
      */
-    private static void writeSimpleFormField(String boundary, BufferedOutputStream out, String content, String contentType,  String contentName) throws
+    private static void writeSimpleFormField(String boundary, BufferedOutputStream out, String content, String contentType, String contentName) throws
             IOException
     {
         StringBuilder sb = new StringBuilder();
@@ -394,12 +384,22 @@ public class HttpFormDataUtil
         out.write(sb.toString().getBytes(StandardCharsets.UTF_8));
     }
 
+    public static BaseResponse postBytes(String urlStr,
+                                         byte[] content,
+                                         HttpClientUtil.ProxyInfo proxyInfo) throws Exception
+    {
+        return postBytes(urlStr, content, proxyInfo, new StringHttpResponseHandler());
+    }
+
     /**
      * 发送文本内容 发送 byte[] 到controller，controller参数为 @RequestBody byte[] bytes
      *
      * @throws IOException
      */
-    public static HttpResponse postBytes(String urlStr, byte []content, HttpClientUtil.ProxyInfo proxyInfo) throws Exception
+    public static <T> T postBytes(String urlStr,
+                                  byte[] content,
+                                  HttpClientUtil.ProxyInfo proxyInfo,
+                                  HttpResponseHandler<T> httpResponseHandler) throws Exception
     {
         HttpsURLConnection conn = getHttpsURLConnection(urlStr, new HashMap<>(), proxyInfo);
         conn.setRequestMethod("POST");
@@ -416,63 +416,65 @@ public class HttpFormDataUtil
             {
                 writer.write(buffer, 0, len);
             }
+
+            return getHttpResponse(conn, httpResponseHandler);
         }
         catch (Exception e)
         {
-            return new HttpResponse(400, e.getMessage());
+            throw new RuntimeException("HttpFormDataUtil.postBytes error", e);
         }
-
-        return getHttpResponse(conn);
     }
 
-    public static class HttpResponse
+    public interface HttpResponseHandler<T>
+    {
+        T handleHttpResponse(HttpResponse<T> response) throws IOException;
+    }
+
+    public static class StringHttpResponseHandler implements HttpResponseHandler<BaseResponse>
+    {
+        @Override
+        public BaseResponse handleHttpResponse(HttpResponse<BaseResponse> response) throws IOException
+        {
+            return new BaseResponse(response.getCode(), IOUtils.toString(response.getContent(), StandardCharsets.UTF_8));
+        }
+    }
+
+    @Data
+    public static class HttpResponse<T>
     {
         private int code;
 
-        private String content;
+        private InputStream content;
 
-        private int number;
+        private Map<String, List<String>> headers;
 
-        public int getNumber()
-        {
-            return number;
-        }
-
-        public void setNumber(int number)
-        {
-            this.number = number;
-        }
-
-        public HttpResponse(int status, String content)
+        public HttpResponse(int status, InputStream content, Map<String, List<String>> headers)
         {
             this.code = status;
             this.content = content;
-        }
-
-        public int getCode()
-        {
-            return code;
-        }
-
-        public void setCode(int code)
-        {
-            this.code = code;
-        }
-
-        public String getContent()
-        {
-            return content;
-        }
-
-        public void setContent(String content)
-        {
-            this.content = content;
+            this.headers = headers;
         }
 
         public String toString()
         {
             return "[ code = " + code +
                     " , content = " + content + " ]";
+        }
+    }
+
+    @Data
+    public static class BaseResponse
+    {
+        private int code;
+
+        private String content;
+
+        private int number = 0;
+
+        public BaseResponse(int code, String content)
+        {
+            this.code = code;
+            this.content = content;
         }
     }
 }

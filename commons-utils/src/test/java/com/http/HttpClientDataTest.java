@@ -58,16 +58,16 @@ public class HttpClientDataTest
         Map<String, String> body = new HashMap<>();
         body.put("id", "1");
         body.put("name", "1");
-        Object infos = httpClientUtil.postFormData(url, new HashMap<>(), body, "", new TypeReference<Object>()
-        {
-        });
+        Object infos = httpClientUtil.postFormData(url,
+                new HashMap<>(), body, new HashMap<>(),
+                new HttpClientUtil.JsonResponseHandler<>(new TypeReference<Object>(){}));
         System.out.println(infos);
 
         body.put("id", "2");
         body.put("name", "2");
-        infos = httpClientUtil.postFormUrlencoded(url, new HashMap<>(), body, new TypeReference<Object>()
-        {
-        });
+        infos = httpClientUtil.postFormUrlencoded(url,
+                new HashMap<>(), body,
+                new HttpClientUtil.JsonResponseHandler<>(new TypeReference<Object>(){}));
         System.out.println(infos);
     }
 
@@ -83,7 +83,7 @@ public class HttpClientDataTest
         Map<String, Object> headers = new HashMap<>();
         headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
         HttpClientUtil.ProxyInfo proxyInfo = new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http");
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormData(url,
+        HttpFormDataUtil.BaseResponse response = HttpFormDataUtil.postFormData(url,
                 new HashMap<>(),
                 Collections.singletonMap("demoModel", JSONUtil.toJsonStr(demo)),
                 headers,
@@ -105,9 +105,11 @@ public class HttpClientDataTest
         Map<String, String> headers = new HashMap<>();
 
         HttpClientUtil httpClientUtil = new HttpClientUtil(new HttpClientUtil.Config().ofProxy(new HttpClientUtil.ProxyInfo(true, "127.0.0.1", 8089, "http")));
-        Map<String, Object> response = httpClientUtil.postFormData(url, headers, nameWithContent, "D:\\env.txt", new TypeReference<Map<String, Object>>()
-        {
-        });
+        Map<String, Object> response = httpClientUtil.postFormData(url,
+                headers,
+                nameWithContent,
+                Collections.singletonMap("file", "D:\\env.txt"),
+                new HttpClientUtil.JsonResponseHandler<>(new TypeReference<Map<String, Object>>(){}));
         System.out.println(response);
     }
 

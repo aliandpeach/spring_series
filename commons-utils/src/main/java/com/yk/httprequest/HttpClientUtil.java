@@ -11,7 +11,6 @@ import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.config.RequestConfig;
@@ -211,8 +210,8 @@ public class HttpClientUtil
      */
     public <T> T post(String url,
                       Map<String, String> headers,
-                      Map<String, Object> body,
-                      final TypeReference<T> typeReference)
+                      String body,
+                      ResponseHandler<T> responseHandler)
     {
         HttpPost httpPost = null;
         try
@@ -221,44 +220,13 @@ public class HttpClientUtil
             initHeader(httpPost, headers);
 
             EntityBuilder builder = EntityBuilder.create();
-            builder.setText(cn.hutool.json.JSONUtil.toJsonStr(body));
+            builder.setText(body);
             builder.setContentType(ContentType.APPLICATION_JSON);
             builder.setContentEncoding(StandardCharsets.UTF_8.name());
             httpPost.setEntity(builder.build());
 
             httpPost.setConfig(requestConfig);
-            return httpClient.execute(httpPost, new JsonResponseHandler<T>(typeReference));
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException("T post error", e);
-        }
-        finally
-        {
-            if (null != httpPost)
-                httpPost.releaseConnection();
-        }
-    }
-
-    public void downloadPost(String url,
-                             Map<String, String> headers,
-                             Map<String, String> body,
-                             HttpResponseHandler httpResponseHandler)
-    {
-        HttpPost httpPost = null;
-        try
-        {
-            httpPost = new HttpPost(url);
-            initHeader(httpPost, headers);
-
-            EntityBuilder builder = EntityBuilder.create();
-            builder.setText(cn.hutool.json.JSONUtil.toJsonStr(body));
-            builder.setContentType(ContentType.APPLICATION_JSON);
-            builder.setContentEncoding(StandardCharsets.UTF_8.name());
-            httpPost.setEntity(builder.build());
-
-            httpPost.setConfig(requestConfig);
-            httpResponseHandler.handleHttpResponse(httpClient.execute(httpPost));
+            return httpClient.execute(httpPost, responseHandler);
         }
         catch (Exception e)
         {
@@ -291,7 +259,7 @@ public class HttpClientUtil
     public <T> T postFormUrlencoded(String url,
                                     Map<String, String> headers,
                                     Map<String, String> body,
-                                    final TypeReference<T> typeReference)
+                                    ResponseHandler<T> responseHandler)
     {
         HttpPost httpPost = null;
         try
@@ -306,7 +274,7 @@ public class HttpClientUtil
             httpPost.setEntity(builder.build());
 
             httpPost.setConfig(requestConfig);
-            return httpClient.execute(httpPost, new JsonResponseHandler<T>(typeReference));
+            return httpClient.execute(httpPost, responseHandler);
         }
         catch (Exception e)
         {
@@ -325,8 +293,8 @@ public class HttpClientUtil
     public <T> T postFormData(String url,
                               Map<String, String> headers,
                               Map<String, String> body,
-                              String localFile,
-                              final TypeReference<T> typeReference)
+                              Map<String, String> localFile,
+                              ResponseHandler<T> responseHandler)
     {
         HttpPost httpPost = null;
         try
@@ -337,12 +305,13 @@ public class HttpClientUtil
             MultipartEntityBuilder multipartEntityBuilder = MultipartEntityBuilder.create();
             ContentType contentType = ContentType.create(ContentType.TEXT_PLAIN.getMimeType(), StandardCharsets.UTF_8);
             Optional.ofNullable(body).orElse(new HashMap<>()).forEach((key, value) -> multipartEntityBuilder.addPart(key, new StringBody(value, contentType)));
-            if (StringUtils.isNotBlank(localFile) && new File(localFile).exists())
-                multipartEntityBuilder.addBinaryBody(new File(localFile).getName(), new File(localFile));
+            Optional.ofNullable(localFile).orElse(new HashMap<>()).entrySet().stream()
+                    .filter(_entry -> StringUtils.isNotBlank(_entry.getValue()) && new File(_entry.getValue()).exists() && StringUtils.isNotBlank(_entry.getKey()))
+                    .forEach(t -> multipartEntityBuilder.addBinaryBody(t.getKey(), new File(t.getValue())));
             httpPost.setEntity(multipartEntityBuilder.build());
 
             httpPost.setConfig(requestConfig);
-            return httpClient.execute(httpPost, new JsonResponseHandler<T>(typeReference));
+            return httpClient.execute(httpPost, responseHandler);
         }
         catch (Exception e)
         {
@@ -391,7 +360,7 @@ public class HttpClientUtil
     public <T> T get(String url,
                      Map<String, String> headers,
                      Map<String, String> params,
-                     TypeReference<T> tTypeReference,
+                     ResponseHandler<T> responseHandler,
                      int times)
     {
         long start = System.currentTimeMillis();
@@ -403,7 +372,7 @@ public class HttpClientUtil
             initHeader(httpGet, headers);
 
             httpGet.setConfig(requestConfig);
-            return httpClient.execute(httpGet, new JsonResponseHandler<>(tTypeReference));
+            return httpClient.execute(httpGet, responseHandler);
         }
         catch (IOException e)
         {
@@ -411,7 +380,7 @@ public class HttpClientUtil
             logger.error("IOException time : " + (end - start), e);
             if (times > 0)
             {
-                return get(url, headers, params, tTypeReference, --times);
+                return get(url, headers, params, responseHandler, --times);
             }
             throw new RuntimeException("T get error", e);
         }
@@ -425,32 +394,6 @@ public class HttpClientUtil
             {
                 httpGet.releaseConnection();
             }
-        }
-    }
-
-    public void downloadGet(String url,
-                            Map<String, String> headers,
-                            Map<String, String> params, HttpResponseHandler httpResponseHandler)
-    {
-
-        HttpGet httpGet = null;
-        try
-        {
-            url = initUrlParams(url, params);
-            httpGet = new HttpGet(url);
-            initHeader(httpGet, headers);
-
-            httpGet.setConfig(requestConfig);
-            httpResponseHandler.handleHttpResponse(httpClient.execute(httpGet));
-        }
-        catch (Exception e)
-        {
-            throw new RuntimeException("downloadGet error", e);
-        }
-        finally
-        {
-            if (null != httpGet)
-                httpGet.releaseConnection();
         }
     }
 
@@ -516,26 +459,7 @@ public class HttpClientUtil
         headers.forEach(httpRequestBase::addHeader);
     }
 
-    static class XmlResponseHandler implements ResponseHandler<String>
-    {
-        @Override
-        public String handleResponse(HttpResponse response) throws ClientProtocolException, IOException
-        {
-            int status = response.getStatusLine().getStatusCode();
-            if (status < 200 || status >= 300)
-            {
-                throw new IOException("response status is not correct");
-            }
-            HttpEntity httpEntity = response.getEntity();
-            if (null == httpEntity)
-            {
-                throw new IOException("httpEntity is null");
-            }
-            return EntityUtils.toString(httpEntity);
-        }
-    }
-
-    static class JsonResponseHandler<T> implements ResponseHandler<T>
+    public static class JsonResponseHandler<T> implements ResponseHandler<T>
     {
 
         private final TypeReference<T> typeReference;
@@ -546,20 +470,26 @@ public class HttpClientUtil
         }
 
         @Override
-        public T handleResponse(HttpResponse response) throws ClientProtocolException, IOException
+        public T handleResponse(HttpResponse response) throws IOException
         {
             int status = response.getStatusLine().getStatusCode();
-            if (status < 200 || status >= 300)
-            {
-                throw new IOException("response status is not correct");
-            }
             HttpEntity httpEntity = response.getEntity();
-            if (null == httpEntity)
+            if (status >= 200 && status <= 300 && httpEntity != null)
             {
-                throw new IOException("httpEntity is null");
+                String string = EntityUtils.toString(httpEntity);
+                return JSONUtil.fromJson(string, typeReference);
             }
-            String string = EntityUtils.toString(httpEntity);
-            return JSONUtil.fromJson(string, typeReference);
+            throw new IOException("response error, status=" + status + ", entity= " + (null == httpEntity ? "" : EntityUtils.toString(httpEntity)));
+        }
+    }
+
+    public static class StringResponseHandler implements ResponseHandler<String>
+    {
+        @Override
+        public String handleResponse(HttpResponse response) throws IOException
+        {
+            HttpEntity httpEntity = response.getEntity();
+            return null == httpEntity ? "" : EntityUtils.toString(httpEntity);
         }
     }
 
@@ -724,10 +654,5 @@ public class HttpClientUtil
         {
             return false;
         }
-    }
-
-    public interface HttpResponseHandler
-    {
-        void handleHttpResponse(HttpResponse response) throws IOException;
     }
 }
