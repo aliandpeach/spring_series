@@ -2,11 +2,13 @@ package com.yk.docker;
 
 import com.yk.base.exception.DockerException;
 import lombok.Data;
+import oracle.ucp.proxy.annotation.Post;
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -42,12 +44,12 @@ public class DockerController
 //        return ResponseEntity.ok("OK");
     }
 
-    @RequestMapping("/upload")
+    @RequestMapping(value = "/upload", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
-    public ResponseEntity<String> upload(@RequestPart("file") MultipartFile file, HttpServletRequest request)
+    public ResponseEntity<String> upload(@RequestPart("upload_file") MultipartFile file, HttpServletRequest request)
     {
         String uuid = UUID.randomUUID().toString().replace("-", "");
-        String destPath = request.getServletContext().getRealPath("/") + uuid + File.separator + file.getName();
+        String destPath = request.getServletContext().getRealPath("/") + uuid + File.separator + file.getOriginalFilename();
         new File(destPath).getParentFile().mkdirs();
         try
         {
@@ -81,7 +83,7 @@ public class DockerController
                                            HttpServletResponse response)
     {
         String uuid = UUID.randomUUID().toString().replace("-", "");
-        String destPath = request.getServletContext().getRealPath("/") + uuid + File.separator + file.getName();
+        String destPath = request.getServletContext().getRealPath("/") + uuid + File.separator + file.getOriginalFilename();
         new File(destPath).getParentFile().mkdirs();
         try (InputStream input = file.getInputStream())
         {
@@ -106,7 +108,7 @@ public class DockerController
                             HttpServletResponse response)
     {
         String uuid = UUID.randomUUID().toString().replace("-", "");
-        String destPath = request.getServletContext().getRealPath("/") + uuid + File.separator + file.getName();
+        String destPath = request.getServletContext().getRealPath("/") + uuid + File.separator + file.getOriginalFilename();
         new File(destPath).getParentFile().mkdirs();
         try (InputStream input = file.getInputStream())
         {
@@ -130,7 +132,7 @@ public class DockerController
     public void transfer3(@RequestPart("file") MultipartFile file, HttpServletRequest request, HttpServletResponse response)
     {
         String uuid = UUID.randomUUID().toString().replace("-", "");
-        String destPath = request.getServletContext().getRealPath("/") + uuid + File.separator + file.getName();
+        String destPath = request.getServletContext().getRealPath("/") + uuid + File.separator + file.getOriginalFilename();
         new File(destPath).getParentFile().mkdirs();
         try (InputStream input = file.getInputStream(); OutputStream output = response.getOutputStream();
              BufferedOutputStream out = new BufferedOutputStream(output))

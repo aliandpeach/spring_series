@@ -34,6 +34,7 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.ValidationException;
 import java.util.Map;
 
@@ -52,6 +53,10 @@ public class DockerErrorController implements ErrorController
     @Autowired(required = false)
     private HttpServletRequest request;
 
+    @Getter
+    @Autowired(required = false)
+    private HttpServletResponse response;
+
     /**
      * 支持HTML的错误视图
      */
@@ -59,7 +64,7 @@ public class DockerErrorController implements ErrorController
     public ModelAndView page()
     {
 
-        return buildPage(getRequest());
+        return buildPage(request, response);
     }
 
     /**
@@ -69,12 +74,12 @@ public class DockerErrorController implements ErrorController
     @ResponseBody
     public Object body()
     {
-        return buildBody(getRequest());
+        return buildBody(request, response);
     }
 
-    private ModelAndView buildPage(HttpServletRequest request)
+    private ModelAndView buildPage(HttpServletRequest request, HttpServletResponse response)
     {
-        Map<String, Object> errorAttributes = this.getErrorAttributes(request);
+        Map<String, Object> errorAttributes = this.getErrorAttributes(request,  response);
         Object httpStatus = RequestContextHolder.currentRequestAttributes().getAttribute("http_status", SCOPE_REQUEST);
         if (null != httpStatus)
         {
@@ -85,13 +90,13 @@ public class DockerErrorController implements ErrorController
         );
     }
 
-    private BaseResponse<?> buildBody(HttpServletRequest request)
+    private BaseResponse<?> buildBody(HttpServletRequest request, HttpServletResponse response)
     {
-        Map<String, Object> errorAttributes = this.getErrorAttributes(request);
+        Map<String, Object> errorAttributes = this.getErrorAttributes(request, response);
         String message = String.valueOf(errorAttributes.get("message"));
         BaseResponse<?> baseResponse = new BaseResponse<>();
         baseResponse.setMessage(message);
-        baseResponse.setStatus((int) errorAttributes.get("status"));
+        baseResponse.setCode((int) errorAttributes.get("code"));
         return baseResponse;
     }
 
@@ -117,16 +122,11 @@ public class DockerErrorController implements ErrorController
         };
     }
 
-    private Map<String, Object> getErrorAttributes(HttpServletRequest request)
+    private Map<String, Object> getErrorAttributes(HttpServletRequest request, HttpServletResponse response)
     {
-
-//        errorProperties.setIncludeException(true);
-//        errorProperties.setIncludeMessage(ErrorProperties.IncludeAttribute.ALWAYS);
-//        errorProperties.setIncludeStacktrace(ErrorProperties.IncludeAttribute.ALWAYS);
-
         WebRequest requestAttributes = new ServletWebRequest(request);
-        Map<String, Object> errorAttributes =
-                this.errorAttributes.getErrorAttributes(requestAttributes, ErrorAttributeOptions.of(ErrorAttributeOptions.Include.MESSAGE, ErrorAttributeOptions.Include.EXCEPTION));
+        Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(requestAttributes,
+                ErrorAttributeOptions.of(ErrorAttributeOptions.Include.MESSAGE, ErrorAttributeOptions.Include.EXCEPTION));
 
         // 从errorAttributes中获取异常信息, errorAttributes中的异常信息实际也是从request中获取的
         Object obj = errorAttributes.get("message");
@@ -138,11 +138,15 @@ public class DockerErrorController implements ErrorController
         Object exceptionObject = request.getAttribute("javax.servlet.error.exception");
 
         Throwable ex = this.errorAttributes.getError(requestAttributes);
+
+        errorAttributes.put("code", 1); // 这里理论上要和ControllerExceptionHandler里面保持一致的(按照不同的Exception给出不同的code)
+        response.setStatus(null == errorAttributes.get("status") ? HttpStatus.BAD_REQUEST.value() : Integer.parseInt(errorAttributes.get("status").toString()));
         if (ex instanceof DockerException)
         {
             log.error("customer exception：[{}]", ex.getMessage());
             errorAttributes.put("message", ex.getMessage());
-            errorAttributes.put("status", ((DockerException) ex).getStatus());
+            errorAttributes.put("code", ((DockerException) ex).getCode());
+            response.setStatus(HttpStatus.OK.value()); // 业务异常中, 返回200由请求者根据code去判断业务(或跳转或弹框)
         }
         else if (ex instanceof BindException)
         {
@@ -151,9 +155,7 @@ public class DockerErrorController implements ErrorController
             if (bindingResult.hasErrors())
             {
                 FieldError fieldError = bindingResult.getFieldErrors().get(0);
-                errorAttributes.put(
-                        "message", StrBuilder.create(fieldError.getField(), fieldError.getDefaultMessage()).toString()
-                );
+                errorAttributes.put("message", StrBuilder.create(fieldError.getField(), fieldError.getDefaultMessage()).toString());
             }
         }
         else if (ex instanceof DataAccessException)
@@ -197,8 +199,7 @@ public class DockerErrorController implements ErrorController
         {
             ValidationException e = (ValidationException) ex;
 
-            errorAttributes.put(
-                    "message", e.getCause() instanceof ValidateException ? e.getCause().getMessage() : ex.getMessage());
+            errorAttributes.put("message", e.getCause() instanceof ValidateException ? e.getCause().getMessage() : ex.getMessage());
         }
         else
         {

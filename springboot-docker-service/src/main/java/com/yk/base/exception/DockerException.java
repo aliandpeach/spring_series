@@ -14,7 +14,7 @@ public class DockerException extends RuntimeException
     /**
      * 错误码
      */
-    protected int status;
+    protected int code;
     /**
      * 错误信息
      */
@@ -26,18 +26,18 @@ public class DockerException extends RuntimeException
         this.message = message;
     }
 
-    public DockerException(String message, int status)
+    public DockerException(String message, int code)
     {
         super(message);
         this.message = message;
-        this.status = status;
+        this.code = code;
     }
 
-    public DockerException(String message, int status, Throwable e)
+    public DockerException(String message, int code, Throwable e)
     {
         super(message, e);
         this.message = message;
-        this.status = status;
+        this.code = code;
     }
 
 }
