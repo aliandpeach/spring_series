@@ -84,7 +84,7 @@ public class PerformanceController implements InitializingBean
 
     @GetMapping("/test")
     @ResponseBody
-    public List<HttpFormDataUtil.HttpResponse> performance(@RequestParam Map<String, String> params)
+    public List<HttpFormDataUtil.BaseResponse> performance(@RequestParam Map<String, String> params)
     {
         AtomicInteger counter = new AtomicInteger(0);
 
@@ -93,7 +93,7 @@ public class PerformanceController implements InitializingBean
 
         if (null == params.get("count") || !NumberUtil.isNumber(params.get("count")))
         {
-            return new ArrayList<>(Collections.singletonList(new HttpFormDataUtil.HttpResponse(400, "请加入请求数量 count")));
+            return new ArrayList<>(Collections.singletonList(new HttpFormDataUtil.BaseResponse(400, "请加入请求数量 count")));
         }
         int _total = Integer.parseInt(params.get("count"));
         int _files = null != params.get("files") && NumberUtil.isNumber(params.get("files")) ? Integer.parseInt(params.get("files")) : 1;
@@ -102,25 +102,25 @@ public class PerformanceController implements InitializingBean
         logger.debug("_total={}", _total);
         logger.debug("sema={}", _semaphore);
 
-        List<CompletableFuture<HttpFormDataUtil.HttpResponse>> futures = new ArrayList<>();
+        List<CompletableFuture<HttpFormDataUtil.BaseResponse>> futures = new ArrayList<>();
         ExecutorService service = Executors.newFixedThreadPool(_semaphore * 2);
         BlockingQueue<Long> ttimes = new LinkedBlockingQueue<>();
         IntStream.range(0, _total).forEach(t ->
         {
-            CompletableFuture<HttpFormDataUtil.HttpResponse> future = CompletableFuture.supplyAsync(() ->
+            CompletableFuture<HttpFormDataUtil.BaseResponse> future = CompletableFuture.supplyAsync(() ->
             {
                 try
                 {
                     final List<File> data = new ArrayList<>(_files);
                     IntStream.range(0, _files).forEach(f -> data.add(FILES.get(random.nextInt(FILES.size()))));
                     semaphore.acquire();
-                    HttpFormDataUtil.HttpResponse r = sendTest(data, counter, ttimes);
+                    HttpFormDataUtil.BaseResponse r = sendTest(data, counter, ttimes);
                     return r;
                 }
                 catch (Exception e)
                 {
                     e.printStackTrace();
-                    return new HttpFormDataUtil.HttpResponse(400, "error");
+                    return new HttpFormDataUtil.BaseResponse(400, "error");
                 }
                 finally
                 {
@@ -132,7 +132,7 @@ public class PerformanceController implements InitializingBean
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-        List<HttpFormDataUtil.HttpResponse> result = new ArrayList<>();
+        List<HttpFormDataUtil.BaseResponse> result = new ArrayList<>();
         futures.forEach(f ->
         {
             try
@@ -151,7 +151,7 @@ public class PerformanceController implements InitializingBean
 
     @GetMapping("/test2")
     @ResponseBody
-    public List<HttpFormDataUtil.HttpResponse> performance2(@RequestParam Map<String, String> params)
+    public List<HttpFormDataUtil.BaseResponse> performance2(@RequestParam Map<String, String> params)
     {
         AtomicInteger counter = new AtomicInteger(0);
 
@@ -159,7 +159,7 @@ public class PerformanceController implements InitializingBean
 
         if (null == params.get("count") || !NumberUtil.isNumber(params.get("count")))
         {
-            return new ArrayList<>(Collections.singletonList(new HttpFormDataUtil.HttpResponse(400, "请加入请求数量 count")));
+            return new ArrayList<>(Collections.singletonList(new HttpFormDataUtil.BaseResponse(400, "请加入请求数量 count")));
         }
         int _total = Integer.parseInt(params.get("count"));
         int _files = null != params.get("files") && NumberUtil.isNumber(params.get("files")) ? Integer.parseInt(params.get("files")) : 1;
@@ -171,14 +171,14 @@ public class PerformanceController implements InitializingBean
 
         ExecutorService service = Executors.newFixedThreadPool(_reqCount * 2);
 
-        List<HttpFormDataUtil.HttpResponse> result = new CopyOnWriteArrayList<>();
+        List<HttpFormDataUtil.BaseResponse> result = new CopyOnWriteArrayList<>();
         List<Group> all = new CopyOnWriteArrayList<>();
 
         int groupSize = _total % _reqCount == 0 ? _total / _reqCount : _total / _reqCount + 1;
         logger.debug("groupSize={}", groupSize);
         IntStream.range(0, groupSize).forEach(t ->
         {
-            List<CompletableFuture<HttpFormDataUtil.HttpResponse>> futures = new ArrayList<>();
+            List<CompletableFuture<HttpFormDataUtil.BaseResponse>> futures = new ArrayList<>();
             BlockingQueue<Long> ttimes = new LinkedBlockingQueue<>();
             long start = System.currentTimeMillis();
             for (int i = 0; i < _reqCount; i++)
@@ -243,13 +243,13 @@ public class PerformanceController implements InitializingBean
      */
     @GetMapping("/test2/user/async")
     @ResponseBody
-    public List<HttpFormDataUtil.HttpResponse> performanceUserAsync(@RequestParam Map<String, String> params) throws InterruptedException
+    public List<HttpFormDataUtil.BaseResponse> performanceUserAsync(@RequestParam Map<String, String> params) throws InterruptedException
     {
         int _reqCount = null != params.get("sema") && NumberUtil.isNumber(params.get("sema")) ? Integer.parseInt(params.get("sema")) : 20;
 
         if (null == params.get("count") || !NumberUtil.isNumber(params.get("count")))
         {
-            return new ArrayList<>(Collections.singletonList(new HttpFormDataUtil.HttpResponse(400, "请加入请求数量 count")));
+            return new ArrayList<>(Collections.singletonList(new HttpFormDataUtil.BaseResponse(400, "请加入请求数量 count")));
         }
         int _total = Integer.parseInt(params.get("count"));
         int _files = null != params.get("files") && NumberUtil.isNumber(params.get("files")) ? Integer.parseInt(params.get("files")) : 1;
@@ -260,7 +260,7 @@ public class PerformanceController implements InitializingBean
         logger.debug("每个用户" + s + "步请求的数量= {}", _reqCount);
         logger.debug("总请求数量= {}", _total * _reqCount);
 
-        List<HttpFormDataUtil.HttpResponse> result = new CopyOnWriteArrayList<>();
+        List<HttpFormDataUtil.BaseResponse> result = new CopyOnWriteArrayList<>();
 
         ExecutorService users = Executors.newFixedThreadPool(_total);
 
@@ -276,7 +276,7 @@ public class PerformanceController implements InitializingBean
                 long start = System.currentTimeMillis();
                 AtomicInteger counter = new AtomicInteger(0);
                 ExecutorService user = Executors.newFixedThreadPool(async ? _reqCount : 1);
-                List<CompletableFuture<HttpFormDataUtil.HttpResponse>> futures = new ArrayList<>();
+                List<CompletableFuture<HttpFormDataUtil.BaseResponse>> futures = new ArrayList<>();
                 for (int i = 0; i < _reqCount; i++)
                 {
                     Executor executor = new Executor();
@@ -335,7 +335,7 @@ public class PerformanceController implements InitializingBean
 
     @GetMapping("/test/per/second")
     @ResponseBody
-    public List<HttpFormDataUtil.HttpResponse> performancePerSecond(@RequestParam Map<String, String> params)
+    public List<HttpFormDataUtil.BaseResponse> performancePerSecond(@RequestParam Map<String, String> params)
     {
         AtomicInteger counter = new AtomicInteger(0);
 
@@ -344,7 +344,7 @@ public class PerformanceController implements InitializingBean
 
         if (null == params.get("count") || !NumberUtil.isNumber(params.get("count")))
         {
-            return new ArrayList<>(Collections.singletonList(new HttpFormDataUtil.HttpResponse(400, "请加入请求数量 count")));
+            return new ArrayList<>(Collections.singletonList(new HttpFormDataUtil.BaseResponse(400, "请加入请求数量 count")));
         }
         int _total = Integer.parseInt(params.get("count"));
         int _files = null != params.get("files") && NumberUtil.isNumber(params.get("files")) ? Integer.parseInt(params.get("files")) : 1;
@@ -353,7 +353,7 @@ public class PerformanceController implements InitializingBean
         logger.debug("总请求数量= {}", _total);
         logger.debug("每秒请求次数= {}", _semaphore);
 
-        List<CompletableFuture<HttpFormDataUtil.HttpResponse>> futures = new ArrayList<>();
+        List<CompletableFuture<HttpFormDataUtil.BaseResponse>> futures = new ArrayList<>();
         ExecutorService service = Executors.newFixedThreadPool(_total);
 
         List<Group> all = new CopyOnWriteArrayList<>();
@@ -361,7 +361,7 @@ public class PerformanceController implements InitializingBean
         BlockingQueue<Long> ttimes = new LinkedBlockingQueue<>();
         IntStream.range(0, _total).forEach(t ->
         {
-            CompletableFuture<HttpFormDataUtil.HttpResponse> future = CompletableFuture.supplyAsync(() ->
+            CompletableFuture<HttpFormDataUtil.BaseResponse> future = CompletableFuture.supplyAsync(() ->
             {
                 try
                 {
@@ -369,7 +369,7 @@ public class PerformanceController implements InitializingBean
                     long reqStart = System.currentTimeMillis();
                     final List<File> data = new ArrayList<>(_files);
                     IntStream.range(0, _files).forEach(f -> data.add(FILES.get(random.nextInt(FILES.size()))));
-                    HttpFormDataUtil.HttpResponse r = sendTest(data, counter, ttimes);
+                    HttpFormDataUtil.BaseResponse r = sendTest(data, counter, ttimes);
 //                    if (ttimes.size() == _semaphore)
 //                    {
 //                        synchronized (ttimes)
@@ -394,7 +394,7 @@ public class PerformanceController implements InitializingBean
                 catch (Exception e)
                 {
                     e.printStackTrace();
-                    return new HttpFormDataUtil.HttpResponse(400, "error");
+                    return new HttpFormDataUtil.BaseResponse(400, "error");
                 }
             }, service);
             futures.add(future);
@@ -402,7 +402,7 @@ public class PerformanceController implements InitializingBean
 
         CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
-        List<HttpFormDataUtil.HttpResponse> result = new ArrayList<>();
+        List<HttpFormDataUtil.BaseResponse> result = new ArrayList<>();
         futures.forEach(f ->
         {
             try
@@ -431,7 +431,7 @@ public class PerformanceController implements InitializingBean
         return result;
     }
 
-    private class Executor implements Callable<HttpFormDataUtil.HttpResponse>
+    private class Executor implements Callable<HttpFormDataUtil.BaseResponse>
     {
         private AtomicInteger counter;
         private int fileCount;
@@ -453,30 +453,30 @@ public class PerformanceController implements InitializingBean
         }
 
         @Override
-        public HttpFormDataUtil.HttpResponse call()
+        public HttpFormDataUtil.BaseResponse call()
         {
             try
             {
                 final List<File> data = new ArrayList<>(fileCount);
                 IntStream.range(0, fileCount).forEach(f -> data.add(FILES.get(random.nextInt(FILES.size()))));
-                HttpFormDataUtil.HttpResponse r = sendTest(data, counter, ttimes);
+                HttpFormDataUtil.BaseResponse r = sendTest(data, counter, ttimes);
                 return r;
             }
             catch (Exception e)
             {
                 e.printStackTrace();
-                return new HttpFormDataUtil.HttpResponse(400, "error");
+                return new HttpFormDataUtil.BaseResponse(400, "error");
             }
         }
     }
 
-    public HttpFormDataUtil.HttpResponse sendTest(List<File> files, AtomicInteger counter, BlockingQueue<Long> ttimes) throws Exception
+    public HttpFormDataUtil.BaseResponse sendTest(List<File> files, AtomicInteger counter, BlockingQueue<Long> ttimes) throws Exception
     {
         if (dev)
         {
             long start = System.currentTimeMillis();
             TimeUnit.SECONDS.sleep(new Random().nextInt(12 - 3 + 1) + 3);
-            HttpFormDataUtil.HttpResponse r = new HttpFormDataUtil.HttpResponse(200, "SUCCESS");
+            HttpFormDataUtil.BaseResponse r = new HttpFormDataUtil.BaseResponse(200, "SUCCESS");
             r.setNumber(counter.incrementAndGet());
 
             long end = System.currentTimeMillis();
@@ -488,7 +488,7 @@ public class PerformanceController implements InitializingBean
         return sendFormData(files, counter, ttimes);
     }
 
-    public HttpFormDataUtil.HttpResponse sendFormData(List<File> files, AtomicInteger counter, BlockingQueue<Long> ttimes) throws Exception
+    public HttpFormDataUtil.BaseResponse sendFormData(List<File> files, AtomicInteger counter, BlockingQueue<Long> ttimes) throws Exception
     {
         JAXBContext context = JAXBContext.newInstance(FileInfos.class);
         Marshaller marshaller = context.createMarshaller();
@@ -533,7 +533,7 @@ public class PerformanceController implements InitializingBean
         String boundary = "" + UUID.randomUUID().toString().replace("-", "");
         Map<String, Object> headers = new HashMap<>();
 //        headers.put("Content-Type", "multipart/form-data; boundary=----" + boundary);
-        HttpFormDataUtil.HttpResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, Collections.singletonMap("params", str), headers, null, boundary, "application/xml");
+        HttpFormDataUtil.BaseResponse response = HttpFormDataUtil.postFormDataByHttpClient(url, filePathMap, Collections.singletonMap("params", str), headers, null, boundary, "application/xml");
         response.setNumber(counter.incrementAndGet());
         long end = System.currentTimeMillis();
         long cost = end - start;

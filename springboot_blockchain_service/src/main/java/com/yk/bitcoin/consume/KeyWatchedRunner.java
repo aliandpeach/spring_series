@@ -81,9 +81,8 @@ public class KeyWatchedRunner implements Runnable
             try
             {
                 result = httpClientUtil.get(blockchainProperties.getApiHost(),
-                        headers, params, new TypeReference<Map<String, Map<String, Long>>>()
-                        {
-                        }, 3);
+                        headers, params,
+                        new HttpClientUtil.JsonResponseHandler<>(new TypeReference<Map<String, Map<String, Long>>>() {}), 3);
             }
             catch (Exception e)
             {

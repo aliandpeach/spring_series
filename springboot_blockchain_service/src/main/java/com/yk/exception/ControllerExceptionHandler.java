@@ -173,7 +173,7 @@ public class ControllerExceptionHandler
     public BaseResponse<?> blockchainException(BlockchainException e)
     {
         BaseResponse<?> baseResponse = new BaseResponse<>();
-        baseResponse.setCode(9);
+        baseResponse.setCode(e.getCode());
         baseResponse.setMessage(e.getMessage());
         return baseResponse;
     }

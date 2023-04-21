@@ -234,10 +234,9 @@ public class BlockchainController
         headers.put("Connection", "keep-alive");
         try
         {
-            result = httpClientUtil.get(blockchainProperties.getApiHost()
-                    , headers, params, new TypeReference<Map<String, Map<String, Long>>>()
-                    {
-                    }, 3);
+            result = httpClientUtil.get(blockchainProperties.getApiHost(),
+                    headers, params,
+                    new HttpClientUtil.JsonResponseHandler<>(new TypeReference<Map<String, Map<String, Long>>>() {}), 3);
         }
         catch (Exception e)
         {
