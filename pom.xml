@@ -16,6 +16,7 @@
     </properties>
 
     <modules>
+        <module>commons-utils</module>
         <module>spring_cxf_service</module>
         <module>spring_annotation</module>
         <module>spring_xml_website</module>

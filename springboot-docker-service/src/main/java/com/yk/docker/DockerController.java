@@ -2,13 +2,11 @@ package com.yk.docker;
 
 import com.yk.base.exception.DockerException;
 import lombok.Data;
-import oracle.ucp.proxy.annotation.Post;
 import org.apache.commons.io.IOUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -44,7 +42,7 @@ public class DockerController
 //        return ResponseEntity.ok("OK");
     }
 
-    @RequestMapping(value = "/upload", produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "/upload", produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseBody
     public ResponseEntity<String> upload(@RequestPart("upload_file") MultipartFile file, HttpServletRequest request)
     {

@@ -1,5 +1,6 @@
 package com.yk.base.handler;
 
+import com.yk.base.exception.AnnotationWebsiteException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,15 +22,7 @@ public class BaseHandler implements HandlerInterceptor
         System.out.println("token=" + token);
         if (StringUtils.isEmpty(token))
         {
-            try
-            {
-                response.getWriter().write("token is null");
-            }
-            catch (IOException e)
-            {
-                logger.error("BaseHandler preHandle error", e);
-            }
-            return true;
+            throw new AnnotationWebsiteException(18, "token is null");
         }
         return true;
     }

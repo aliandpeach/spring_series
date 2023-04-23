@@ -10,7 +10,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -126,7 +125,6 @@ public class InfoController
     }
 
     @RequestMapping("/download")
-    @ResponseBody
     public CommonResult<Map<String, Object>> download(@RequestBody @Validated DownloadInfo downloadInfo)
     {
         // 下载文件

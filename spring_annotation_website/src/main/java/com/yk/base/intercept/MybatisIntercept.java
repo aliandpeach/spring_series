@@ -14,7 +14,7 @@ import java.util.Properties;
 public class MybatisIntercept implements Interceptor
 {
     @Override
-    public Object intercept(Invocation invocation) throws Throwable
+    public Object intercept(Invocation invocation)
     {
         return null;
     }

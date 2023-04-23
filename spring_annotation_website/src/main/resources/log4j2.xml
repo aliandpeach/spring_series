@@ -26,6 +26,14 @@
         <logger name="com.yk" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="demo"/>
         </logger>
+
+        <logger name="org.springframework" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="demo"/>
+        </logger>
+        <logger name="org.apache" level="info" includeLocation="true" additivity="false">
+            <appender-ref ref="demo"/>
+        </logger>
+
         <root level="info" includeLocation="true">
             <appender-ref ref="Console"/>
             <appender-ref ref="demo"/>
