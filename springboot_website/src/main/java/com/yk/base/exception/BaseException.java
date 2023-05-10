@@ -1,11 +1,15 @@
 package com.yk.base.exception;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
- * DockerException
+ * BaseException
  */
+@Builder
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 public class BaseException extends RuntimeException
@@ -14,7 +18,7 @@ public class BaseException extends RuntimeException
     /**
      * 错误码
      */
-    protected int status;
+    protected int code;
     /**
      * 错误信息
      */
@@ -26,18 +30,18 @@ public class BaseException extends RuntimeException
         this.message = message;
     }
 
-    public BaseException(String message, int status)
+    public BaseException(String message, int code)
     {
         super(message);
         this.message = message;
-        this.status = status;
+        this.code = code;
     }
 
-    public BaseException(String message, int status, Throwable e)
+    public BaseException(String message, int code, Throwable e)
     {
         super(message, e);
         this.message = message;
-        this.status = status;
+        this.code = code;
     }
 
 }

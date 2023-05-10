@@ -64,7 +64,7 @@ import java.util.Set;
  */
 public class ServerX509TrustManager implements X509TrustManager
 {
-    private Logger logger = LoggerFactory.getLogger("base");
+    private static final Logger logger = LoggerFactory.getLogger("base");
 
     private X509TrustManager x509TrustManager;
 

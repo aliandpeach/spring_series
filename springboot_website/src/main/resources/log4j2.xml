@@ -52,8 +52,9 @@
             <appender-ref ref="base"/>
         </logger>
         <!-- 输出com.yk包下的日志到base appender -->
-        <logger name="com.yk" level="info" includeLocation="true" additivity="false">
+        <logger name="com.yk" level="debug" includeLocation="true" additivity="false">
             <appender-ref ref="base"/>
+            <appender-ref ref="Console"/>
         </logger>
         <!-- 输出org.springframework包下的日志到common appender -->
         <logger name="org.springframework" level="warn" includeLocation="true" additivity="false">

@@ -45,7 +45,7 @@
             formEl[0].submit();
         }
 
-        function post(){
+        function _download(){
             $.ajax({
                 url: "/index/download/file",
                 type: "POST",
@@ -60,23 +60,23 @@
             });
         }
 
-        axios.get('/index/download/file', {
-            params: {
-                ID: 12345
-            }
-        })
-            .then(function (response) {
+        function __download() {
+            axios.get('/index/download/file', {
+                params: {
+                    ID: 12345
+                }
+            }).then(function (response) {
                 console.log(response);
-            })
-            .catch(function (error) {
+            }).catch(function (error) {
                 console.log(error);
             });
+        }
     </script>
 </head>
 <body>
 <form method="post" action="/index/download/upload" enctype="multipart/form-data" target="_upload_resp_iframe">
-    选择要上传的文件：<input accept=".zip,.exe,.tar.gz,.txt" placeholder="请选择文件" multiple="multiple" type="file" name="_upload_input1"><br>
-    <hr>
+    选择要上传的文件：<input accept=".zip,.exe,.tar.gz,.txt,.mp4" placeholder="请选择文件" multiple="multiple" type="file" name="_upload_input1">
+    <br>
     <input type="submit" value="提交">
 </form>
 <span id="returnMsg" style="margin-left:20px;font-size:15px;"></span>

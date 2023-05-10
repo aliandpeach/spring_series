@@ -54,7 +54,7 @@ public class DownloadController
     private RestTemplate restTemplate;
 
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public ResponseEntity<String> uploadFile(HttpServletResponse response, MultipartHttpServletRequest request) throws IOException
+    public ResponseEntity<String> uploadFile(HttpServletResponse response, MultipartHttpServletRequest request)
     {
         MultiValueMap<String, MultipartFile> multipartFileMultiValueMap = request.getMultiFileMap();
         Map<String, MultipartFile> multipartFileMap = request.getFileMap();

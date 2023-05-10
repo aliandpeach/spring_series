@@ -27,9 +27,9 @@ public class CheckClientTrustedFilter extends OncePerRequestFilter
 {
     private static final Logger logger = LoggerFactory.getLogger(CheckClientTrustedFilter.class);
 
-    private List<X509TrustManager> x509TrustManagerList = new ArrayList<>();
+    private final List<X509TrustManager> x509TrustManagerList = new ArrayList<>();
 
-    private HashSet<String> listOfVerifyUri = new HashSet<>();
+    private final HashSet<String> listOfVerifyUri = new HashSet<>();
 
     public CheckClientTrustedFilter(TrustManager[] trustManagers, String verifyUri)
     {

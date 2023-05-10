@@ -9,10 +9,11 @@ package com.yk.base.exception;
  */
 public class GlobalException extends RuntimeException
 {
+    private static final long serialVersionUID = -2865357400268162757L;
     /**
      * 错误码
      */
-    protected int status;
+    protected int code;
     /**
      * 错误信息
      */
@@ -24,17 +25,17 @@ public class GlobalException extends RuntimeException
         this.message = message;
     }
 
-    public GlobalException(String message, int status)
+    public GlobalException(String message, int code)
     {
         super(message);
         this.message = message;
-        this.status = status;
+        this.code = code;
     }
 
-    public GlobalException(String message, int status, Throwable e)
+    public GlobalException(String message, int code, Throwable e)
     {
         super(message, e);
         this.message = message;
-        this.status = status;
+        this.code = code;
     }
 }

@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.yk.base.exception.ResponseConstants.WORK_FAIL;
+
 /**
  * 拦截异常
  *
@@ -45,8 +47,8 @@ public class GlobalExceptionHandler
             MissingServletRequestParameterException e)
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
-        baseResponse.setMessage(
-                String.format("请求字段缺失, 类型为 %s，名称为 %s", e.getParameterType(), e.getParameterName()));
+        baseResponse.setCode(WORK_FAIL);
+        baseResponse.setMessage(String.format("请求字段缺失, 类型为 %s，名称为 %s", e.getParameterType(), e.getParameterName()));
         return baseResponse;
     }
 
@@ -55,7 +57,7 @@ public class GlobalExceptionHandler
     public BaseResponse<?> handleConstraintViolationException(ConstraintViolationException e)
     {
         BaseResponse<Map<String, String>> baseResponse = handleBaseException(e);
-        baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        baseResponse.setCode(WORK_FAIL);
         baseResponse.setMessage("字段验证错误，请完善后重试！");
         baseResponse.setData(mapWithValidError(e.getConstraintViolations()));
         return baseResponse;
@@ -67,10 +69,9 @@ public class GlobalExceptionHandler
             MethodArgumentNotValidException e)
     {
         BaseResponse<Map<String, String>> baseResponse = handleBaseException(e);
-        baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        baseResponse.setCode(WORK_FAIL);
         baseResponse.setMessage("字段验证错误，请完善后重试！");
-        Map<String, String> errMap =
-                mapWithFieldError(e.getBindingResult().getFieldErrors());
+        Map<String, String> errMap = mapWithFieldError(e.getBindingResult().getFieldErrors());
         baseResponse.setData(errMap);
         return baseResponse;
     }
@@ -81,7 +82,7 @@ public class GlobalExceptionHandler
             HttpRequestMethodNotSupportedException e)
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
-        baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        baseResponse.setCode(WORK_FAIL);
         return baseResponse;
     }
 
@@ -91,7 +92,7 @@ public class GlobalExceptionHandler
             HttpMediaTypeNotAcceptableException e)
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
-        baseResponse.setStatus(HttpStatus.NOT_ACCEPTABLE.value());
+        baseResponse.setCode(WORK_FAIL);
         return baseResponse;
     }
 
@@ -101,7 +102,7 @@ public class GlobalExceptionHandler
             HttpMessageNotReadableException e)
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
-        baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+        baseResponse.setCode(WORK_FAIL);
         baseResponse.setMessage("缺失请求主体");
         return baseResponse;
     }
@@ -111,10 +112,7 @@ public class GlobalExceptionHandler
     public BaseResponse<?> handleNoHandlerFoundException(NoHandlerFoundException e)
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
-        HttpStatus status = HttpStatus.BAD_GATEWAY;
-        baseResponse.setStatus(status.value());
-        baseResponse.setStatus(status.value());
-        baseResponse.setMessage(status.getReasonPhrase());
+        baseResponse.setCode(WORK_FAIL);
         return baseResponse;
     }
 
@@ -123,17 +121,17 @@ public class GlobalExceptionHandler
     public BaseResponse<?> handleUploadSizeExceededException(MaxUploadSizeExceededException e)
     {
         BaseResponse<Object> response = handleBaseException(e);
-        response.setStatus(HttpStatus.BAD_REQUEST.value());
+        response.setCode(WORK_FAIL);
         response.setMessage("当前请求超出最大限制：" + e.getMaxUploadSize() + " bytes");
         return response;
     }
 
     @ExceptionHandler(BaseException.class)
     // @ResponseStatus(HttpStatus.BAD_REQUEST) // http协议返回的status code 就是 @ResponseStatus指定的值, 不指定一律返回 200
-    public BaseResponse<?> dockerException(BaseException e)
+    public BaseResponse<?> baseException(BaseException e)
     {
         BaseResponse<Object> baseResponse = handleBaseException(e);
-        baseResponse.setStatus(e.getStatus());
+        baseResponse.setCode(WORK_FAIL);
         baseResponse.setMessage(e.getMessage());
         return baseResponse;
     }
@@ -144,7 +142,7 @@ public class GlobalExceptionHandler
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
-        baseResponse.setStatus(status.value());
+        baseResponse.setCode(WORK_FAIL);
         baseResponse.setMessage(status.getReasonPhrase());
         return baseResponse;
     }
