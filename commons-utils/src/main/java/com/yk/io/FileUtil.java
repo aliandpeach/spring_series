@@ -8,10 +8,16 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 /**
  * FileUtil
@@ -19,37 +25,94 @@ import java.nio.channels.FileChannel;
 
 public class FileUtil
 {
+    public static void copy(long start, InputStream input, String dest) throws IOException
+    {
+        MappedByteBuffer out = null;
+        try (InputStream _input = input; FileChannel channel = new RandomAccessFile(dest, "rw").getChannel())
+        {
+            byte[] bytes = IOUtils.toByteArray(_input);
+            out = channel.map(FileChannel.MapMode.READ_WRITE, start, bytes.length);
+            out.put(bytes);
+        }
+        finally
+        {
+            freedMappedByteBuffer(out);
+        }
+    }
+
+    public static void copyRandom(long start, InputStream input, String dest) throws IOException
+    {
+        try (InputStream _input = input; RandomAccessFile randomAccessFile = new RandomAccessFile(dest, "rw"))
+        {
+            randomAccessFile.seek(start);
+            randomAccessFile.write(IOUtils.toByteArray(_input));
+        }
+    }
+
+    /**
+     * 大文件的拷贝
+     */
+    public static void copy(InputStream input, File dest) throws IOException
+    {
+        try (ReadableByteChannel channelInput = Channels.newChannel(input);
+             RandomAccessFile out = new RandomAccessFile(dest, "rw"))
+        {
+            long length = input.available();
+
+            final long size = 102400;
+            long split = length % size == 0 ? (length / size) : (length / size + 1);
+            for (int i = 0; i < split; i++)
+            {
+                long bufferSize = size;
+                if (length - bufferSize * i < size)
+                {
+                    bufferSize = length - bufferSize * i;
+                }
+
+                ByteBuffer buffer = ByteBuffer.allocate((int) bufferSize);
+                while (channelInput.read(buffer) != -1)
+                {
+                    buffer.flip();
+                    out.seek(size * i);
+                    out.write(buffer.array(), 0, (int) bufferSize);
+                    buffer.clear();
+                }
+            }
+        }
+    }
+
     /**
      * 大文件的拷贝
      *
      * @throws IOException
      */
-    public void copy(String src, String dest) throws IOException
+    public static void copy(String src, String dest) throws IOException
     {
         File f = new File(src);
-        try (FileChannel in = new RandomAccessFile(f, "rw").getChannel();
-             FileChannel out = new RandomAccessFile(dest, "rw").getChannel())
+        try (FileChannel channelInput = new RandomAccessFile(f, "rw").getChannel();
+             FileChannel channelOut = new RandomAccessFile(dest, "rw").getChannel())
         {
-            long l = f.length();
-            long length = l % 102400 == 0 ? (l / 102400) : (l / 102400) + 1;
+            long length = f.length();
+
+            final long size = 102400;
+            long split = length % size == 0 ? (length / size) : (length / size + 1);
     
-            long pos = 102400;
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < split; i++)
             {
-                long bufferSize = pos;
-                if (l - bufferSize * i < 102400)
+                long bufferSize = size;
+                if (length - bufferSize * i < size)
                 {
-                    bufferSize = l - bufferSize * i;
+                    bufferSize = length - bufferSize * i;
                 }
-                MappedByteBuffer mappedByteBuffer = in.map(FileChannel.MapMode.READ_WRITE, pos * i, bufferSize);
+                MappedByteBuffer mappedByteBuffer = channelInput.map(FileChannel.MapMode.READ_WRITE, size * i, bufferSize);
                 byte[] buffer = new byte[(int) (bufferSize)];
                 for (int j = 0; j < bufferSize; j++)
                 {
                     buffer[j] = mappedByteBuffer.get(j);
                 }
                 
-                MappedByteBuffer outtttttttttttt = out.map(FileChannel.MapMode.READ_WRITE, pos * i, bufferSize);
-                outtttttttttttt.put(buffer);
+                MappedByteBuffer out = channelOut.map(FileChannel.MapMode.READ_WRITE, size * i, bufferSize);
+                out.put(buffer);
             }
         }
     }
@@ -59,15 +122,14 @@ public class FileUtil
      *
      * @throws IOException
      */
-    public void copyByChannel(String src, String dest) throws IOException
+    public static void copyByChannel(String src, String dest) throws IOException
     {
         File f = new File(src);
         try (FileChannel in = new RandomAccessFile(f, "rw").getChannel();
              FileChannel out = new RandomAccessFile(dest, "rw").getChannel())
         {
             ByteBuffer buffer = ByteBuffer.allocate(8192);
-            int len;
-            while ((len = in.read(buffer)) != -1)
+            while (in.read(buffer) != -1)
             {
                 buffer.flip();
                 out.write(buffer);
@@ -81,7 +143,7 @@ public class FileUtil
      *
      * @throws IOException
      */
-    public void copyCommon(String src, String dest) throws IOException
+    public static void copyCommon(String src, String dest) throws IOException
     {
         File f = new File(src);
         try (RandomAccessFile in = new RandomAccessFile(f, "rw");
@@ -201,6 +263,43 @@ public class FileUtil
         catch (IOException e)
         {
             return new byte[0];
+        }
+    }
+
+    public static void freedMappedByteBuffer(final MappedByteBuffer mappedByteBuffer)
+    {
+        try
+        {
+            if (mappedByteBuffer == null)
+            {
+                return;
+            }
+
+            mappedByteBuffer.force();
+            AccessController.doPrivileged(new PrivilegedAction<Object>()
+            {
+                @Override
+                public Object run()
+                {
+
+                    try
+                    {
+                        Method getCleanerMethod = mappedByteBuffer.getClass().getMethod("cleaner", new Class[0]);
+                        getCleanerMethod.setAccessible(true);
+                        sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod.invoke(mappedByteBuffer, new Object[0]);
+                        cleaner.clean();
+                    }
+                    catch (Exception e)
+                    {
+                    }
+                    return null;
+                }
+            });
+
+        }
+        catch (Exception e)
+        {
+            e.printStackTrace();
         }
     }
 }
