@@ -16,3 +16,5 @@ resttemplate:
   proxy:
     host: 127.0.0.1
     port: 60010
+upload:
+    to-path: upload/video

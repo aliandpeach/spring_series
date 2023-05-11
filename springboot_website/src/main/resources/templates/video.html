@@ -15,28 +15,29 @@
 
         function _sliceUpload() {
             const file = $("#_upload_input1")[0].files[0];
-            const length = 50 * 1024 * 1024; // 以5MB为一个分片
+            const sliceSize = 50 * 1024 * 1024; // 以5MB为一个分片
             const fileSize = file.size;
-            const total = fileSize % length === 0 ? parseInt(fileSize / length) : (parseInt(fileSize / length) + 1);
+            const total = fileSize % sliceSize === 0 ? parseInt(fileSize / sliceSize) : (parseInt(fileSize / sliceSize) + 1);
 
             const id = new Date().getTime();
             // 文件里的文本会在这里被打印出来
             for (let _index = 0; _index < total; _index++) {
-                let start = length * _index;
-                let end = length * (_index + 1)
+                let start = sliceSize * _index;
+                let end = sliceSize * (_index + 1)
 
                 if (end >= fileSize) {
                     end = fileSize;
                 }
-                let chunk = file.slice(start, end);
+                let chunkFile = file.slice(start, end);
                 //拿到切片 可以进行上传
                 const formData = new FormData();
-                formData.append("file", chunk);
+                formData.append("file", chunkFile);
                 formData.append("id", id + '');
-                formData.append('index', _index + '');
-                formData.append('length', length + '');
-                formData.append('total', total + '');
-                formData.append('fileName', file.name);
+                formData.append('chunk', _index + '');
+                formData.append('sliceSize', sliceSize + '');
+                formData.append('chunks', total + '');
+                formData.append('name', file.name);
+                formData.append('size', fileSize);
 
                 // 调用接口上传
                 $.ajax({

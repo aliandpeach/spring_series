@@ -1,5 +1,6 @@
 package com.yk.base.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,7 @@ import static com.yk.base.exception.ResponseConstants.WORK_FAIL;
  * @author qiurunze
  */
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler
 {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -144,6 +146,7 @@ public class GlobalExceptionHandler
         HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
         baseResponse.setCode(WORK_FAIL);
         baseResponse.setMessage(status.getReasonPhrase());
+        logger.error("handle global exception {}", e.getMessage());
         return baseResponse;
     }
 

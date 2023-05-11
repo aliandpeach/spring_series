@@ -1,14 +1,15 @@
 package com.yk.index.controller;
 
-import com.yk.index.model.UploadChunkRequest;
 import com.yk.index.model.UploadChunkResponse;
 import com.yk.index.model.WebUploadChunkRequest;
+import com.yk.index.service.VideoServiceImpl;
 import com.yk.io.FileUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,9 +24,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -34,8 +35,14 @@ public class VideoController
 {
     private static final Logger logger = LoggerFactory.getLogger(VideoController.class);
 
+    @Value("${upload.to-path}")
+    private String toPath;
+
     @Autowired
+
     private HttpServletRequest request;
+    @Autowired
+    private VideoServiceImpl videoService;
 
     @RequestMapping(value = "", method = RequestMethod.GET)
     public ModelAndView view()
@@ -44,7 +51,7 @@ public class VideoController
     }
 
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
-    public ResponseEntity<UploadChunkResponse> upload(MultipartHttpServletRequest request, UploadChunkRequest uploadChunkRequest) throws IOException, InterruptedException
+    public ResponseEntity<UploadChunkResponse> upload(MultipartHttpServletRequest request, WebUploadChunkRequest uploadChunkRequest) throws IOException, InterruptedException
     {
         MultiValueMap<String, MultipartFile> files = request.getMultiFileMap();
 
@@ -66,17 +73,18 @@ public class VideoController
         long fileSize = uploadChunkRequest.getFile().getSize();
         String originalFilename = uploadChunkRequest.getFile().getOriginalFilename();
         logger.debug("originalFilename {}, fileSize {}", originalFilename, fileSize);
-        String root = request.getServletContext().getRealPath("/");
+        String root = request.getServletContext().getRealPath(toPath);
 
         synchronized (uploadChunkRequest.getId().intern())
         {
-            String destTmpFile = root + File.separator + uploadChunkRequest.getId() + "_tmp_" + new File(uploadChunkRequest.getFileName());
-            FileUtil.copy(uploadChunkRequest.getIndex() * uploadChunkRequest.getLength(),
+            String destTmpFile = root + File.separator + uploadChunkRequest.getId() + "_tmp_" + uploadChunkRequest.getName();
+            new File(destTmpFile).getParentFile().mkdirs();
+            FileUtil.copy(uploadChunkRequest.getChunk() * uploadChunkRequest.getSliceSize(),
                     uploadChunkRequest.getFile().getInputStream(),
                     destTmpFile);
 
             String destCompleteFile = root + File.separator + uploadChunkRequest.getId() + "_mark.conf";
-            FileUtil.copyRandom(uploadChunkRequest.getIndex(),
+            FileUtil.copyRandom(uploadChunkRequest.getChunk(),
                     new ByteArrayInputStream(new byte[]{Byte.MAX_VALUE}),
                     destCompleteFile);
 
@@ -86,60 +94,31 @@ public class VideoController
             {
                 complete = (byte) (complete & completeMarks[i]);
             }
-            if (completeMarks.length == uploadChunkRequest.getTotal() && complete == Byte.MAX_VALUE)
+            if (completeMarks.length == uploadChunkRequest.getChunks() && complete == Byte.MAX_VALUE)
             {
-                cn.hutool.core.io.FileUtil.rename(new File(destTmpFile), uploadChunkRequest.getFileName(), false, true);
+                cn.hutool.core.io.FileUtil.rename(new File(destTmpFile), uploadChunkRequest.getName(), false, true);
                 logger.debug("mark file delete {}", new File(destCompleteFile).delete());
                 return ResponseEntity.ok(new UploadChunkResponse
-                        (uploadChunkRequest.getIndex(),
-                                DigestUtils.md5Hex(uploadChunkRequest.getFile().getBytes()), "true"));
+                        (uploadChunkRequest.getChunk(),
+                                DigestUtils.md5Hex(uploadChunkRequest.getFile().getBytes()), true));
             }
         }
 
         return ResponseEntity.ok(new UploadChunkResponse
-                (uploadChunkRequest.getIndex(),
-                DigestUtils.md5Hex(uploadChunkRequest.getFile().getBytes()), "false"));
+                (uploadChunkRequest.getChunk(),
+                DigestUtils.md5Hex(uploadChunkRequest.getFile().getBytes()), false));
     }
 
     @RequestMapping(value = "/webuploader", method = RequestMethod.POST)
-    public ResponseEntity<UploadChunkResponse> webuploader(WebUploadChunkRequest webUploadChunkRequest) throws IOException, InterruptedException
+    public ResponseEntity<UploadChunkResponse> webuploader(WebUploadChunkRequest webUploadChunkRequest)
+            throws IOException, InterruptedException, ExecutionException
     {
         long fileSize = webUploadChunkRequest.getFile().getSize();
         String originalFilename = webUploadChunkRequest.getFile().getOriginalFilename();
         logger.debug("originalFilename {}, fileSize {}", originalFilename, fileSize);
-        String root = request.getServletContext().getRealPath("/");
-
-        synchronized (webUploadChunkRequest.getId().intern())
-        {
-            String destTmpFile = root + File.separator + webUploadChunkRequest.getId() + "_tmp_" + new File(webUploadChunkRequest.getName());
-            FileUtil.copy(webUploadChunkRequest.getChunk() * webUploadChunkRequest.getSliceSize(),
-                    webUploadChunkRequest.getFile().getInputStream(),
-                    destTmpFile);
-
-            String destCompleteFile = root + File.separator + webUploadChunkRequest.getId() + "_mark.conf";
-            FileUtil.copyRandom(webUploadChunkRequest.getChunk(),
-                    new ByteArrayInputStream(new byte[]{Byte.MAX_VALUE}),
-                    destCompleteFile);
-
-            byte[] completeMarks = FileUtils.readFileToByteArray(new File(destCompleteFile));
-            byte complete = Byte.MAX_VALUE;
-            for (int i = 0; i < completeMarks.length && complete == Byte.MAX_VALUE; i++)
-            {
-                complete = (byte) (complete & completeMarks[i]);
-            }
-            if (completeMarks.length == webUploadChunkRequest.getChunks() && complete == Byte.MAX_VALUE)
-            {
-                cn.hutool.core.io.FileUtil.rename(new File(destTmpFile), webUploadChunkRequest.getName(), false, true);
-                logger.debug("mark file delete {}", new File(destCompleteFile).delete());
-                return ResponseEntity.ok(new UploadChunkResponse(
-                        webUploadChunkRequest.getChunk(),
-                        DigestUtils.md5Hex(webUploadChunkRequest.getFile().getBytes()), "true"));
-            }
-        }
-
-        return ResponseEntity.ok(new UploadChunkResponse(
-                webUploadChunkRequest.getChunk(),
-                DigestUtils.md5Hex(webUploadChunkRequest.getFile().getBytes()), "false"));
+        String root = request.getServletContext().getRealPath(toPath);
+        webUploadChunkRequest.setToPath(root);
+        return ResponseEntity.ok(videoService.sliceUpload(webUploadChunkRequest));
     }
 
     @RequestMapping("/play/{id}")

@@ -4,18 +4,31 @@ import lombok.Data;
 import lombok.ToString;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import java.io.Serializable;
 import java.util.Date;
 
 @Data
 @ToString
-public class WebUploadChunkRequest
+public class WebUploadChunkRequest implements Serializable
 {
+    private static final long serialVersionUID = 1542381054928202836L;
+    
+    @NotEmpty
+    @NotBlank
     private String id;
 
     // 第几个分片
+    @Min(0)
+    @Max(999)
     private int chunk;
 
     // 分片总数
+    @Min(1)
+    @Max(999)
     private int chunks;
 
     // 文件总大小
@@ -31,5 +44,10 @@ public class WebUploadChunkRequest
     // 当前分片
     private MultipartFile file;
 
+    @NotBlank
+    @NotEmpty
     private String name;
+
+    // 上传到目标目录
+    private String toPath;
 }

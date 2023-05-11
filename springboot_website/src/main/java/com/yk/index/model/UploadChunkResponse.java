@@ -12,9 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
 @ToString
 public class UploadChunkResponse
 {
-    private int index;
+    private int chunk;
 
     private String md5;
 
-    private String state;
+    private boolean state;
 }
