@@ -30,8 +30,8 @@ public class FileUtilTest
     @Test
     public void testRandomAccessFileSingle() throws IOException
     {
-        String fileString = "D:\\movies\\白鹿原1.mp4";
-        String toFileString = "D:\\movies\\白鹿原1-1-1.mp4";
+        String fileString = "F:\\movies\\123.mp4";
+        String toFileString = "F:\\movies\\123_1.mp4";
         long sliceSize = 2 * 1024 * 1024;
         long fileSize = new File(fileString).length();
         long chunks = fileSize % sliceSize == 0 ? fileSize / sliceSize : (fileSize / sliceSize + 1);
@@ -126,8 +126,8 @@ public class FileUtilTest
     @Test
     public void testRandomAccessFileMultiple() throws Exception
     {
-        String fileString = "D:\\movies\\白鹿原1.mp4";
-        String toFileString = "D:\\movies\\白鹿原1-1-1.mp4";
+        String fileString = "F:\\movies\\123.mp4";
+        String toFileString = "F:\\movies\\123_1.mp4";
         long sliceSize = 2 * 1024 * 1024;
         long fileSize = new File(fileString).length();
         long chunks = fileSize % sliceSize == 0 ? fileSize / sliceSize : (fileSize / sliceSize + 1);
