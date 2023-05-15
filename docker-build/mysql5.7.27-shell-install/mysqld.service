@@ -1,0 +1,18 @@
+[Unit]
+Description=MySQL Server
+After=network.target
+
+[Service]
+Type=forking
+
+ExecStart=/etc/init.d/mysql start
+ExecStop=/etc/init.d/mysql stop
+Restart=always
+RestartSec=3
+
+User=
+Group=
+
+[Install]
+WantedBy=multi-user.target
+
