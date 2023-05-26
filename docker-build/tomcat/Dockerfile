@@ -1,4 +1,4 @@
-FROM jdk8:321
+FROM jdk8:371
  
 MAINTAINER yk
  

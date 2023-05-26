@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/resource/webuploader-0.1.5/webuploader.css}">
+    <script type="text/javascript" th:src="@{/resource/jquery-1.8.3.js}"></script>
+    <script type="text/javascript" src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script type="text/javascript" th:src="@{/resource/webuploader-0.1.5/webuploader.js}"></script>
+    <script type="text/javascript" th:src="@{/resource/md5.js}"></script>
+    <script type="text/javascript">
+        $(function() {
+            console.log('start......');
+        })
+    </script>
+    <script type="text/javascript" th:inline="javascript">
+    </script>
+    <style>
+    </style>
+</head>
+<body>
+    <div id="player">
+        <div>
+            <video controls width="250">
+                <source th:src="${source}" type="video/mp4">
+            </video>
+        </div>
+    </div>
+</body>
+</html>

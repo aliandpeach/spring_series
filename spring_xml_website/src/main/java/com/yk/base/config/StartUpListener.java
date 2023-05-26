@@ -15,6 +15,7 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.PathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.EncodedResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.util.FileCopyUtils;
@@ -63,6 +64,9 @@ public class StartUpListener implements ServletContextListener
     @Override
     public void contextInitialized(ServletContextEvent sce)
     {
+        // class.getResource第一个字符为/, 从classpath目录获取文件, 不为/,则从class所在目录获取文件
+        // getClassLoader().getResource只能从classpath目录获取文件, 若文件在当前包路径下,则目录为 包路径+文件名
+        // ClassPathResource使用的也是 getClassLoader(), 其也是只从classpath下面获取文件, 若文件在当前包路径下,则目录为 包路径+文件名
         try
         {
             // 带/ 从根目录位置查找，不带/, 从当前包位置查找, 该方法会先处理参数是否带/的过程，不带就找TestResource.class的全类限定名

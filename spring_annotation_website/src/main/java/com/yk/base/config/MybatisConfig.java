@@ -78,6 +78,8 @@ public class MybatisConfig {
      *
      * 使用接口模式必须定义MapperScannerConfigurer的Bean 或者使用@MapperScan指定 basePackage（接口所在的包路径）
      *
+     * 注解@Mapper 是对单个接口类的使用, 自动生成接口实现类, 如果@MapperScan路径已经包含了某个接口, 则不需要在接口类上单独再加@Mapper
+     *
      * @return
      */
     @Bean

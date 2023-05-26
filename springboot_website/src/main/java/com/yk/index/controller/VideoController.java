@@ -21,9 +21,13 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -39,8 +43,8 @@ public class VideoController
     private String toPath;
 
     @Autowired
-
     private HttpServletRequest request;
+
     @Autowired
     private VideoServiceImpl videoService;
 
@@ -106,7 +110,7 @@ public class VideoController
 
         return ResponseEntity.ok(new UploadChunkResponse
                 (uploadChunkRequest.getChunk(),
-                DigestUtils.md5Hex(uploadChunkRequest.getFile().getBytes()), false));
+                        DigestUtils.md5Hex(uploadChunkRequest.getFile().getBytes()), false));
     }
 
     @RequestMapping(value = "/webuploader", method = RequestMethod.POST)
@@ -121,8 +125,40 @@ public class VideoController
         return ResponseEntity.ok(videoService.sliceUpload(webUploadChunkRequest));
     }
 
-    @RequestMapping("/play/{id}")
-    public void play(@PathVariable String id)
+    @RequestMapping("/play/test")
+    public ModelAndView playTet()
     {
+        return new ModelAndView("play").addObject("source", "/video/123.mp4");
+    }
+
+    @RequestMapping("/watch/{id}")
+    public ModelAndView watch(@PathVariable String id)
+    {
+        return new ModelAndView("play").addObject("source", "/video/play/" + id);
+    }
+
+    @RequestMapping("/play/{id}")
+    public void play(@PathVariable String id, HttpServletRequest request, HttpServletResponse response) throws IOException
+    {
+        File file = new File(request.getServletContext().getRealPath(toPath) + File.separator + "123.mp4");
+        logger.debug("id : {}, file path : {}", id, file.getPath());
+        logger.debug("ServletPath : {}", request.getServletPath());
+        try (InputStream input = new FileInputStream(file);
+             BufferedOutputStream outputStream = new BufferedOutputStream(response.getOutputStream()))
+        {
+            response.setContentType("video/mp4");
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + "123.mp4" + "\"");
+            response.setContentLength(input.available());
+            response.setHeader("Content-Range", "" + (input.available() - 1));
+            response.setHeader("Accept-Ranges", "bytes");
+            byte[] data = new byte[2 * 1024 * 1024];
+            int len;
+            while ((len = input.read(data)) != -1)
+            {
+                outputStream.write(data, 0, len);
+            }
+            outputStream.flush();
+            response.flushBuffer();
+        }
     }
 }

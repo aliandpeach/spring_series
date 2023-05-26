@@ -1,4 +1,4 @@
-FROM jdk8:321
+FROM jdk8:371
 
 # VOLUME 指定了临时目录为/tmp。
 # 其效果是在主机 /var/lib/docker 目錄下建立了一个临时档案，并连接到容器的/tmp

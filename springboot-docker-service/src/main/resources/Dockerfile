@@ -1,4 +1,4 @@
-FROM jdk8:321
+FROM jdk8:371
 #作者
 MAINTAINER yk
 #声明一个挂载点,容器内此路径会对应宿主机的某个文件夹

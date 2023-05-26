@@ -1,1 +1,1 @@
-docker build -t jdk8:321 .
+docker build -t jdk8:371 .

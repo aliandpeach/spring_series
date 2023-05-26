@@ -142,6 +142,12 @@
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
             <version>1.3.1</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>commons-io</artifactId>
+                    <groupId>commons-io</groupId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- jedis 如果使用jedis-pool需要排除 spring-boot-starter-data-redis 的 io.lettuce  -->
@@ -236,7 +242,7 @@
                         <imageTag>${project.version}</imageTag>
                     </imageTags>
                     <!--基础镜像jdk 1.8-->
-                    <baseImage>jdk8:321</baseImage>
+                    <baseImage>jdk8:371</baseImage>
                     <!--制作者本人信息-->
                     <maintainer>yk</maintainer>
                     <workdir>/usr/local/docker/demo-1.0-SNAPSHOT</workdir>
@@ -248,7 +254,7 @@
                     <!--配置Dockerfile 的位置-->
                     <dockerDirectory>${project.build.directory}</dockerDirectory>
                     <!--指定远程docker 地址-->
-                    <dockerHost>http://192.168.31.214:2375</dockerHost>
+                    <dockerHost>http://192.168.31.215:2375</dockerHost>
                     <!-- 这里是复制 jar到 docker容器指定目录配置 -->
                     <resources>
                         <resource>

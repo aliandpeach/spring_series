@@ -114,7 +114,7 @@
             <artifactId>org.bitcoinj.core</artifactId>
             <version>0.16-SNAPSHOT</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/lib/bitcoinj-core-0.16-SNAPSHOT.jar</systemPath>
+            <systemPath>${pom.basedir}/lib/bitcoinj-core-0.16-SNAPSHOT.jar</systemPath>
         </dependency>
         <dependency>
             <groupId>com.google.protobuf</groupId>
@@ -240,13 +240,6 @@
             <version>11.2.0.4</version>
         </dependency>
         <dependency>
-            <groupId>greenplum</groupId>
-            <artifactId>greenplum</artifactId>
-            <version>6.0.0.000181</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/PROGRESS_DATADIRECT_JDBC_DRIVER_PIVOTAL_GREENPLUM_6.0.0.000181.jar</systemPath>
-        </dependency>
-        <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.4.0</version>
@@ -279,13 +272,6 @@
             <version>262</version>
         </dependency>
 
-        <dependency>
-            <groupId>gbase-connector-java-8.3.81.53-build55.2.1-bin</groupId>
-            <artifactId>gbase-connector-java-8.3.81.53-build55.2.1-bin</artifactId>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/gbase-connector-java-8.3.81.53-build55.5.7-bin_min_mix.jar</systemPath>
-            <version>bin</version>
-        </dependency>
         <dependency>
             <groupId>commons-net</groupId>
             <artifactId>commons-net</artifactId>

@@ -87,5 +87,6 @@ public class MvcWebConfig implements WebMvcConfigurer {
     {
         // web工程的WEB-INF为安全目录, 必须指定资源映射, 另外SpringBoot中 dispatchServlet的默认拦截为"/", 也是不能随便访问其他资源路径, 都需要指定映射
         registry.addResourceHandler("/resource/**").addResourceLocations("classpath:/templates/static/");
+        registry.addResourceHandler("/video/**").addResourceLocations("/upload/video/");
     }
 }

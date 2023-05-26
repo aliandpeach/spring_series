@@ -12,6 +12,12 @@
     <artifactId>springboot_website</artifactId>
     <packaging>war</packaging>
 
+    <properties>
+        <java.version>1.8</java.version>
+        <javacv.version>1.5.4</javacv.version>
+        <ffmpeg.version>4.3.1-1.5.4</ffmpeg.version>
+    </properties>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -130,6 +136,24 @@
             <groupId>com.yk.spring.pro</groupId>
             <artifactId>commons-utils</artifactId>
             <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- javacv 和 ffmpeg的依赖包 -->
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>javacv</artifactId>
+            <version>${javacv.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>ffmpeg-platform</artifactId>
+            <version>${ffmpeg.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>ffmpeg</artifactId>
+            <version>${ffmpeg.version}</version>
         </dependency>
     </dependencies>
 

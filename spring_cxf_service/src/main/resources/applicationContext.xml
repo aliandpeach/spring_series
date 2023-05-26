@@ -100,5 +100,6 @@
         <!--<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>-->
         <property name="sqlSessionTemplateBeanName" value="sqlSessionTemplate" />
         <property name="basePackage" value="com.yk.test.dao" />
+<!--        <property name="annotationClass" value="自定义annotation" />-->
     </bean>
 </beans>

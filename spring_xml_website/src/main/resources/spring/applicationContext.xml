@@ -96,6 +96,10 @@
         <!--<property name="configLocation" value=""></property>-->
         <property name="mapperLocations" value="classpath:mapper/**/*.xml"/>
         <property name="typeAliasesPackage" value="com.yk.demo.model"/>
+        <!-- mybatis 通过configLocation配置mybatis-config.xml生成Configuration, mybatis-config.xml中的properties会写入Configuration中的variables-->
+        <!-- 通过configurationProperties配置后, properties配置文件中的信息会写入Configuration中的variables -->
+        <!-- variables作为全局变量, 可以在sql中直接用 '${xxx.xxx}' 直接获取到, 也可用于sql中的表达式(例如<if test="'${xxx.xxx}' == 'value'">) -->
+        <!-- <property name="configurationProperties" value="classpath:xxx.properties" /> -->
     </bean>
 
     <bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
