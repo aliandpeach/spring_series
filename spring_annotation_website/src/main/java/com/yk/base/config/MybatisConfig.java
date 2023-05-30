@@ -30,7 +30,7 @@ import java.io.IOException;
 @Order(3)
 public class MybatisConfig {
 
-    private Logger logger = LoggerFactory.getLogger(MybatisConfig.class);
+    private final Logger logger = LoggerFactory.getLogger(MybatisConfig.class);
     
     /**
      * 为什么无法注入

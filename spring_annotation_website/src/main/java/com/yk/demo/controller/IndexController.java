@@ -9,18 +9,12 @@ import org.springframework.web.servlet.ModelAndView;
  * PageController
  */
 @Controller
-@RequestMapping("/page")
-public class PageController
+@RequestMapping("/")
+public class IndexController
 {
-    @RequestMapping(value = "/info", method = RequestMethod.GET)
+    @RequestMapping(value = "/", method = RequestMethod.GET)
     public ModelAndView info()
     {
         return new ModelAndView("page/info");
-    }
-
-    @RequestMapping(value = "/error", method = RequestMethod.GET)
-    public ModelAndView error()
-    {
-        throw new RuntimeException("1234");
     }
 }

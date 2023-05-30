@@ -1,6 +1,9 @@
 package com.yk.base.config;
 
 import org.apache.logging.log4j.web.Log4jServletContextListener;
+import org.apache.shiro.web.servlet.ShiroFilter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
 
 import javax.servlet.DispatcherType;
@@ -28,18 +31,18 @@ import java.util.Set;
  */
 public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer
 {
-    
+
     protected Class<?>[] getRootConfigClasses()
     {
         return new Class<?>[]{RootConfig.class};
     }
-    
+
     protected Class<?>[] getServletConfigClasses()
     {
         return new Class<?>[]{SpringMvcConfig.class};
     }
-    
-    
+
+
     /**
      * 官方文档需要把url-pattern的属性值配置成*.do
      * 配置成把url-pattern配置为 / 仅仅适用于restful风格的开发
@@ -56,7 +59,7 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
     {
         return new String[]{"/*"};
     }
-    
+
     /**
      * 需要增加一些自定义的Listener或者Servlet或者Filter 或者Cookie的参数 因此需要覆盖onStartup方法
      * 注意调用super.onStartUp否则就需要自己初始化ContextLoaderListener DispatcherServlet
@@ -67,11 +70,9 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
     @Override
     public void onStartup(ServletContext servletContext) throws ServletException
     {
-        super.onStartup(servletContext);
-        
         servletContext.setInitParameter("log4jConfiguration", "classpath:log4j2.xml");
         servletContext.addListener(new Log4jServletContextListener());
-        
+
         /**
          * 增加一个拦截器
          */
@@ -80,9 +81,9 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
             @Override
             public void init(FilterConfig filterConfig) throws ServletException
             {
-            
+
             }
-            
+
             @Override
             public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws
                     IOException, ServletException
@@ -91,15 +92,15 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
                 String uri = ((HttpServletRequest)request).getRequestURI();
                 chain.doFilter(request, response);
             }
-            
+
             @Override
             public void destroy()
             {
-            
+
             }
         });
         filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC), false, "/*");
-        
+
         /**
          * <session-config>
          *         <cookie-config>
@@ -112,12 +113,16 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
          */
         servletContext.getSessionCookieConfig().setHttpOnly(true);
         servletContext.getSessionCookieConfig().setSecure(true);
-        
+
         Set<SessionTrackingMode> sessionTrackingModes = new HashSet<>();
         sessionTrackingModes.add(SessionTrackingMode.COOKIE);
         servletContext.setSessionTrackingModes(sessionTrackingModes);
+
+        FilterRegistration.Dynamic shiroFilter = servletContext.addFilter("shiroFilter", new DelegatingFilterProxy());
+        shiroFilter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST, DispatcherType.ASYNC), false, "/*");
+        super.onStartup(servletContext);
     }
-    
+
     /**
      * 暂时未找到方法配置 security-constraint
      *
@@ -141,7 +146,7 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
          *     </security-constraint>
          */
     }
-    
+
     /**
      * 实现该方法也可以增加拦截器
      *
@@ -157,19 +162,19 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
                     public void init(FilterConfig filterConfig) throws ServletException
                     {
                     }
-                    
+
                     @Override
                     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws
                             IOException, ServletException
                     {
-                        System.out.println();
+                        System.out.println(System.getProperty("user.dir"));
                         chain.doFilter(request, response);
                     }
-                    
+
                     @Override
                     public void destroy()
                     {
-                    
+
                     }
                 }
         };

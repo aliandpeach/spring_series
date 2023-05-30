@@ -9,16 +9,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.NoHandlerFoundException;
 import org.springframework.web.servlet.handler.SimpleMappingExceptionResolver;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 /**
@@ -37,11 +43,22 @@ public class AnnotationWebsiteHandlerExceptionResolver extends SimpleMappingExce
     {
         Properties properties = new Properties();
         properties.put("java.lang.Throwable", "error/500");
+        properties.setProperty(NoHandlerFoundException.class.getName(), "error/404");
+        properties.setProperty(NullPointerException.class.getName(), "error/500");
+        properties.setProperty(ClassNotFoundException.class.getName(), "error/500");
+        properties.setProperty(FileNotFoundException.class.getName(), "error/500");
+        properties.setProperty(Exception.class.getName(), "error/500");
         super.setExceptionMappings(properties);
     }
 
     @Autowired
     private MessageSource messageSource;
+
+    @Override
+    public String buildLogMessage(Exception e, HttpServletRequest req)
+    {
+        return "MVC exception: " + e.getLocalizedMessage();
+    }
 
     @Override
     public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
@@ -58,8 +75,11 @@ public class AnnotationWebsiteHandlerExceptionResolver extends SimpleMappingExce
         {
             HandlerMethod method = (HandlerMethod) handler;
             // 如果是RestController, 则方法上没有ResponseBody注解, 则怎么办
+            Object obj = method.getBean();
+            Annotation annotation = obj.getClass().getAnnotation(RestController.class);
             ResponseBody body = method.getMethodAnnotation(ResponseBody.class);
-            if (body == null)
+            boolean restController = null != annotation;
+            if (body == null && !restController)
             {
                 return super.doResolveException(request, response, handler, ex);
             }
@@ -104,8 +124,7 @@ public class AnnotationWebsiteHandlerExceptionResolver extends SimpleMappingExce
 
             String errCode = "WEB.110001";
             errors.put("code", errCode);
-            String errorMessage = messageSource.getMessage(errCode, null,
-                    Locale.getDefault());
+            String errorMessage = errCode;
             errors.put("message", errorMessage);
         }
         else if (ex instanceof IOException)
@@ -113,7 +132,7 @@ public class AnnotationWebsiteHandlerExceptionResolver extends SimpleMappingExce
 
             String errCode = "WEB.110002";
             errors.put("code", errCode);
-            String errorMessage = messageSource.getMessage(errCode, null, Locale.getDefault());
+            String errorMessage = errCode;
             errors.put("message", errorMessage);
         }
         else
@@ -121,7 +140,7 @@ public class AnnotationWebsiteHandlerExceptionResolver extends SimpleMappingExce
 
             String errCode = "WEB.110003";
             errors.put("code", errCode);
-            String errorMessage = messageSource.getMessage(errCode, null, Locale.getDefault());
+            String errorMessage = errCode;
             errors.put("message", errorMessage);
         }
 

@@ -13,17 +13,17 @@ import java.io.IOException;
 
 public class BaseHandler implements HandlerInterceptor
 {
-    private Logger logger = LoggerFactory.getLogger(BaseHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(BaseHandler.class);
 
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws IOException
     {
         logger.info("请求之前处理");
         String token = request.getHeader("token");
         System.out.println("token=" + token);
-        if (StringUtils.isEmpty(token))
+        /*if (StringUtils.isEmpty(token))
         {
             throw new AnnotationWebsiteException(18, "token is null");
-        }
+        }*/
         return true;
     }
 

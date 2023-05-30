@@ -1,3 +1,4 @@
+/*
 package com.yk.base.exception;
 
 import cn.hutool.core.text.StrBuilder;
@@ -195,11 +196,13 @@ public class AnnotationWebsiteControllerExceptionHandler
         return baseResponse;
     }
 
-    /**
+    */
+/**
      * 将字段验证错误转换为标准的map型，key:value = field:message
      *
      * @return 如果返回null，则表示未出现错误
-     */
+     *//*
+
     public static Map<String, String> mapWithFieldError(BindingResult bindingResult)
     {
         if (!bindingResult.hasErrors())
@@ -245,12 +248,14 @@ public class AnnotationWebsiteControllerExceptionHandler
         return sw.getBuffer().toString();
     }
 
-    /**
+    */
+/**
      * 将字段验证错误转换为标准的map型，key:value = field:message
      *
      * @param constraintViolations constraint violations(contain error information)
      * @return error detail map
-     */
+     *//*
+
     @NonNull
     public static Map<String, String> mapWithValidError(
             Set<ConstraintViolation<?>> constraintViolations)
@@ -268,3 +273,4 @@ public class AnnotationWebsiteControllerExceptionHandler
         return errMap;
     }
 }
+*/

@@ -4,16 +4,15 @@ import com.yk.base.handler.BaseHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
-import org.springframework.web.servlet.config.annotation.DefaultServletHandlerConfigurer;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
-import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
-import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.thymeleaf.spring5.SpringTemplateEngine;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 import org.thymeleaf.spring5.view.ThymeleafViewResolver;
@@ -47,11 +46,15 @@ import org.thymeleaf.spring5.view.ThymeleafViewResolver;
 // 所以如果mvc工程要使用swagger, 必须在addResourceHandlers 增加路径映射
 @EnableWebMvc
 @Order(2)
-@ComponentScan("com.yk")
+// 这里只扫描RestController.class, Controller.class
+@ComponentScan(basePackages = "com.yk.*",
+        includeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, value = RestController.class),
+                @ComponentScan.Filter(type = FilterType.ANNOTATION, value = Controller.class)},
+        useDefaultFilters = false)
 public class SpringMvcConfig implements WebMvcConfigurer
 {
     private final static String CHARACTER_ENCODING = "UTF-8";
-    
+
     /**
      * thymeleaf模板引擎参数
      */
@@ -60,7 +63,7 @@ public class SpringMvcConfig implements WebMvcConfigurer
     public final static Boolean TEMPLATE_CACHEABLE = false;
     public final static String TEMPLATE_MODE = "HTML5";
     public final static Integer TEMPLATE_ORDER = 1;
-    
+
     /**
      * 配置视图解析器
      */
@@ -78,7 +81,7 @@ public class SpringMvcConfig implements WebMvcConfigurer
     public void configureViewResolvers(ViewResolverRegistry registry) {
         registry.viewResolver(viewResolver());
     }*/
-    
+
     /**
      * <mvc:default-servlet-handler/>
      *     Spring mvc 不配置这个的话，由于dispatchServlet完全取代了 default servlet(容器)，就访问不到静态资源了， 这时候要么使用addResourceHandler去映射静态资源
@@ -96,7 +99,7 @@ public class SpringMvcConfig implements WebMvcConfigurer
     {
         configurer.enable();
     }*/
-    
+
     /**
      * 模板解析器
      *
@@ -114,7 +117,7 @@ public class SpringMvcConfig implements WebMvcConfigurer
         templateResolver1.setOrder(TEMPLATE_ORDER);
         return templateResolver1;
     }
-    
+
     /**
      * 模板引擎
      *
@@ -127,7 +130,7 @@ public class SpringMvcConfig implements WebMvcConfigurer
         templateEngine.setTemplateResolver(templateResolver);
         return templateEngine;
     }
-    
+
     /**
      * 视图解析器
      *
@@ -141,14 +144,14 @@ public class SpringMvcConfig implements WebMvcConfigurer
         viewResolver.setCharacterEncoding(CHARACTER_ENCODING);
         return viewResolver;
     }
-    
+
     @Bean
     public BaseHandler baseHandler()
     {
         //自定义拦截器交给spring管理
         return new BaseHandler();
     }
-    
+
     /**
      * 重写WebMvcConfigurer的addInterceptors方法
      */
@@ -158,7 +161,7 @@ public class SpringMvcConfig implements WebMvcConfigurer
         //添加拦截器
         registry.addInterceptor(baseHandler()).addPathPatterns("/**");
     }
-    
+
     /**
      * 处理静态资源的，例如：图片，js，css等
      *
@@ -176,7 +179,7 @@ public class SpringMvcConfig implements WebMvcConfigurer
         registry.addResourceHandler("/other/**").addResourceLocations("/WEB-INF/static/");
         registry.addResourceHandler("/jquery/**").addResourceLocations("/static/");
     }
-    
+
     /**
      * 此方法可以很方便的实现一个请求到视图的映射，而无需书写controller，例如：
      */
@@ -184,7 +187,7 @@ public class SpringMvcConfig implements WebMvcConfigurer
     public void addViewControllers(ViewControllerRegistry registry){
         registry.addViewController("/now").setViewName("now");
     }*/
-    
+
     @Bean
     public CommonsMultipartResolver commonsMultipartResolver()
     {

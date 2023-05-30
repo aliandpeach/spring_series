@@ -4,7 +4,7 @@ import lombok.Data;
 import org.apache.shiro.authc.AuthenticationToken;
 
 @Data
-public class PasswordToken implements AuthenticationToken
+public class PasswordForm implements AuthenticationToken
 {
     private static final long serialVersionUID = -7832063338283190310L;
 

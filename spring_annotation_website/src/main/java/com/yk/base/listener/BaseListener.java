@@ -21,48 +21,27 @@ public class BaseListener /*implements ApplicationListener<ContextRefreshedEvent
 {
     private static final Logger logger = LoggerFactory.getLogger(BaseListener.class);
 
-    private static final AtomicBoolean init = new AtomicBoolean(false);
+    private final static AtomicInteger integer = new AtomicInteger(0);
 
-    private final AtomicInteger integer = new AtomicInteger(0);
-    
     @Autowired
     private IRoleDAO roleDAO;
-    
+
     @Autowired
     private RoleQueryDAO roleQueryDAO;
 
     @Autowired
     private ApplicationContext applicationContext;
-    
+
     /**
      * 当一个ApplicationContext被初始化或刷新触发
      */
     @EventListener(ContextRefreshedEvent.class)
     public void onApplicationEvent(ContextRefreshedEvent event)
     {
-        if (integer.incrementAndGet() > 1)
-        {
-            return;
-        }
         logger.info("spring容器初始化完毕================================================");
         List<Map<String, Object>> list = roleDAO.queryRoles();
         list = new ArrayList<>();
         list = roleQueryDAO.queryRoles();
         logger.info("" + list);
-
-        // onApplicationEvent会被执行两次, 因为一个是root application 一个是 dispatcher-servlet
-        ApplicationContext context = event.getApplicationContext();
-        logger.debug("ContextRefreshed... display name = {}", context.getDisplayName());
-        if (event.getApplicationContext().equals(this.applicationContext))
-        {
-            synchronized (this)
-            {
-                if (!init.get())
-                {
-                    logger.debug("ContextRefreshed... async method...");
-                    init.set(true);
-                }
-            }
-        }
     }
 }

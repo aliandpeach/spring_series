@@ -7,11 +7,11 @@ import org.apache.shiro.authc.AuthenticationToken;
 
 @Data
 @AllArgsConstructor
-public class CustomerToken implements AuthenticationToken
+public class TokenForm implements AuthenticationToken
 {
     private static final long serialVersionUID = -2432349047484188609L;
 
-    public CustomerToken(String username, String token)
+    public TokenForm(String username, String token)
     {
         this.username = username;
         this.token = token;

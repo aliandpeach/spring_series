@@ -12,7 +12,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
  * 相当于 XmlWebApplicationContext 和application.xml的关系
  */
 @Configuration
-@ComponentScan(basePackages = {"com.yk"}, excludeFilters =
+@ComponentScan(basePackages = {"com.yk.*"}, excludeFilters =
         {@ComponentScan.Filter(type = FilterType.ANNOTATION, value = EnableWebMvc.class)})
 
 @EnableAspectJAutoProxy(proxyTargetClass = true)
