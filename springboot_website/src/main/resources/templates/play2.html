@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blob Url</title>
+</head>
+<body>
+<video id="video" width="400" controls="controls"></video>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const message = /*[[${source}]]*/ 'default';
+    console.log(message);
+    /*]]>*/
+    //创建XMLHttpRequest对象
+    var xhr = new XMLHttpRequest();
+    //配置请求方式、请求地址以及是否同步
+    xhr.open('POST', message, true);
+    //设置请求结果类型为blob
+    xhr.responseType = 'blob';
+    //请求成功回调函数
+    xhr.onload = function(e) {
+        if (this.status === 200) {//请求成功
+            //获取blob对象
+            var blob = this.response;
+            //获取blob对象地址，并把值赋给容器
+            document.getElementById("video").src = URL.createObjectURL(blob);
+        }
+    };
+    xhr.send();
+</script>
+</body>
+</html>

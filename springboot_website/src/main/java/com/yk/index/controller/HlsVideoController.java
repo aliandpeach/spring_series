@@ -1,18 +1,20 @@
 package com.yk.index.controller;
 
-import com.yk.index.service.VideoServiceImpl;
 import com.yk.index.ffmpeg.FFmpegProcessor;
+import com.yk.index.service.VideoServiceImpl;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
@@ -34,24 +36,19 @@ public class HlsVideoController
     @Autowired
     private FFmpegProcessor fFmpegProcessor;
 
-    /**
-     * 目录路径,这个路径需要包含test.info文件，test.key文件和test.mp4文件
-     */
-    private static final String PATH = "D:\\test\\";
-
-    @GetMapping("/watch/${id}")
-    public void watch(@PathVariable String id) throws Exception
+    @GetMapping("/watch/{id}")
+    public ModelAndView watch(@PathVariable String id) throws Exception
     {
-        FileInputStream inputStream = new FileInputStream(PATH + "test.mp4");
-        String m3u8Url = "http://localhost:8080/upload/test.m3u8";
-        String infoUrl = "http://localhost:8080/preview/test.info";
-        StringBuilder url = new StringBuilder();
-        url.append("/").append(request.getContextPath()).append("/video/hls/play").append(id).append("-%d.ts");
-        fFmpegProcessor.convertMediaToM3u8ByHttp(inputStream, m3u8Url, infoUrl, url.toString());
+        return new ModelAndView("hls").addObject("source", "/video/hls/play/1213");
     }
 
-    @PostMapping("/play/${id}")
-    public void play(@PathVariable String id) throws IOException
+    @GetMapping("/play/{id}")
+    public String play(@PathVariable String id) throws IOException
     {
+        File file = new File(request.getServletContext().getRealPath(toPath) + File.separator + "123456789" + File.separator + "123.m3u8");
+        try (FileInputStream input = new FileInputStream(file))
+        {
+            return IOUtils.toString(input);
+        }
     }
 }

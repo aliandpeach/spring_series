@@ -85,6 +85,7 @@ public class GlobalExceptionHandler
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
         baseResponse.setCode(WORK_FAIL);
+        baseResponse.setMessage(e.getMessage());
         return baseResponse;
     }
 

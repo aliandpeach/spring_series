@@ -161,4 +161,22 @@ public class VideoController
             response.flushBuffer();
         }
     }
+
+    /**
+     * blob url
+     */
+    @RequestMapping("/watch2/{id}")
+    public ModelAndView watch2(@PathVariable String id)
+    {
+        return new ModelAndView("play2").addObject("source", "/video/play/" + id);
+    }
+
+    /**
+     * xgplayer
+     */
+    @RequestMapping("/watch3/{id}")
+    public ModelAndView watch3(@PathVariable String id)
+    {
+        return new ModelAndView("play3").addObject("source", "/video/play/" + id);
+    }
 }
