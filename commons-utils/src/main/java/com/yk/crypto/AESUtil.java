@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,16 +19,15 @@ import java.security.MessageDigest;
 
 public class AESUtil
 {
-    private static Logger log = LoggerFactory.getLogger(AESUtil.class);
+    private static final Logger log = LoggerFactory.getLogger(AESUtil.class);
 
     public static final String CRYPT_ALGORITHM = "AES";
+
     public static final String HASH_ALGORITHM = "SHA-256";
 
-    public static final String CONFIG_DIR = StringUtils.isNotEmpty(System.getProperty("CONFIG_DIR")) ? System.getProperty("CONFIG_DIR").trim() : AESUtil.class.getClassLoader().getResource(".").getPath();
+    private static final String keyStoreFile = System.getProperty("user.dir") + File.separator + "aes256.jceks";
 
-    private static KeyStore keyStore = null;
-    private static final String keyStoreFile = CONFIG_DIR + "/aes256.jceks";
-    private static final char[] KEYSTORE_PASS = new char[]{
+    public static final char[] KEYSTORE_PASS = new char[]{
             'G', '~', 'r', 'x', 'Z', 'E', 'w', 'f', 'a', '[', '!', 'f', 'Z', 'd', '*', 'L', '8', 'm', 'h', 'u', '#',
             'j', '9', ':', '~', ';', 'U', '>', 'O', 'i', '8', 'r', 'C', '}', 'f', 't', '%', '[', 'H', 'h', 'M', '&',
             'K', ':', 'l', '5', 'c', 'H', '6', 'r', 'A', 'E', '.', 'F', 'Y', 'W', '}', '{', '*', '8', 'd', 'E', 'C',
@@ -42,35 +42,32 @@ public class AESUtil
             'G', '[', 'l', 'h', '$', 'U', 's', '_', 'D', 'f', 'X', '~', '.', '7', 'B', 'A', 'E', '(', '#', ']', ':',
             '`', ',', 'k', 'y'};
 
-    private static final byte[] key = new byte[0];
+    public static final int KEY_LENGTH = 256;
+    public static final String ENCRYPTION_KEY_ALIAS = "AES-ENCRYPTION_KEY";
 
-    private static int KEY_LENGTH = 256;
-    private static final String ENCRYPTION_KEY_ALIAS = "AES-ENCRYPTION_KEY";
-
-    static
+    private AESUtil()
     {
-        File f = new File(keyStoreFile);
-        if (f.isFile() && f.canRead())
-        {
-            try
-            {
-                keyStore = KeyStore.getInstance("JCEKS");
-                FileInputStream keyStoreInputStream = new FileInputStream(f);
-                keyStore.load(keyStoreInputStream, KEYSTORE_PASS);
-            }
-            catch (Exception ex)
-            {
-                log.error(ex.toString(), ex);
-            }
-        }
-        else
+    }
+
+    public static void initialize()
+    {
+        File _key = new File(keyStoreFile);
+        if (!_key.exists() || !_key.isFile())
         {
             initializeKeyStore();
         }
     }
 
-    private AESUtil()
+    public static String encrypt(String str)
     {
+        initialize();
+        return encrypt(getSecretBytes(ENCRYPTION_KEY_ALIAS), str);
+    }
+
+    public static String decrypt(String str)
+    {
+        initialize();
+        return decrypt(getSecretBytes(ENCRYPTION_KEY_ALIAS), str);
     }
 
     public static String hash(String str, String salt)
@@ -100,22 +97,21 @@ public class AESUtil
 
     public static String encrypt(byte[] key, String str)
     {
-
         String retVal = null;
-        if (str != null && str.length() > 0)
+        if (StringUtils.isBlank(str))
         {
-            try
-            {
-                Cipher c = Cipher.getInstance(CRYPT_ALGORITHM);
-                c.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, CRYPT_ALGORITHM));
-                byte[] encVal = c.doFinal(str.getBytes());
-                retVal = new String(Base64.encodeBase64(encVal));
-            }
-            catch (Exception ex)
-            {
-                log.error(ex.toString(), ex);
-            }
-
+            return null;
+        }
+        try
+        {
+            Cipher c = Cipher.getInstance(CRYPT_ALGORITHM);
+            c.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, CRYPT_ALGORITHM));
+            byte[] encVal = c.doFinal(str.getBytes());
+            retVal = new String(Base64.encodeBase64(encVal));
+        }
+        catch (Exception ex)
+        {
+            log.error(ex.toString(), ex);
         }
         return retVal;
     }
@@ -123,85 +119,22 @@ public class AESUtil
     public static String decrypt(byte[] key, String str)
     {
         String retVal = null;
-        if (str != null && str.length() > 0)
+        if (StringUtils.isBlank(str))
         {
-            try
-            {
-                Cipher c = Cipher.getInstance(CRYPT_ALGORITHM);
-                c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, CRYPT_ALGORITHM));
-                byte[] decodedVal = Base64.decodeBase64(str.getBytes());
-                retVal = new String(c.doFinal(decodedVal));
-            }
-            catch (Exception ex)
-            {
-                log.error(ex.toString(), ex);
-            }
-
+            return null;
+        }
+        try
+        {
+            Cipher c = Cipher.getInstance(CRYPT_ALGORITHM);
+            c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, CRYPT_ALGORITHM));
+            byte[] decodedVal = Base64.decodeBase64(str.getBytes());
+            retVal = new String(c.doFinal(decodedVal));
+        }
+        catch (Exception ex)
+        {
+            log.error(ex.toString(), ex);
         }
         return retVal;
-    }
-
-    public static String encrypt(String str)
-    {
-        return encrypt(key, str);
-    }
-
-    public static String decrypt(String str)
-    {
-        return decrypt(key, str);
-    }
-
-    public static byte[] getSecretBytes(String alias)
-    {
-        byte[] value = null;
-        try
-        {
-            KeyStore.SecretKeyEntry entry = (KeyStore.SecretKeyEntry) keyStore.getEntry(alias, new KeyStore.PasswordProtection(KEYSTORE_PASS));
-            value = entry.getSecretKey().getEncoded();
-        }
-        catch (Exception ex)
-        {
-            log.error(ex.toString(), ex);
-        }
-        return value;
-    }
-
-    public static String getSecretString(String alias)
-    {
-        String value = null;
-        try
-        {
-            KeyStore.SecretKeyEntry entry = (KeyStore.SecretKeyEntry) keyStore.getEntry(alias, new KeyStore.PasswordProtection(KEYSTORE_PASS));
-            value = new String(entry.getSecretKey().getEncoded());
-        }
-        catch (Exception ex)
-        {
-            log.error(ex.toString(), ex);
-        }
-        return value;
-    }
-
-    /**
-     * keystore 设置 AES私钥 别名为 alias
-     */
-    public static void setSecret(String alias, byte[] secret)
-    {
-        KeyStore.ProtectionParameter protectionParameter = new KeyStore.PasswordProtection(KEYSTORE_PASS);
-        try
-        {
-            SecretKeySpec secretKey = new SecretKeySpec(secret, 0, secret.length, "AES");
-            KeyStore.SecretKeyEntry secretKeyEntry = new KeyStore.SecretKeyEntry(secretKey);
-            keyStore.setEntry(alias, secretKeyEntry, protectionParameter);
-        }
-        catch (Exception ex)
-        {
-            log.error(ex.toString(), ex);
-        }
-    }
-
-    public static void setSecret(String alias, String secret)
-    {
-        setSecret(alias, secret.getBytes());
     }
 
     public static void resetKeyStore()
@@ -228,12 +161,12 @@ public class AESUtil
     {
         try (FileOutputStream fos = new FileOutputStream(keyStoreFile))
         {
-            keyStore = KeyStore.getInstance("JCEKS");
-            keyStore.load(null, KEYSTORE_PASS);
+            KeyStore keyStore = KeyStore.getInstance("JCEKS");
+            keyStore.load(null, null);
 
             KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
             keyGenerator.init(KEY_LENGTH);
-            setSecret(ENCRYPTION_KEY_ALIAS, keyGenerator.generateKey().getEncoded());
+            setSecret(ENCRYPTION_KEY_ALIAS, keyGenerator.generateKey(), keyStore);
 
             keyStore.store(fos, KEYSTORE_PASS);
         }
@@ -241,5 +174,41 @@ public class AESUtil
         {
             log.error(ex.toString(), ex);
         }
+    }
+
+    /**
+     * keystore 设置 AES私钥 别名为 alias
+     */
+    public static void setSecret(String alias, SecretKey secretKey, KeyStore keyStore)
+    {
+        try
+        {
+            KeyStore.PasswordProtection passwordProtection = new KeyStore.PasswordProtection(KEYSTORE_PASS);
+            KeyStore.SecretKeyEntry secretKeyEntry = new KeyStore.SecretKeyEntry(secretKey);
+            keyStore.setEntry(alias, secretKeyEntry, passwordProtection);
+            log.debug("set secret entry {}", alias);
+        }
+        catch (Exception ex)
+        {
+            log.error(ex.toString(), ex);
+        }
+    }
+
+    public static byte[] getSecretBytes(String alias)
+    {
+        byte[] value = null;
+        try (FileInputStream keyStoreInputStream = new FileInputStream(keyStoreFile))
+        {
+            KeyStore keyStore = KeyStore.getInstance("JCEKS");
+            keyStore.load(keyStoreInputStream, KEYSTORE_PASS);
+
+            KeyStore.SecretKeyEntry entry = (KeyStore.SecretKeyEntry) keyStore.getEntry(alias, new KeyStore.PasswordProtection(KEYSTORE_PASS));
+            value = entry.getSecretKey().getEncoded();
+        }
+        catch (Exception ex)
+        {
+            log.error(ex.toString(), ex);
+        }
+        return value;
     }
 }

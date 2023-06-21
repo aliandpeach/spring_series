@@ -67,7 +67,8 @@ public class SymmetricEncryptionTest
         ByteBuffer bufferD2 = symmetricEncryption.aesDecrypt2(bufferE2.array());
         String ret2 = new String(bufferD2.array(), StandardCharsets.UTF_8);
         Assert.assertEquals(testString, ret2);
-        
+
+        // 生成的SecretKeySpec和 IvParameterSpec 值如果相同, 这里aesEncrypt和aesEncrypt2的加密结果才会相同
         Assert.assertTrue(Arrays.equals(bufferE.array(), bufferE2.array()));
     }
     

@@ -232,7 +232,7 @@ public class SymmetricEncryption
         KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
         SecureRandom sr = new SecureRandom(symmetrickey);
 
-        SecureRandom randomIV = new SecureRandom();
+        SecureRandom randomIV = new SecureRandom(symmetrickey);
         byte[] ivBytes = new byte[16]; // IV length: must be 16 bytes long
         randomIV.nextBytes(ivBytes);
 
@@ -282,7 +282,7 @@ public class SymmetricEncryption
         byte[] aesKey = new byte[32];
         randomDESKey.nextBytes(aesKey);// 生成AES的私钥key
 
-        SecureRandom randomIV = new SecureRandom();
+        SecureRandom randomIV = new SecureRandom(symmetrickey);
         byte[] ivBytes = new byte[16]; // IV length: must be 16 bytes long
         randomIV.nextBytes(ivBytes);
 
