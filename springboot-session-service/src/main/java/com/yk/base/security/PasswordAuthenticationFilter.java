@@ -11,7 +11,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.session.CompositeSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.ConcurrentSessionControlAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.RegisterSessionAuthenticationStrategy;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import javax.servlet.FilterChain;
@@ -35,14 +41,16 @@ public class PasswordAuthenticationFilter extends UsernamePasswordAuthentication
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(PasswordAuthenticationFilter.class);
 
-    private ThreadLocal<HttpServletRequestWrapper> threadLocal = new ThreadLocal<>();
+    private final ThreadLocal<HttpServletRequestWrapper> threadLocal = new ThreadLocal<>();
     private ThreadLocal<UsernamePasswordAuthenticationToken> userThreadLocal = new ThreadLocal<>();
 
-    public PasswordAuthenticationFilter(AuthenticationManager authenticationManager)
+    public PasswordAuthenticationFilter(AuthenticationManager authenticationManager, SessionAuthenticationStrategy strategy)
     {
         super.setAuthenticationManager(authenticationManager);
         super.setContinueChainBeforeSuccessfulAuthentication(false);
         super.setFilterProcessesUrl("/api/signin");
+        // authenticationManager().authenticate -> onAuthentication -> registerNewSession
+        super.setSessionAuthenticationStrategy(strategy);
     }
 
     @Override
@@ -59,7 +67,6 @@ public class PasswordAuthenticationFilter extends UsernamePasswordAuthentication
         NewHttpServletRequestWrapper httpServletRequestWrapper;
         try
         {
-            request.getSession();
             httpServletRequestWrapper = new NewHttpServletRequestWrapper(request);
         }
         catch (IOException e)
@@ -81,7 +88,24 @@ public class PasswordAuthenticationFilter extends UsernamePasswordAuthentication
         }
         String name = Optional.ofNullable(user.getName()).orElse("");
         String pwd = Optional.ofNullable(user.getPasswd()).orElse("");
+        // authenticate调用链: WebSecurityConfigurerAdapter.authenticate -> ProviderManager.authenticate -> AbstractUserDetailsAuthenticationProvider.authenticate
+        //                     -> retrieveUser(查询用户以及权限) -> createSuccessAuthentication(权限信息被放入) -> setAuthenticated(true)
+        //                     -> successfulAuthentication -> SavedRequestAwareAuthenticationSuccessHandler.onAuthenticationSuccess
+        //                     -> SimpleUrlAuthenticationSuccessHandler.onAuthenticationSuccess -> handle -> sendRedirect
+        //                     -> ... -> HttpSessionSecurityContextRepository.saveContext(保存context到session)
+
+        // 1. 如果不执行super.successfulAuthentication, 则需要再doFilter之前, 执行SecurityContextHolder.getContext().setAuthentication(authResult) (之后context保存至session)
+        //    则第一次登录后才会执行到 SessionManagementFilter -> sessionAuthenticationStrategy.onAuthentication, 其他已登录的接口调用都执行不进来（因为context已经保存到了session)
+        // 2. super.successfulAuthentication保存context到session, 第一次执行登录后也就不会执行sessionAuthenticationStrategy.onAuthentication， 需要增加 super.setSessionAuthenticationStrategy
+        // 3. 更新用户的角色信息, 需要如何更新session中的context
+        // 4. hasPermission怎么使用
+        // 5. session保存到redis
+
+        // 此处返回的Authentication按照上面的调用链, 已经放入了权限信息
         return super.getAuthenticationManager().authenticate(new UsernamePasswordAuthenticationToken(name, pwd));
+        // 调用接口, 第一个执行的拦截器是 SecurityContextPersistenceFilter 用于获取已经登录保存到session的context
+        // SecurityContextPersistenceFilter -> HttpSessionSecurityContextRepository.loadContext
+        // -> SecurityContext context = httpSession.getAttribute("SPRING_SECURITY_CONTEXT")
     }
 
     @Override
@@ -90,8 +114,14 @@ public class PasswordAuthenticationFilter extends UsernamePasswordAuthentication
                                             FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException
     {
-        request.getSession().setAttribute(SessionProvider.SESSION_USER_KEY, authResult);
-        chain.doFilter(threadLocal.get(), response);
+        // 用户以及权限信息放入session
+//        request.getSession().setAttribute(SessionProvider.SESSION_USER_KEY, authResult);
+        // 不使用doFilter流转, 直接调用super方法执行setAuthentication(authResult)
+        super.successfulAuthentication(threadLocal.get(), response, chain, authResult);
+
+        // 解开这里的注释, 则注释掉上面一行super.successfulAuthentication, 以及super.setSessionAuthenticationStrategy
+//        SecurityContextHolder.getContext().setAuthentication(authResult);
+//        chain.doFilter(threadLocal.get(), response);
     }
 
     /**
@@ -112,10 +142,13 @@ public class PasswordAuthenticationFilter extends UsernamePasswordAuthentication
 //        String result = JSONUtil.toJson(new CustomException("用户名或者密码错误", HttpStatus.FORBIDDEN));
 //        response.getWriter().write(result == null ? "{\"message\": \"用户名或者密码错误\"}" : result);
 
-        request.setAttribute("javax.servlet.error.status_code", HttpStatus.FORBIDDEN.value());
+        /*request.setAttribute("javax.servlet.error.status_code", HttpStatus.FORBIDDEN.value());
         request.setAttribute("javax.servlet.error.exception", failed);
         request.setAttribute("javax.servlet.error.message", "用户名或者密码错误");
         request.setAttribute("javax.servlet.error.request_uri", request.getRequestURI());
-        request.getRequestDispatcher("/error").forward(request,response);
+        request.getRequestDispatcher("/error").forward(request,response);*/
+
+        // 不使用上面的自定义跳转异常, 也可以直接调用super方法进入RestAuthenticationEntryPoint
+        super.unsuccessfulAuthentication(request, response, failed);
     }
 }

@@ -35,7 +35,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude = "roles")
 public class User implements Serializable
 {
     private static final long serialVersionUID = -7378584157032232356L;

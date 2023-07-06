@@ -1,6 +1,8 @@
 package com.yk.db.jpa.controller;
 
+import com.yk.base.exception.BaseResponse;
 import com.yk.base.exception.CustomException;
+import com.yk.base.exception.ResponseCode;
 import com.yk.db.jpa.dto.UserDataDTO;
 import com.yk.db.jpa.model.Role;
 import com.yk.db.jpa.model.User;
@@ -17,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,7 +33,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -69,32 +69,38 @@ public class UserController implements InitializingBean
 
     @PostMapping("/log/record")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN')")
-    public Map<String, String> log(@RequestParam String log)
+    public BaseResponse<Map<String, String>> log(@RequestParam String log)
     {
+        BaseResponse<Map<String, String>> br = new BaseResponse<>();
         LOGGER.error(log);
-        return Collections.singletonMap("result", "success");
+        br.setData(Collections.singletonMap("result", "success"));
+        return br;
     }
 
     @GetMapping("/log/throw")
-    public Map<String, String> log()
+    public BaseResponse<Map<String, String>> log()
     {
-        throw new CustomException("test throw custom exception ", HttpStatus.UNAUTHORIZED);
+        throw new CustomException(ResponseCode.USER_TEST_ERROR.message, ResponseCode.USER_TEST_ERROR.code);
     }
 
     @RequestMapping("/query/user/all")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public List<User> queryAllUser()
+    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_VIP')")
+    public BaseResponse<List<User>> queryAllUser()
     {
+        BaseResponse<List<User>> br = new BaseResponse<>();
         List<User> users = userRepository.findAll();
-        return users;
+        br.setData(users);
+        return br;
     }
 
     @RequestMapping("/query/role/all")
     @PreAuthorize("hasRole('ROLE_CLIENT')")
-    public List<Role> queryAllRole()
+    public BaseResponse<List<Role>> queryAllRole()
     {
+        BaseResponse<List<Role>> br = new BaseResponse<>();
         List<Role> roles = roleRepository.findAll();
-        return roles;
+        br.setData(roles);
+        return br;
     }
 
     /**
@@ -105,11 +111,12 @@ public class UserController implements InitializingBean
     @ApiResponses(value = {
             @ApiResponse(code = 400, message = "Something went wrong"), //
             @ApiResponse(code = 422, message = "Invalid name/passwd supplied")})
-    public String login(@ApiParam("name") @RequestBody @Validated UserDataDTO user)
+    public BaseResponse<Map<String, String>> login(@ApiParam("name") @RequestBody @Validated UserDataDTO user)
     {
-        String result = userService.signin(user.getName(), user.getPasswd());
-        LOGGER.info("sign in success : " + result);
-        return result;
+        BaseResponse<Map<String, String>> br = new BaseResponse<>();
+//        String result = userService.signin(user.getName(), user.getPasswd());
+        LOGGER.info("sign in success");
+        return br;
     }
 
     /**
@@ -123,15 +130,17 @@ public class UserController implements InitializingBean
             @ApiResponse(code = 422, message = "name is already in use")})
     // MyBatisConfiguration 的DataSourceTransactionManager 默认使用在JPA上会无法生效， 所以这里需要特别指定JPA自己的自定义事务名
     // 不指定事务的时候，JPA会默认使用 transactionManager bean
-    public String signup(@ApiParam("Signup User") @RequestBody UserDataDTO userDataDTO)
+    public BaseResponse<Map<String, String>> signup(@ApiParam("Signup User") @RequestBody UserDataDTO userDataDTO)
     {
+        BaseResponse<Map<String, String>> br = new BaseResponse<>();
         User user = new User();
         List<Role> roles = new ArrayList<>(Collections.singleton(roleRepository.findRoleByName("ROLE_CLIENT")));
         user.setRoles(roles);
         user.setGroup(groupRepository.findByName("GROUP_CLIENT"));
         user.setName(userDataDTO.getName());
         user.setPasswd(userDataDTO.getPasswd());
-        return userService.signup(user);
+        userService.signup(user);
+        return br;
     }
 
     @GetMapping("/vip")
@@ -139,7 +148,7 @@ public class UserController implements InitializingBean
     {
         // 得到当前的认证信息
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        //  生成当前的所有授权
+        //  获取当前的所有授权
         List<GrantedAuthority> updatedAuthorities = new ArrayList<>(auth.getAuthorities());
         // 添加 ROLE_VIP 授权
         updatedAuthorities.add(new SimpleGrantedAuthority("ROLE_VIP"));

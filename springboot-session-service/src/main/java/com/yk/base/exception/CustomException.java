@@ -1,8 +1,5 @@
 package com.yk.base.exception;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.springframework.http.HttpStatus;
-
 /**
  * 描述
  *
@@ -12,21 +9,30 @@ import org.springframework.http.HttpStatus;
  */
 public class CustomException extends RuntimeException
 {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -6263570294524298882L;
 
-    private final String message;
-    private final HttpStatus httpStatus;
-    private int status;
+    private String message;
 
-    public CustomException(String message, HttpStatus httpStatus)
+    private int code;
+
+    public CustomException(String message)
     {
+        super(message);
         this.message = message;
-        this.httpStatus = httpStatus;
     }
 
-    public int getStatus()
+    public CustomException(String message, int code)
     {
-        return httpStatus.value();
+        super(message);
+        this.message = message;
+        this.code = code;
+    }
+
+    public CustomException(String message, int code, Throwable e)
+    {
+        super(message, e);
+        this.message = message;
+        this.code = code;
     }
 
     @Override
@@ -35,29 +41,8 @@ public class CustomException extends RuntimeException
         return message;
     }
 
-    public HttpStatus getHttpStatus()
+    public int getCode()
     {
-        return httpStatus;
-    }
-
-    @Override
-    @JsonIgnore
-    public StackTraceElement[] getStackTrace()
-    {
-        return super.getStackTrace();
-    }
-
-    @Override
-    @JsonIgnore
-    public synchronized Throwable getCause()
-    {
-        return super.getCause();
-    }
-
-    @Override
-    @JsonIgnore
-    public String getLocalizedMessage()
-    {
-        return super.getLocalizedMessage();
+        return code;
     }
 }

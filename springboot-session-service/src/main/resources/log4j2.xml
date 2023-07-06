@@ -6,14 +6,14 @@
     </properties>
 
     <Appenders>
-        <Console name="Console" target="SYSTEM_OUT">
-            <PatternLayout charset="UTF-8" pattern="%d %-5p (%F:%L) - %m%n"/>
+        <Console name="Console">
+            <PatternLayout charset="UTF-8" pattern="[%d{yyyy-mm-dd HH:mm:ss,SSS}] [%t] [%-5level] [%logger{36}:%L] - %msg%n"/>
         </Console>
         <RollingRandomAccessFile name="other"
                                  fileName="${LOG_HOME}/logs/other.log"
                                  filePattern="${LOG_HOME}/logs/other.log.%d{yyyy-MM-dd}-%i.gz">
             <PatternLayout charset="UTF-8"
-                    pattern="%d %-5p (%F:%L) - %m%n"/>
+                           pattern="[%d{yyyy-mm-dd HH:mm:ss,SSS}] [%t] [%-5level] [%logger{36}:%L] - %msg%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="5 MB"/>
@@ -25,7 +25,7 @@
                                  fileName="${LOG_HOME}/logs/base.log"
                                  filePattern="${LOG_HOME}/logs/base.log.%d{yyyy-MM-dd}-%i.gz">
             <PatternLayout charset="UTF-8"
-                    pattern="%d %-5p (%F:%L) - %m%n"/>
+                           pattern="[%d{yyyy-mm-dd HH:mm:ss,SSS}] [%t] [%-5level] [%logger{36}:%L] - %msg%n"/>
             <Policies>
                 <TimeBasedTriggeringPolicy/>
                 <SizeBasedTriggeringPolicy size="5 MB"/>
@@ -35,24 +35,26 @@
     </Appenders>
 
     <Loggers>
-        <logger name="base" level="info" includeLocation="true" additivity="false">
+        <logger name="base" level="DEBUG" includeLocation="true" additivity="false">
             <appender-ref ref="base"/>
         </logger>
-        <logger name="other" level="info" includeLocation="true" additivity="false">
-            <appender-ref ref="other"/>
-        </logger>
-        <logger name="com.yk" level="info" includeLocation="true" additivity="false">
+        <logger name="com.yk" level="DEBUG" includeLocation="true" additivity="false">
             <appender-ref ref="base"/>
         </logger>
-        <logger name="org.springframework.boot" level="ERROR">
-            <appender-ref ref="other"/>
-        </logger>
-        <logger name="org.springframework.security" level="ERROR">
-            <appender-ref ref="other"/>
-        </logger>
-        <logger name="org.springframework.session" level="ERROR">
-            <appender-ref ref="other"/>
-        </logger>
+        <logger name="org.springframework.boot" additivity="false" level="DEBUG"/>
+        <logger name="org.springframework.security" additivity="false" level="DEBUG"/>
+        <logger name="org.springframework.session" additivity="false" level="DEBUG" />
+
+        <Logger name="org.apache.catalina.startup.DigesterFactory" additivity="false" level="ERROR" />
+        <Logger name="org.apache.catalina.util.LifecycleBase" additivity="false" level="ERROR" />
+        <Logger name="org.apache.coyote.http11.Http11NioProtocol" additivity="false" level="WARN" />
+        <logger name="org.apache.sshd.common.util.SecurityUtils" additivity="false" level="WARN"/>
+        <Logger name="org.apache.tomcat.util.net.NioSelectorPool" additivity="false" level="WARN" />
+        <Logger name="org.eclipse.jetty.util.component.AbstractLifeCycle" additivity="false" level="ERROR" />
+        <logger name="org.springframework" additivity="false" level="WARN"/>
+        <logger name="com.zaxxer.hikari" additivity="false" level="DEBUG" />
+        <logger name="org.hibernate" additivity="false" level="DEBUG" />
+
         <root level="info" includeLocation="true">
             <appender-ref ref="Console"/>
             <appender-ref ref="other"/>

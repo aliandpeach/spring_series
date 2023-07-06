@@ -1,6 +1,7 @@
 package com.yk.db.jpa.service;
 
 import com.yk.base.exception.CustomException;
+import com.yk.base.exception.ResponseCode;
 import com.yk.base.security.SessionProvider;
 import com.yk.db.jpa.model.User;
 import com.yk.db.jpa.repository.UserRepository;
@@ -42,7 +43,7 @@ public class UserService
         catch (AuthenticationException e)
         {
             SecurityContextHolder.getContext().setAuthentication(null);
-            throw new CustomException("Invalid username/password supplied", HttpStatus.UNPROCESSABLE_ENTITY);
+            throw new CustomException(ResponseCode.SIGN_IN_ERROR.message, ResponseCode.SIGN_IN_ERROR.code, e);
         }
     }
 
@@ -56,7 +57,7 @@ public class UserService
         }
         else
         {
-            throw new CustomException("Username is already in use", HttpStatus.UNPROCESSABLE_ENTITY);
+            throw new CustomException(ResponseCode.USER_ALREADY_USE_ERROR.message, ResponseCode.USER_ALREADY_USE_ERROR.code);
         }
     }
 
@@ -70,7 +71,7 @@ public class UserService
         User appUser = userRepository.findByName(username);
         if (appUser == null)
         {
-            throw new CustomException("The user doesn't exist", HttpStatus.NOT_FOUND);
+            throw new CustomException(ResponseCode.USER_NOT_EXIST_ERROR.message, ResponseCode.USER_NOT_EXIST_ERROR.code);
         }
         return appUser;
     }

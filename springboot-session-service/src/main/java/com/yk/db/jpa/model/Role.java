@@ -33,7 +33,7 @@ import java.util.UUID;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@ToString
+@ToString(exclude = "users")
 public class Role implements GrantedAuthority
 {
     private static final long serialVersionUID = 797300138759261437L;

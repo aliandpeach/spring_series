@@ -1,12 +1,14 @@
 package com.yk.base.security;
 
 import com.yk.base.exception.CustomException;
+import com.yk.base.exception.ResponseCode;
 import com.yk.httprequest.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -101,28 +103,24 @@ public class SessionFilter extends OncePerRequestFilter
             return;
         }
 
-        HttpSession session = httpServletRequest.getSession();
+        HttpSession session = httpServletRequest.getSession(false);
+        if (null == session)
+        {
+            filterChain.doFilter(httpServletRequest, httpServletResponse);
+            return;
+        }
         try
         {
-            if (null == session)
+            if (session.getAttribute("SPRING_SECURITY_CONTEXT") instanceof SecurityContext)
             {
-                throw new CustomException("session verify failed", HttpStatus.FORBIDDEN);
+                SecurityContext securityContext = (SecurityContext) session.getAttribute("SPRING_SECURITY_CONTEXT");
+                Authentication authentication = securityContext.getAuthentication();
+                LOGGER.debug("session filter securityContext {}", authentication != null);
             }
-            if (null == session.getAttribute(SessionProvider.SESSION_USER_KEY))
-            {
-                throw new CustomException("session verify failed.", HttpStatus.FORBIDDEN);
-            }
-            if (!(session.getAttribute(SessionProvider.SESSION_USER_KEY) instanceof UsernamePasswordAuthenticationToken))
-            {
-                throw new CustomException("session verify failed..", HttpStatus.FORBIDDEN);
-            }
-            UsernamePasswordAuthenticationToken user = (UsernamePasswordAuthenticationToken) session.getAttribute(SessionProvider.SESSION_USER_KEY);
             // Session验证完成后, 在这里会更新该登录用户的权限（权限可能是由管理员通过其他接口或者直接在数据库修改的）
             // 保证了token不用重新登录, 用户也可以直接获取权限
-            Authentication auth = sessionProvider.getAuthentication(user.getName());
+            // Authentication auth = sessionProvider.getAuthentication(user.getName());
             // 这里应该是为了后续线程执行到Controller前对权限等的校验, 如果删除下面行, 则token虽然校验成功, 但是执行Controller的权限失败
-            SecurityContextHolder.getContext().setAuthentication(auth);
-            logger.info("authentication success!");
         }
         catch (CustomException ex)
         {
@@ -147,8 +145,7 @@ public class SessionFilter extends OncePerRequestFilter
             // 2.
             httpServletResponse.setStatus(HttpStatus.BAD_REQUEST.value());
             httpServletResponse.setContentType("application/json");
-            String result = JSONUtil.toJson(new CustomException(ex.getMessage(), ex.getHttpStatus()));
-            httpServletResponse.getWriter().write(result == null ? "{\"message\": \"" + ex.getMessage() + "\"}" : result);
+            httpServletResponse.getWriter().write("{\"code\":\"" + ex.getCode() + "\",\"message\": \"" + ex.getMessage() + "\"}");
             return;
         }
         filterChain.doFilter(httpServletRequest, httpServletResponse);
