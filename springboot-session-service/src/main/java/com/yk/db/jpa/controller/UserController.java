@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 描述
@@ -143,20 +144,52 @@ public class UserController implements InitializingBean
         return br;
     }
 
+    /**
+     * 该方法不能让管理员为其他用户更新权限, 只能是当前登录用户更新自己的权限(所以该接口意义不大)
+     *
+     * 1. 可强制让在线用户下线
+     * 2. 获取redis中所有在线用户, 修改某用户的权限信息
+     * @return BaseResponse
+     */
     @GetMapping("/vip")
-    public boolean updateAuthentication()
+    public BaseResponse<Boolean> updateAuthentication(@RequestParam("type") @Validated int type)
     {
-        // 得到当前的认证信息
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        //  获取当前的所有授权
-        List<GrantedAuthority> updatedAuthorities = new ArrayList<>(auth.getAuthorities());
-        // 添加 ROLE_VIP 授权
-        updatedAuthorities.add(new SimpleGrantedAuthority("ROLE_VIP"));
-        // 生成新的认证信息
-        Authentication newAuth = new UsernamePasswordAuthenticationToken(auth.getPrincipal(), auth.getCredentials(), updatedAuthorities);
-        // 重置认证信息
-        SecurityContextHolder.getContext().setAuthentication(newAuth);
-        return true;
+        BaseResponse<Boolean> br = new BaseResponse<>();
+        if (type == 0)
+        {
+            // 得到当前的认证信息
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            //  获取当前的所有授权
+            List<GrantedAuthority> updatedAuthorities = new ArrayList<>(auth.getAuthorities());
+            // 添加 ROLE_VIP 授权
+            updatedAuthorities.add(new SimpleGrantedAuthority("ROLE_VIP"));
+            // 生成新的认证信息
+            Authentication newAuth = new UsernamePasswordAuthenticationToken(auth.getPrincipal(), auth.getCredentials(), updatedAuthorities);
+            // 重置认证信息, 这里更新后最终会调用到 HttpSessionSecurityContextRepository.SaveToSessionResponseWrapper.saveContext,
+            // 判断context是否和之前的context一致, 如果不一致就httpSession.setAttribute更新
+            // 其重点就在于SecurityContextPersistenceFilter 中执行repo.loadContext的时候, 在HttpSessionSecurityContextRepository中
+            // 替换成了request和response分别替换成了SaveToSessionRequestWrapper和SaveToSessionResponseWrapper
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
+        }
+        if (type == 1)
+        {
+            // 得到当前的认证信息
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            //  获取当前的所有授权
+            List<GrantedAuthority> updatedAuthorities = new ArrayList<>(auth.getAuthorities());
+            // 移除VIP角色
+            List<GrantedAuthority> newAuthorities = updatedAuthorities.stream().filter(a -> !"ROLE_VIP".equals(a.getAuthority())).collect(Collectors.toList());
+            // 生成新的认证信息
+            Authentication newAuth = new UsernamePasswordAuthenticationToken(auth.getPrincipal(), auth.getCredentials(), newAuthorities);
+            // 重置认证信息, 这里更新后最终会调用到 HttpSessionSecurityContextRepository.SaveToSessionResponseWrapper.saveContext,
+            // 判断context是否和之前的context一致, 如果不一致就httpSession.setAttribute更新
+            // 其重点就在于SecurityContextPersistenceFilter 中执行repo.loadContext的时候, 在HttpSessionSecurityContextRepository中
+            // 替换成了request和response分别替换成了SaveToSessionRequestWrapper和SaveToSessionResponseWrapper
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
+        }
+
+        br.setData(true);
+        return br;
     }
 
     @Override

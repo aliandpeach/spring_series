@@ -3,9 +3,9 @@ package com.yk.base.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
-//import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession;
-//import org.springframework.session.data.redis.RedisIndexedSessionRepository;
-//import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
+import org.springframework.session.config.annotation.web.http.EnableSpringHttpSession;
+import org.springframework.session.data.redis.RedisIndexedSessionRepository;
+import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
 /**
  * RedisSessionConfiguration 自动配置会产生bean冲突问题

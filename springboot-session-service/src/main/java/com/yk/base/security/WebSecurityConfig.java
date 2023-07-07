@@ -89,6 +89,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
                 // FilterSecurityInterceptor -> AbstractSecurityInterceptor.beforeInvocation -> accessDecisionManager.decide (Matchers配置在这里使用到)
                 .antMatchers(excepts).permitAll()
                 .antMatchers("/h2-console/**/**").permitAll()
+                // /api/vip/**匹配的所有请求都要有ROLE_VIP角色
+//                .antMatchers("/api/vip/**").hasRole("VIP")
                 .anyRequest().authenticated();  // 其余请求都需要过滤
 
         // formLogin -> new FormLoginConfigurer 注释formLogin拦截器UsernamePasswordAuthenticationFilter就不会加入filter chain链中
@@ -139,16 +141,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
                         response.setContentType("application/json;charset=utf-8");
                         response.getWriter().write("认证信息过期，请重新登录！");
                     }
-                }).and();
+                });
                 // 当同时登陆的最大session 数达到 maximumSessions 配置后，拒绝后续同账户登录，
                 // 抛出信息 ：Maximum sessions of 1 for this principal exceeded
                 /*.maxSessionsPreventsLogin(true)
                 .and()
                 .sessionAuthenticationFailureHandler(new AuthenticationFailureHandler()
                 {
-                    *//**
-                     * Maximum sessions of 1 for this principal exceeded
-                     *//*
+                    // Maximum sessions of 1 for this principal exceeded
                     @Override
                     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException
                     {
