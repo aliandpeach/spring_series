@@ -115,6 +115,7 @@ public class SessionFilter extends OncePerRequestFilter
             {
                 SecurityContext securityContext = (SecurityContext) session.getAttribute("SPRING_SECURITY_CONTEXT");
                 Authentication authentication = securityContext.getAuthentication();
+                Authentication authentication2 = SecurityContextHolder.getContext().getAuthentication();
                 LOGGER.debug("session filter securityContext {}", authentication != null);
             }
             // Session验证完成后, 在这里会更新该登录用户的权限（权限可能是由管理员通过其他接口或者直接在数据库修改的）

@@ -46,7 +46,24 @@ import java.util.Optional;
  *  ADMIN"任意一种权限就可以访问。这里可以省略前缀ROLE_，
  *  实际的权限可能是ROLE_ADMIN
  *  3.@PermitAll： 允许所有访问
-
+ *
+ *
+ *
+ *  一丶
+ *  1. 在session场景中, SecurityContextPersistenceFilter 负责从session中获取请求用户信息, loadContext， 放入SecurityContext, 且负责更新session信息
+ *  若用户未登录, SecurityContext.authentication为null
+ *  PasswordAuthenticationFilter 在 SecurityContextPersistenceFilter之后,  负责登录校验, 校验完璧需要手动放入 setAuthentication,
+ *  后续由SessionManagementFilter管理session的策略(例如用户最多登录一个, 之前的session会被挤掉等)
+ *  最后忧SecurityContextPersistenceFilter.HttpSessionSecurityContextRepository.SaveToSessionResponseWrapper保存session到SecurityContext
+ *  2. 请求携带已登录cookie， 执行的顺序依旧和上面一致, 只是基于判断不再执行PasswordAuthenticationFilter相关逻辑, 如果所携带cookie已经失效, 或未携带cookie
+ *  执行到 AnonymousAuthenticationFilter中, 会setAuthentication放入 匿名信息, 最后由FilterSecurityInterceptor中执行校验后抛出AccessDinedException
+ *
+ *  二丶
+ *  1. jwt场景中需要disable掉sessionManagement(SessionManagementFilter)和 securityContext （SecurityContextPersistenceFilter） 保证session不会被创建
+ *  2. PasswordAuthenticationFilter 负责登录校验, 校验完璧需要手动放入 setAuthentication, 在后续getAuthentication使用用户名和权限信息生成jwt token响应到客户端
+ *  3. 校验jwt如果过期或者为空, 则继续doFilter执行后续的拦截器, 执行到 AnonymousAuthenticationFilter中, 会setAuthentication放入 匿名信息,
+ *     最后由FilterSecurityInterceptor中执行校验后抛出AccessDinedException, 进而交给ExceptionTranslationFilter去handle,
+ *     也可以自行抛出异常去处理.
  */
 @EnableGlobalMethodSecurity(prePostEnabled = true)// @PreAuthorize生效
 @RequiredArgsConstructor
