@@ -11,8 +11,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class SessionProvider
 {
-    public static final String SESSION_USER_KEY = "SESSION_USER_KEY";
-
     @Getter
     @Value("${secret.related.excepts}")
     private String excepts;

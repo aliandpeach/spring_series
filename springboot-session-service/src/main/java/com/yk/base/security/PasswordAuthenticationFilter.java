@@ -95,6 +95,7 @@ public class PasswordAuthenticationFilter extends UsernamePasswordAuthentication
         {
             return super.getAuthenticationManager().authenticate(new UsernamePasswordAuthenticationToken("", ""));
         }
+
         threadLocal.set(httpServletRequestWrapper);
         UserDataDTO user = null;
         try (InputStream input = httpServletRequestWrapper.getInputStream())

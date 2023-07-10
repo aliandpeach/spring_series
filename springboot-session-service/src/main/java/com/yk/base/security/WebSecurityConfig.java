@@ -13,20 +13,15 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.Header;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
-import org.springframework.security.web.session.InvalidSessionStrategy;
 import org.springframework.security.web.session.SessionInformationExpiredEvent;
 import org.springframework.security.web.session.SessionInformationExpiredStrategy;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
@@ -94,7 +89,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
                 .anyRequest().authenticated();  // 其余请求都需要过滤
 
         // formLogin -> new FormLoginConfigurer 注释formLogin拦截器UsernamePasswordAuthenticationFilter就不会加入filter chain链中
-        // http.formLogin().loginPage("/login");
+         http.formLogin().loginPage("/login").disable();
         // CookieCsrfTokenRepository 策略会把后台生成的csrf组装成cookie响应到前端, 前端获取后放入http header, header name必须是X-XSRF-TOKEN或者放入getParameter, name 必须是_csrf
         // HttpSessionCsrfTokenRepository 则是吧生成的csrf放入session
         http.csrf().csrfTokenRepository(new CookieCsrfTokenRepository())
