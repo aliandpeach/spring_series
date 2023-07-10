@@ -1,8 +1,8 @@
 package com.yk.base.security;
 
-import com.yk.base.exception.CustomException;
+import com.yk.base.exception.BaseResponse;
+import com.yk.base.exception.ResponseCode;
 import com.yk.httprequest.JSONUtil;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
@@ -26,7 +26,7 @@ public class SpringSecurityAccessDeniedHandler implements AccessDeniedHandler
     {
         response.setCharacterEncoding("UTF-8");
         response.setContentType("application/json;charset=UTF-8");
-        String result = JSONUtil.toJson(new CustomException("鉴权错误，请重新登录", HttpStatus.FORBIDDEN));
-        response.getWriter().write(result == null ? "{\"message\": \"鉴权错误，请重新登录\"}" : result);
+        String result = JSONUtil.toJson(new BaseResponse<>(ResponseCode.UNAUTHORIZED_EXCEPTION.code, ResponseCode.UNAUTHORIZED_EXCEPTION.message));
+        response.getWriter().write(result);
     }
 }

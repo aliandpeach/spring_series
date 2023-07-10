@@ -41,8 +41,9 @@
         <logger name="com.yk" level="info" includeLocation="true" additivity="false">
             <appender-ref ref="base"/>
         </logger>
-        <logger name="org.springframework" level="ERROR" additivity="false">
+        <logger name="org.springframework" level="INFO" additivity="false">
             <appender-ref ref="other"/>
+            <appender-ref ref="Console"/>
         </logger>
         <root level="info" includeLocation="true">
             <appender-ref ref="Console"/>

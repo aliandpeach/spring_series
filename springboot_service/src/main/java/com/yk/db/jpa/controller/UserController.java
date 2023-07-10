@@ -1,5 +1,6 @@
 package com.yk.db.jpa.controller;
 
+import com.yk.base.exception.BaseResponse;
 import com.yk.db.jpa.dto.UserDataDTO;
 import com.yk.db.jpa.model.Role;
 import com.yk.db.jpa.model.User;
@@ -60,26 +61,31 @@ public class UserController implements InitializingBean
 
     @PostMapping("/log/record")
     @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN')")
-    public Map<String, String> log(@RequestParam String log)
+    public BaseResponse<Map<String, String>> log(@RequestParam String log)
     {
         LOGGER.error(log);
-        return Collections.singletonMap("result", "success");
+        BaseResponse<Map<String, String>> br = new BaseResponse<>();
+        return br;
     }
 
     @RequestMapping("/query/user/all")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public List<User> queryAllUser()
+    public BaseResponse<List<User>> queryAllUser()
     {
+        BaseResponse<List<User>> br = new BaseResponse<>();
         List<User> users = userRepository.findAll();
-        return users;
+        br.setData(users);
+        return br;
     }
 
     @RequestMapping("/query/role/all")
     @PreAuthorize("hasRole('ROLE_CLIENT')")
-    public List<Role> queryAllRole()
+    public BaseResponse<List<Role>> queryAllRole()
     {
+        BaseResponse<List<Role>> br = new BaseResponse<>();
         List<Role> roles = roleRepository.findAll();
-        return roles;
+        br.setData(roles);
+        return br;
     }
 
     /**
@@ -90,11 +96,13 @@ public class UserController implements InitializingBean
     @ApiResponses(value = {
             @ApiResponse(code = 400, message = "Something went wrong"), //
             @ApiResponse(code = 422, message = "Invalid name/passwd supplied")})
-    public String login(@ApiParam("name") @RequestBody @Validated UserDataDTO user)
+    public BaseResponse<Map<String, String>> login(@ApiParam("name") @RequestBody @Validated UserDataDTO user)
     {
-        String result = userService.signin(user.getName(), user.getPasswd());
-        LOGGER.info("sign in success : " + result);
-        return result;
+        BaseResponse<Map<String, String>> br = new BaseResponse<>();
+        Map<String, String> result = userService.signin(user.getName(), user.getPasswd());
+        LOGGER.info("sign in success : " + user.getName());
+        br.setData(result);
+        return br;
     }
 
     /**
@@ -108,15 +116,17 @@ public class UserController implements InitializingBean
             @ApiResponse(code = 422, message = "name is already in use")})
     // MyBatisConfiguration 的DataSourceTransactionManager 默认使用在JPA上会无法生效， 所以这里需要特别指定JPA自己的自定义事务名
     // 不指定事务的时候，JPA会默认使用 transactionManager bean
-    public String signup(@ApiParam("Signup User") @RequestBody UserDataDTO userDataDTO)
+    public BaseResponse<Map<String, String>> signup(@ApiParam("Signup User") @RequestBody UserDataDTO userDataDTO)
     {
+        BaseResponse<Map<String, String>> br = new BaseResponse<>();
         User user = new User();
         List<Role> roles = new ArrayList<>(Collections.singleton(roleRepository.findRoleByName("ROLE_CLIENT")));
         user.setRoles(roles);
         user.setGroup(groupRepository.findByName("GROUP_CLIENT"));
         user.setName(userDataDTO.getName());
         user.setPasswd(userDataDTO.getPasswd());
-        return userService.signup(user);
+        userService.signup(user);
+        return br;
     }
 
     @Override

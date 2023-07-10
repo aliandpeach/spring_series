@@ -12,15 +12,23 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.context.HttpRequestResponseHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.context.SecurityContextPersistenceFilter;
+import org.springframework.security.web.context.SecurityContextRepository;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import java.util.Optional;
 
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)// @PreAuthorize生效
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 {
     @Autowired
@@ -29,14 +37,24 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    public WebSecurityConfig()
+    {
+        // 设置为true, 默认的拦截器不会开启, 避免内部执行getSession后产生session
+        // 但其实我只需要移除session相关的, 因此只需要移除http.sessionManagement().disable()和http.securityContext().disable()即可
+        // super(true);
+    }
+
     @Override
     protected void configure(HttpSecurity http) throws Exception
     {
-        // Disable CSRF (cross site request forgery)
         http.csrf().disable();
+        http.formLogin().disable();
 
         // No session will be created or used by spring security
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+        http.sessionManagement().disable();
+        // 移除SecurityContextPersistenceFilter及其内部操作session的相关类的配置
+        http.securityContext().disable();
 
         String[] excepts = Optional.ofNullable(jwtTokenProvider.getExcepts()).orElse("").split(";");
 
@@ -44,8 +62,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
         http.authorizeRequests()
                 .antMatchers(excepts).permitAll()
                 .antMatchers("/h2-console/**/**").permitAll()
-//                .antMatchers("/error").permitAll()
-                // Disallow everything else..
                 .anyRequest().authenticated();
 
         // If a user try to access a resource without having enough permissions
@@ -65,9 +81,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter
 
         // Apply JWT
         http.apply(new JwtTokenFilterConfigurer(jwtTokenProvider, authenticationManager));
-
-        // Optional, if you want to test the API from a browser
-        // http.httpBasic();
     }
 
     @Override

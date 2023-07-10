@@ -1,10 +1,13 @@
 package com.yk.base.security;
 
+import com.yk.base.exception.BaseResponse;
 import com.yk.base.exception.CustomException;
+import com.yk.base.exception.ResponseCode;
 import com.yk.httprequest.JSONUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -102,12 +105,18 @@ public class JwtTokenFilter extends OncePerRequestFilter
         {
             if (null == token)
             {
-                throw new CustomException("JWT token verify failed", HttpStatus.FORBIDDEN);
+//                throw new AccessDeniedException("JWT token verify failed");
+//                throw new CustomException("JWT token verify failed", ResponseCode.ACCOUNT_TOKEN_VERIFY_ERROR.code);
+                // 这里不用担心,直接往下走就行, 没有SecurityContextHolder.getContext().setAuthentication(auth)这一步,
+                // AnonymousAuthenticationFilter会判断getAuthentication是否为空, 如果是空的, 就创建一个匿名的auth， 最后在FilterSecurityInterceptor中抛出AccessDinedException
+                // 不过也可以抛出自定义异常CustomException 或者 AccessDeniedException
+                filterChain.doFilter(httpServletRequest, httpServletResponse);
+                return;
             }
             if (null != SecurityContextHolder.getContext().getAuthentication()
                     && SecurityContextHolder.getContext().getAuthentication().isAuthenticated())
             {
-                logger.error("");
+                logger.info("");
             }
             if (jwtTokenProvider.validateToken(token))
             {
@@ -115,9 +124,9 @@ public class JwtTokenFilter extends OncePerRequestFilter
                 // 保证了token不用重新登录, 用户也可以直接获取权限
                 Authentication auth = jwtTokenProvider.getAuthentication(token);
                 // 这里应该是为了后续线程执行到Controller前对权限等的校验, 如果删除下面行, 则token虽然校验成功, 但是执行Controller的权限失败
+                // 没有setAuthentication的这一步, 后续走到FilterSecurityInterceptor 中, 会抛出AccessDinedException由handler处理, 之后根据是否是匿名用户（未登录）判断是否改处理成AuthenticationException
                 SecurityContextHolder.getContext().setAuthentication(auth);
-                UsernamePasswordAuthenticationToken authentication = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
-                logger.error("");
+                logger.info("jwt token verify success");
             }
         }
         catch (CustomException ex)
@@ -143,8 +152,8 @@ public class JwtTokenFilter extends OncePerRequestFilter
             // 2.
             httpServletResponse.setStatus(HttpStatus.BAD_REQUEST.value());
             httpServletResponse.setContentType("application/json");
-            String result = JSONUtil.toJson(new CustomException(ex.getMessage(), ex.getHttpStatus()));
-            httpServletResponse.getWriter().write(result == null ? "{\"message\": \"" + ex.getMessage() + "\"}" : result);
+            String result = JSONUtil.toJson(new BaseResponse<>(ex.getCode(), ex.getMessage()));
+            httpServletResponse.getWriter().write(result);
             return;
         }
         filterChain.doFilter(httpServletRequest, httpServletResponse);

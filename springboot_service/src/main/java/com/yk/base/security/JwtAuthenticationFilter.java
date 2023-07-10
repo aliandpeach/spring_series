@@ -1,17 +1,16 @@
 package com.yk.base.security;
 
-import com.yk.base.exception.CustomException;
 import com.yk.base.filter.NewHttpServletRequestWrapper;
 import com.yk.db.jpa.dto.UserDataDTO;
 import com.yk.httprequest.JSONUtil;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -36,10 +35,13 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 {
     private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenFilter.class);
 
-    private ThreadLocal<HttpServletRequestWrapper> threadLocal = new ThreadLocal<>();
+    private final ThreadLocal<HttpServletRequestWrapper> threadLocal = new ThreadLocal<>();
 
-    public JwtAuthenticationFilter(AuthenticationManager authenticationManager)
+    private final JwtTokenProvider jwtTokenProvider;
+
+    public JwtAuthenticationFilter(AuthenticationManager authenticationManager, JwtTokenProvider jwtTokenProvider)
     {
+        this.jwtTokenProvider = jwtTokenProvider;
         super.setAuthenticationManager(authenticationManager);
         super.setContinueChainBeforeSuccessfulAuthentication(false);
         super.setFilterProcessesUrl("/api/signin");
@@ -89,14 +91,13 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                             FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException
     {
+        SecurityContextHolder.getContext().setAuthentication(authResult);
         chain.doFilter(threadLocal.get(), response);
     }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException
     {
-        response.setContentType("application/json");
-        String result = JSONUtil.toJson(new CustomException("密码校验失败", HttpStatus.FORBIDDEN));
-        response.getWriter().write(result == null ? "{\"message\": \"密码校验失败\"}" : result);
+        super.unsuccessfulAuthentication(request, response, failed);
     }
 }
