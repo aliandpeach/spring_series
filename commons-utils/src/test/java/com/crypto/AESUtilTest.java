@@ -2,23 +2,43 @@ package com.crypto;
 
 import cn.hutool.core.util.HexUtil;
 import com.yk.crypto.AESUtil;
+import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyStore;
+import java.util.Base64;
 
 import static com.yk.crypto.AESUtil.ENCRYPTION_KEY_ALIAS;
 import static com.yk.crypto.AESUtil.KEYSTORE_PASS;
 
 public class AESUtilTest
 {
+    @Test
+    public void testAES() throws Exception
+    {
+        String ALGORITHM = "AES/CBC/PKCS5Padding";
+        String KEY = "0123456789abcdef0123456789abcdef"; // 256-bit密钥
+        String IV = "0123456789abcdef"; // 128-bit初始向量
+
+        byte[] bytes = IOUtils.toByteArray(new FileInputStream("C:\\Users\\yangkai\\Downloads\\FoxitPDFEditor_emhpaHU=.exe"));
+
+        Cipher cipher = Cipher.getInstance(ALGORITHM);
+        SecretKeySpec keySpec = new SecretKeySpec(KEY.getBytes(StandardCharsets.UTF_8), "AES");
+        IvParameterSpec ivSpec = new IvParameterSpec(IV.getBytes(StandardCharsets.UTF_8));
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+        byte[] encryptedBytes = cipher.doFinal(bytes);
+        System.out.println(Base64.getEncoder().encodeToString(encryptedBytes));
+    }
+
     @Test
     public void testInitialize()
     {
@@ -33,7 +53,12 @@ public class AESUtilTest
     {
         String encryptString = AESUtil.encrypt("Admin@0123");
         System.out.println(encryptString);
-        String string = AESUtil.decrypt(encryptString);
+    }
+
+    @Test
+    public void testDecrypt()
+    {
+        String string = AESUtil.decrypt("bDfQRq7gf6FLkY8UYpPMeg==");
         System.out.println(string);
     }
 
