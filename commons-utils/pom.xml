@@ -279,13 +279,17 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.vividsolutions/jts-core -->
         <dependency>
             <groupId>com.vividsolutions</groupId>
             <artifactId>jts-core</artifactId>
             <version>1.14.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>de.schlichtherle.truelicense</groupId>
+            <artifactId>truelicense-core</artifactId>
+            <version>1.33</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <resources>
@@ -318,6 +322,10 @@
                     <include>**/*.xml</include>
                     <include>**/*.der</include>
                     <include>**/*.crt</include>
+                    <include>**/*.ks</include>
+                    <include>**/*.ts</include>
+                    <include>**/*.cer</include>
+                    <include>**/*.properties</include>
                 </includes>
             </testResource>
         </testResources>

@@ -7,6 +7,8 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -69,6 +71,13 @@ public class WaitNotifyTest
         String k3 = test.computeIfAbsent("c", t -> "c"); // 没有就插入数据, 返回插入的数据; 有就不插入, 返回已有数据
         String k4 = test.compute("d", (a, b) -> "d");
         System.out.println(test);
+
+        Map<String, Map<String, String>> test_map = new ConcurrentHashMap<>();
+        test_map.compute("key", (k, v) -> {
+            System.out.println(k);
+            System.out.println(v);
+            return new HashMap<>(Collections.singletonMap("test", "t_value"));
+        });
 
 
         System.out.println(9 % 1);

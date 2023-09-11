@@ -170,6 +170,18 @@ public class BinHexSHAUtil
         
         return bts;
     }
+
+    public static byte[] binaryStringToBytes(String binaryString)
+    {
+        int length = binaryString.length() / 8;
+        byte[] bytes = new byte[length];
+        for (int i = 0; i < length; i++)
+        {
+            String binary = binaryString.substring(i * 8, (i + 1) * 8);
+            bytes[i] = (byte) Integer.parseInt(binary, 2);
+        }
+        return bytes;
+    }
     
     /**
      * 字节数组转二进制字符串
@@ -190,6 +202,18 @@ public class BinHexSHAUtil
             out.append(dic[Integer.parseInt(s.substring(1, 2), 16)]);
         }
         return out.toString();
+    }
+
+    public static String bytesToBinaryString(byte[] bytes)
+    {
+        StringBuilder binaryString = new StringBuilder();
+        for (byte b : bytes)
+        {
+            // 将每个字节转换为二进制字符串，并补足前导零
+            String binary = String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0');
+            binaryString.append(binary);
+        }
+        return binaryString.toString();
     }
     
     /**
