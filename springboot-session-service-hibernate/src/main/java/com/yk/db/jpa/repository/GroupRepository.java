@@ -28,7 +28,7 @@ import java.util.List;
  * @since 2021/11/05 17:37:11
  */
 @Repository
-@Transactional
+// @Transactional // 注释掉, 使用切面配置事务
 public class GroupRepository extends HibernateDaoSupport
 {
     public GroupRepository(SessionFactory sessionFactory, HibernateTemplate hibernateTemplate)
@@ -64,7 +64,7 @@ public class GroupRepository extends HibernateDaoSupport
 
         // 4.
         CriteriaBuilder builder = session.getCriteriaBuilder();
-        CriteriaQuery<Group> criteriaQuery = session.getCriteriaBuilder().createQuery(Group.class);
+        CriteriaQuery<Group> criteriaQuery = builder.createQuery(Group.class);
         Root<Group> root = criteriaQuery.from(Group.class);
         // 封装查询条件
         Predicate predicate = builder.equal(root.get("name"), name);

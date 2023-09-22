@@ -4,6 +4,7 @@ import com.yk.base.exception.BaseResponse;
 import com.yk.base.exception.CustomException;
 import com.yk.base.exception.ResponseCode;
 import com.yk.db.jpa.dto.UserDataDTO;
+import com.yk.db.jpa.model.Group;
 import com.yk.db.jpa.model.Role;
 import com.yk.db.jpa.model.User;
 import com.yk.db.jpa.repository.GroupRepository;
@@ -30,7 +31,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -91,10 +91,12 @@ public class UserController implements InitializingBean
     }
 
     @GetMapping("/log/throw")
-    @Transactional
+    // @Transactional // 注释掉, 使用切面配置事务
     public BaseResponse<Map<String, String>> log()
     {
+        Group group = groupRepository.findByName("GROUP_CLIENT");
         List<User> users = userRepository.findAll();
+        User user = userRepository.findByName("admin");
         if (sessionFactory != null)
         {
             List<Role> list = sessionFactory.getCurrentSession().createQuery("select r from Role r where r.name like :name", Role.class)
@@ -104,6 +106,7 @@ public class UserController implements InitializingBean
 
         if (null != hibernateTemplate)
         {
+            List<User> userList = hibernateTemplate.loadAll(User.class);
             Map<String, Object> result = hibernateTemplate.execute(new HibernateCallback<Map<String, Object>>()
             {
                 @Override

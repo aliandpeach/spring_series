@@ -20,7 +20,7 @@ import java.util.List;
  */
 
 @Repository
-@Transactional // 未配置会产生异常: Could not obtain transaction-synchronized Session for current thread
+// @Transactional // // 注释掉, 使用切面配置事务
 public class UserRepository extends HibernateDaoSupport
 {
     @Autowired

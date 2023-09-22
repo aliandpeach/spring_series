@@ -3,6 +3,7 @@ package com.yk.base.config;
 import org.hibernate.SessionFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.ImportResource;
 import org.springframework.orm.hibernate5.HibernateTemplate;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
@@ -21,6 +22,8 @@ import java.util.Properties;
  */
 @Configuration
 @EnableTransactionManagement(proxyTargetClass = true)
+// 配置切面事务, 若不配置切面事务, 就要给操作数据库的方法上配置@Transactional否则产生异常: Could not obtain transaction-synchronized Session for current thread
+@ImportResource({ "classpath:transaction-management.xml" })
 public class JpaConfig
 {
     /**

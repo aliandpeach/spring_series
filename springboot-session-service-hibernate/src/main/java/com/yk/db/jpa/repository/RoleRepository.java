@@ -16,7 +16,7 @@ import java.util.List;
  * @since 2021/11/05 17:37:11
  */
 @Repository
-@Transactional
+// @Transactional // 注释掉, 使用切面配置事务
 public class RoleRepository extends HibernateDaoSupport
 {
     public RoleRepository(SessionFactory sessionfactory)
