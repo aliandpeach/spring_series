@@ -1,0 +1,64 @@
+spring:
+  autoconfigure:
+    exclude:
+      - com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
+      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
+  application:
+    name: springboot-session-service-hibernate
+
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:13306/session_demo?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true
+    username: root
+    password: root
+    hikari:
+      maximumPoolSize: 15
+      minimumIdle: 5
+      idleTimeout: 30000
+      connectionTimeout: 30000
+      maxLifetime: 1800000
+      connectionTestQuery: SELECT 1
+      poolName: DatebookHikariCP
+      autoCommit: true
+  session:
+    store-type: redis
+  redis:
+    host: 127.0.0.1
+    port: 6379
+    password:
+    database: 0
+    timeout: 5000
+    lettuce:
+      pool:
+        max-active: 8
+        max-wait: -1
+        max-idle: 8
+        min-idle: 0
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    properties:
+      # dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+      format_sql: true
+server:
+  port: 9098
+  servlet:
+    context-path: /
+    encoding:
+      force: true # HttpEncodingAutoConfiguration
+    session:
+      timeout: 600
+  ssl:
+    enabled: true
+    key-store: classpath:key/website.ks
+    key-password: Admin@1234
+    key-store-type: JKS
+    key-store-password: Admin@123
+  error:
+    path: /error
+secret:
+  related:
+    excepts: /api/signin;/api/signup
