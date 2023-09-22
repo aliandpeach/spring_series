@@ -55,16 +55,10 @@
         <logger name="org.springframework" additivity="false" level="WARN"/>
         <logger name="com.zaxxer.hikari" additivity="false" level="DEBUG" />
         <logger name="org.hibernate" additivity="false" level="DEBUG" />-->
-        <logger name="org.springframework" level="INFO" additivity="false">
-            <appender-ref ref="other"/>
-            <appender-ref ref="Console"/>
-        </logger>
-        <logger name="org.apache" level="INFO" additivity="false">
-            <appender-ref ref="other"/>
-            <appender-ref ref="Console"/>
-        </logger>
+        <logger name="org.springframework" level="DEBUG" additivity="true" />
+        <logger name="org.apache" level="DEBUG" additivity="true" />
 
-        <root level="info" includeLocation="true">
+        <root level="DEBUG" includeLocation="true">
             <appender-ref ref="Console"/>
             <appender-ref ref="other"/>
         </root>

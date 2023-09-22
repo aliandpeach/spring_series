@@ -15,16 +15,19 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import org.hibernate.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -33,6 +36,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -65,6 +75,8 @@ public class UserController implements InitializingBean
     @Autowired
     private UserService userService;
 
+    @PersistenceContext
+    private EntityManager entityManager;
 //    @Autowired
 //    private ModelMapper modelMapper;
 
@@ -81,6 +93,63 @@ public class UserController implements InitializingBean
     @GetMapping("/log/throw")
     public BaseResponse<Map<String, String>> log()
     {
+        List<User> users = userRepository.findAll();
+        List<Role> listRole = entityManager.createQuery("select r from Role r where r.name like :name", Role.class)
+                .setParameter("name", "%ROLE_CLIENT%").getResultList();
+        LOGGER.debug("");
+
+        List<Role> roleList = entityManager.createNativeQuery("select * from t_session_role where name like :name", Role.class)
+                .setParameter("name", "%ROLE_CLIENT%").getResultList();
+        LOGGER.debug("");
+
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Role> criteriaQuery = criteriaBuilder.createQuery(Role.class);
+        Root<Role> root = criteriaQuery.from(Role.class);
+        // 封装查询条件
+        Predicate predicate2 = criteriaBuilder.like(root.get("name").as(String.class), "%ROLE_CLIENT%");
+        Predicate predicate3 = criteriaBuilder.like(root.get("name").as(String.class), "%ROLE_ADMIN%");
+        Predicate predicate = criteriaBuilder.or(predicate2, predicate3);
+        criteriaQuery.where(predicate);
+        criteriaQuery.orderBy(criteriaBuilder.desc(root.get("name")));
+        // 执行查询
+        TypedQuery<Role> typeQuery = entityManager.createQuery(criteriaQuery);
+        List<Role> roleListCriteria = typeQuery.getResultList();
+
+
+        CriteriaBuilder criteriaBuilder_1 = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Role> criteriaQuery_1 = criteriaBuilder_1.createQuery(Role.class);
+        Root<Role> root_1 = criteriaQuery_1.from(Role.class);
+        // 封装查询条件
+        Predicate predicate2_1 = criteriaBuilder_1.like(root_1.get("name").as(String.class), "%ROLE_CLIENT%");
+        Predicate predicate3_1 = criteriaBuilder_1.like(root_1.get("name").as(String.class), "%ROLE_ADMIN%");
+        Predicate predicate_1 = criteriaBuilder_1.or(predicate2_1, predicate3_1);
+        criteriaQuery_1.where(predicate_1);
+        criteriaQuery_1.orderBy(criteriaBuilder_1.desc(root_1.get("name")));
+        // you must annotate the method with the @Transactional annotation
+        // 这里用到Session,所以必须和springboot-session-service-hibernate工程中一样给方法加入事务
+//        List<Role> roleListCriteria2 = entityManager.unwrap(Session.class).createQuery(criteriaQuery_1).getResultList();
+
+        List<Role> roleListAll = roleRepository.findAll(new Specification<Role>()
+        {
+            @Override
+            public Predicate toPredicate(Root<Role> root, CriteriaQuery<?> query, CriteriaBuilder criteriaBuilder)
+            {
+                List<Predicate> predicateList = new ArrayList<>();
+                predicateList.add(criteriaBuilder.equal(root.get("name"), "ROLE_CLIENT"));
+                if (predicateList.size() > 0)
+                {
+                    Predicate[] predicates = new Predicate[predicateList.size()];
+                    for (int i = 0; i < predicates.length; i++)
+                    {
+                        predicates[i] = predicateList.get(i);
+                    }
+                    query.where(predicates);
+                }
+                query.orderBy(criteriaBuilder.desc(root.get("name")));
+                return query.getRestriction();
+            }
+        });
+
         throw new CustomException(ResponseCode.USER_TEST_ERROR.message, ResponseCode.USER_TEST_ERROR.code);
     }
 
@@ -146,9 +215,10 @@ public class UserController implements InitializingBean
 
     /**
      * 该方法不能让管理员为其他用户更新权限, 只能是当前登录用户更新自己的权限(所以该接口意义不大)
-     *
+     * <p>
      * 1. 可强制让在线用户下线
      * 2. 获取redis中所有在线用户, 修改某用户的权限信息
+     *
      * @return BaseResponse
      */
     @GetMapping("/vip")

@@ -265,7 +265,9 @@
                         </goals>
                         <configuration>
                             <finalName>${project.name}</finalName>
-                            <descriptor>/src/main/resources/assembly.xml</descriptor>
+                            <descriptors>
+                                <descriptor>src/main/resources/assembly.xml</descriptor>
+                            </descriptors>
                         </configuration>
                     </execution>
                 </executions>

@@ -24,8 +24,34 @@ public class JpaConfig
     /**
      * 自动配置 {@link org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration} 不需要手动配置
      *         HibernateJpaAutoConfiguration -> HibernateJpaConfiguration -> JpaBaseConfiguration
-     * @param dataSource
-     * @return
+     *
+     *     JPA的配置方式
+     *     <bean id="entityManagerFactory"
+     *         class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+     *
+     *         <property name="jpaVendorAdapter">
+     *             <bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+     *                 <property name="showSql" value="true" />
+     *                 <property name="generateDdl" value="true" />
+     *                 <property name="databasePlatform" value="${db.dialect}" />
+     *             </bean>
+     *         </property>
+     *         <property name="jpaProperties">
+     *             <props>
+     *                 <!-- base -->
+     *                 <prop key="hibernate.hbm2ddl.auto">update</prop>
+     *                 <prop key="hibernate.transaction.flush_before_completion">true</prop>
+     *                 <!-- show_sql -->
+     *                 <prop key="hibernate.show_sql">false</prop>
+     *                 <!-- cache -->
+     *                 <prop key="hibernate.cache.use_query_cache">true</prop>
+     *                 <prop key="hibernate.cache.use_second_level_cache">true</prop>
+     *                 <prop key="hibernate.cache.provider_class">net.sf.ehcache.hibernate.EhCacheProvider</prop>
+     *                 <prop key="hibernate.cache.region.factory_class">org.hibernate.cache.ehcache.SingletonEhCacheRegionFactory
+     *                 </prop>
+     *             </props>
+     *         </property>
+     *     </bean>
      */
 //    @Bean
     public LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource)
