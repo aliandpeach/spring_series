@@ -19,10 +19,15 @@
         </listener-class>
     </listener>
 
-    <!-- 这里不配置的话，Spring 会默认通过 ContextLoader.properties 的配置来初始化 XmlWebApplicationContext-->
+    <!-- 这里不配置的话，Spring 会默认通过 ContextLoader.properties 的配置来初始化 XmlWebApplicationContext -->
     <!--<context-param>
         <param-name>contextClass</param-name>
         <param-value>org.springframework.web.context.support.XmlWebApplicationContext</param-value>
+    </context-param>-->
+    <!-- 初始化自定义的 ApplicationContextInitializer接口实现类, 多个实现类用逗号或分号分隔 -->
+    <!--<context-param>
+        <param-name>contextInitializerClasses</param-name>
+        <param-value>com.yk.base.config.MyApplicationContextInitializerA;com.yk.base.config.MyApplicationContextInitializerB</param-value>
     </context-param>-->
     <context-param>
         <param-name>contextConfigLocation</param-name>
