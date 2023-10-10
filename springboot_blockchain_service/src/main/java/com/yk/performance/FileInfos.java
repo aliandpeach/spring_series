@@ -18,8 +18,6 @@ import java.util.List;
 @XmlAccessorType(XmlAccessType.FIELD)
 public class FileInfos
 {
-    @Valid
     @XmlElement(name = "file")
-    @NotNull
-    private List<FileInfoParam> fileInfoParamList;
+    private List<@Valid FileInfoParam> fileInfoParamList;
 }

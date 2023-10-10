@@ -67,7 +67,8 @@ server:
   servlet:
     context-path: /
     encoding:
-      force: true # HttpEncodingAutoConfiguration
+      force: true # org.springframework.boot.autoconfigure.web.servlet.HttpEncodingAutoConfiguration
+                  # spring.http.encoding.charset 配置2.2.3后已经过期
   ssl:
     enabled: true
     key-store: classpath:key/website.ks

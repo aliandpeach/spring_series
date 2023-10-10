@@ -129,8 +129,7 @@ public class ControllerExceptionHandler
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
-    public BaseResponse<?> handleHttpMediaTypeNotSupportedException(
-            HttpMediaTypeNotSupportedException e)
+    public BaseResponse<?> handleHttpMediaTypeNotSupportedException(HttpMediaTypeNotSupportedException e)
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
         baseResponse.setCode(5);
@@ -139,12 +138,11 @@ public class ControllerExceptionHandler
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public BaseResponse<?> handleHttpMessageNotReadableException(
-            HttpMessageNotReadableException e)
+    public BaseResponse<?> handleHttpMessageNotReadableException(HttpMessageNotReadableException e)
     {
         BaseResponse<?> baseResponse = handleBaseException(e);
         baseResponse.setCode(6);
-//        baseResponse.setMessage("缺失请求主体");
+        baseResponse.setMessage("缺失请求主体");
         return baseResponse;
     }
 
@@ -234,10 +232,10 @@ public class ControllerExceptionHandler
 
 //        logger.error("Captured an exception:", t);
 
-        if (logger.isDebugEnabled())
+        /*if (logger.isDebugEnabled())
         {
             baseResponse.setMessage(getStackTrace(t));
-        }
+        }*/
 
         return baseResponse;
     }

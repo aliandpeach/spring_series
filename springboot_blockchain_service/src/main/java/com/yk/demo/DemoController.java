@@ -6,8 +6,10 @@ import com.yk.demo.model.BlockchainModel;
 import com.yk.demo.model.DemoModel;
 import com.yk.demo.model.GroupInterface;
 import com.yk.demo.service.DemoService;
+import com.yk.performance.ArrayModel;
 import com.yk.performance.FileInfoParam;
 import com.yk.performance.FileInfos;
+import com.yk.performance.ListModel;
 import com.yk.util.ValidationTool;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
@@ -22,6 +24,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -262,6 +267,55 @@ public class DemoController
         return fileInfos;
     }
 
+    @GetMapping(value = "/request/body/xml/get", produces = "application/xml")
+    @ResponseBody
+    public FileInfos get()
+    {
+        FileInfos fileInfos = new FileInfos();
+        FileInfoParam fileInfoParam = new FileInfoParam();
+        fileInfoParam.setId("1000");
+        fileInfoParam.setName("1000");
+        fileInfos.setFileInfoParamList(Collections.singletonList(fileInfoParam));
+        return fileInfos;
+    }
+
+    /**
+     *
+     */
+    @PostMapping(value = "/request/body/array")
+    @ResponseBody
+    public ArrayModel array(@RequestBody @Validated ArrayModel arrayModel)
+    {
+        return arrayModel;
+    }
+
+    /**
+     *
+     */
+    @PostMapping(value = "/request/body/list")
+    @ResponseBody
+    public ListModel list(@RequestBody @Validated ListModel listModel)
+    {
+        return listModel;
+    }
+
+    @PostMapping(value = "/request/body/list/string")
+    @ResponseBody
+    public List<String> listString(@RequestBody @Validated @NotEmpty(message = "empty") List<@Valid String> ids) // not use
+    {
+        return ids;
+    }
+
+    /**
+     * form-data或者www-form-urlencoded格式的body
+     */
+    @PostMapping(value = "/request/body/id")
+    @ResponseBody
+    public String id(String dataId)
+    {
+        return dataId;
+    }
+
     /**
      * 接收参数格式:
      *
@@ -332,6 +386,20 @@ public class DemoController
     @PostMapping(value = "/request/object")
     @ResponseBody
     public DemoModel object(DemoModel demoModel)
+    {
+        return demoModel;
+    }
+
+    @PostMapping(value = "/request/object2")
+    @ResponseBody
+    public DemoModel object2(DemoModel demoModel, BlockchainModel blockchainModel)
+    {
+        return demoModel;
+    }
+
+    @GetMapping(value = "/request/object3")
+    @ResponseBody
+    public DemoModel object3(DemoModel demoModel, BlockchainModel blockchainModel)
     {
         return demoModel;
     }
