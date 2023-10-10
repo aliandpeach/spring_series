@@ -22,22 +22,19 @@ import org.apache.shiro.subject.SubjectContext;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.mgt.DefaultWebSubjectFactory;
 import org.apache.shiro.web.mgt.WebSecurityManager;
+import org.apache.shiro.web.servlet.SimpleCookie;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
+import org.crazycake.shiro.RedisCacheManager;
+import org.crazycake.shiro.RedisManager;
+import org.crazycake.shiro.RedisSessionDAO;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 
 import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -57,6 +54,17 @@ public class ShiroConfig
     private UsernamePasswordMatcher usernamePasswordMatcher;
 
     /**
+     *   <filter>
+     *     <filter-name>shiroFilter</filter-name>
+     *     <filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+     *   </filter>
+     *   <filter-mapping>
+     *     <filter-name>shiroFilter</filter-name>
+     *     <url-pattern>/*</url-pattern>
+     *     <dispatcher>REQUEST</dispatcher>
+     *     <dispatcher>FORWARD</dispatcher>
+     *   </filter-mapping>
+     *
      * shiroFilter 作为bean用于通过servletContext.addFilter注册生成拦截器 (mvc 没有FilterRegistrationBean, 而是通过DelegatingFilterProxy)
      * MyWebAppInitializer -> servletContext.addFilter("shiroFilter", new DelegatingFilterProxy())
      *
@@ -154,34 +162,92 @@ public class ShiroConfig
             }
         });
 
-        // SessionManager不使用自定义, 默认为ServletContainerSessionManager,
-        // 前端请求被ShiroFilter解析为Session(获取HttpSession组装为Session, 组装Subject信息), 通过UserFilter, 从Subject获取当前登录用户, 若不存在则redirectToLogin
+        // SessionManager不使用自定义, 默认为 ServletContainerSessionManager,
+        // 前端请求被 AbstractShiroFilter -> doFilterInternal -> createSubject -> resolveSession -> getSession 解析为Session,
+        // (获取HttpSession组装为Session, 组装Subject信息), 通过UserFilter, 从Subject获取当前登录用户, 若不存在则redirectToLogin
 
         securityManager.setSessionManager(sessionManager);
         SecurityUtils.setSecurityManager(securityManager);
         return securityManager;
+
+        // 若使用 ShiroWebConfiguration 作为bean去配置shiro.userNativeSessionManager=true, 通过nativeSessionManager方法去创建SessionManager,
+        // 内部的SessionDAO等bean都需要配置, 否则使用默认的
+    }
+
+    /**
+     * <bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+     * 		<constructor-arg value="Authorization" />
+     * 		<property name="httpOnly" value="true" />
+     * </bean>
+     */
+
+    @Bean
+    public SimpleCookie simpleCookie(SessionDAO sessionDAO)
+    {
+        SimpleCookie simpleCookie = new SimpleCookie("Authorization");
+        simpleCookie.setHttpOnly(true);
+        return simpleCookie;
     }
 
     /**
      * 自定义sessionManager
      */
     @Bean
-    public SessionManager sessionManager(SessionDAO sessionDAO)
+    public SessionManager sessionManager(SessionDAO sessionDAO, SimpleCookie simpleCookie)
     {
-        // default JSESSIONID
-        DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
+        // default JSESSIONID (native session), Cookie: JSESSIONID=665069e5066exxx
+        // 使用setSessionIdCookie设置后, 改为Authorization, 变为 Cookie: Authorization=665069e5066exxx
+        // 若不想使用Cookie作为header头, 而是Authorization: Bearer 665069e5066exxx, 则需要重写 DefaultWebSessionManager部分方法去解析Authorization作为header头
+//        DefaultWebSessionManager sessionManager = new DefaultWebSessionManager();
+        StatelessDefaultWebSessionManager sessionManager = new StatelessDefaultWebSessionManager();
+        // 不再使用cookie
+        sessionManager.setSessionIdCookieEnabled(false);
         sessionManager.setSessionDAO(sessionDAO);
+        // session超时时间
+        sessionManager.setGlobalSessionTimeout(1800000000);
         return sessionManager;
     }
 
+    /**
+     * redis缓存， 如有需要可自行实现 SessionDAO, CacheManager, Cache<K, V>
+     */
     @Bean
-    public SessionDAO sessionDAO(CacheManager cacheManager)
+    public SessionDAO sessionDAO(RedisManager redisManager)
     {
-        EnterpriseCacheSessionDAO enterpriseCacheSessionDAO = new EnterpriseCacheSessionDAO();
-        //设置session缓存的名字 默认为 shiro-activeSessionCache
-        enterpriseCacheSessionDAO.setActiveSessionsCacheName("shiro-activeSessionCache");
-        enterpriseCacheSessionDAO.setCacheManager(cacheManager);
-        return enterpriseCacheSessionDAO;
+        RedisSessionDAO sessionDAO = new RedisSessionDAO();
+        sessionDAO.setRedisManager(redisManager);
+        return sessionDAO;
+    }
+
+    /**
+     * shiro 获取cache的调用链： ( 这里的 AbstractNativeSessionManager 就是 DefaultWebSessionManager )
+     * AbstractShiroFilter -> doFilterInternal -> createSubject -> resolveSession -> resolveContextSession -> AbstractNativeSessionManager.getSession ->
+     *  lookupSession -> retrieveSession -> retrieveSessionFromDataSource -> sessionDAO.readSession -> getCachedSession
+     *
+     *  若是native session则从 getSession方法开始进入 ServletContainerSessionManager.getSession -> httpServletRequest.getSession
+     *
+     * AbstractShiroFilter -> updateSessionLastAccessTime 用户更cache的最后一次访问时间
+     * session.touch() 根据org.apache.shiro.session.Session 的向下类型, 分别进入org.apache.shiro.web.session.HttpServletSession.touch()
+     *                  或者 DelegatingSession.touch, 其中 DelegatingSession是在 lookupSession 生成对象之后包装为 DelegatingSession
+     *
+     */
+    @Bean
+    public CacheManager cacheManager(RedisManager redisManager)
+    {
+        // 若自定义则实现AbstractCacheManager 以及实现Cache<K,V>接口
+        RedisCacheManager redisCacheManager = new RedisCacheManager();
+        // 这里的redisManager 放入Cache实现类RedisCache中, 在服务初始化的时候, 通过getCache获取RedisCache, 进而从redis获取数据
+        redisCacheManager.setRedisManager(redisManager);
+        return redisCacheManager;
+    }
+
+    @Bean
+    public RedisManager redisManager()
+    {
+        RedisManager redisManager = new RedisManager();
+        redisManager.setHost("127.0.0.1");
+        redisManager.setPort(6379);
+        return redisManager;
     }
 
     /**
@@ -205,21 +271,26 @@ public class ShiroConfig
         return ehCacheManager;
     }*/
 
+    @Bean
+    public SessionDAO sessionDAOEh(CacheManager cacheManagerEh)
+    {
+        EnterpriseCacheSessionDAO enterpriseCacheSessionDAO = new EnterpriseCacheSessionDAO();
+        //设置session缓存的名字 默认为 shiro-activeSessionCache
+        enterpriseCacheSessionDAO.setActiveSessionsCacheName("shiro-activeSessionCache");
+        enterpriseCacheSessionDAO.setCacheManager(cacheManagerEh);
+        return enterpriseCacheSessionDAO;
+    }
+
     /**
      * 开始是由于spring被初始化两遍,导致CacheManager初始化两次(最终有一个bean), 内部的net.sf.ehcache.CacheManager 被new了两遍
      */
     @Bean
-    public CacheManager cacheManager()
+    public CacheManager cacheManagerEh()
     {
         EhCacheManager ehCacheManager = new EhCacheManager();
+        // 通过getCache组装EhCache, 在服务初始化的时候, 在需要sessionDAO操作缓存的时候, 通过 CacheManager -> getCache获取EhCache, 进而获取数据
         ehCacheManager.setCacheManagerConfigFile("classpath:shiro-ehcache.xml");
         return ehCacheManager;
-    }
-
-    @Bean
-    public CacheManager cacheManagerRedis()
-    {
-        return null;
     }
 
     /**

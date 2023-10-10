@@ -2,6 +2,8 @@ package com.yk.base.config;
 
 import org.apache.logging.log4j.web.Log4jServletContextListener;
 import org.apache.shiro.web.servlet.ShiroFilter;
+import org.springframework.context.ApplicationContextInitializer;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.filter.DelegatingFilterProxy;
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
@@ -24,13 +26,51 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 利用该类可以实现替代web.xml  底层接口是 WebApplicationInitializer
+ * 利用该类可以实现替代web.xml  底层接口是 WebApplicationInitializer (怎么启动具体看ServletContainerInitializer的加载配置方式), 因此该类不需要自行new 对象
  *
  * 所以BaseWebApplicationInitializer 也可以，
- * 只是需要自己注册Spring的 AnnotationConfigWebApplicationContext ContextLoaderListener DispatcherServlet
+ * 只是需要自己注册Spring的 AnnotationConfigWebApplicationContext 和 DispatcherServlet
+ *
+ * 在父级AbstractContextLoaderInitializer 类中 registerContextLoaderListener -> createRootApplicationContext 判断RootConfig类是否为空,
+ * 如果为空则默认通过 new ContextLoaderListener() ->  ContextLoader -> ContextLoader.properties 的配置来初始化 XmlWebApplicationContext,
+ * 如果不为空最后创建的就是 AnnotationConfigWebApplicationContext
+ *
+ * XML模式中 ContextLoaderListener 该listener其实就是为了默认创建XmlWebApplicationContext用的
  */
 public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer
 {
+
+    /**
+     * 初始化自定义的 ApplicationContextInitializer接口实现类, 对比web.xml中的 contextInitializerClasses配置
+     */
+    @Override
+    protected ApplicationContextInitializer<?>[] getServletApplicationContextInitializers()
+    {
+        return new ApplicationContextInitializer[]{new ApplicationContextInitializer()
+        {
+            @Override
+            public void initialize(ConfigurableApplicationContext applicationContext)
+            {
+
+            }
+        }};
+    }
+
+    /**
+     * 初始化自定义的 ApplicationContextInitializer接口实现类, 对比web.xml中的 contextInitializerClasses配置
+     */
+    @Override
+    protected ApplicationContextInitializer<?>[] getRootApplicationContextInitializers()
+    {
+        return new ApplicationContextInitializer[]{new ApplicationContextInitializer()
+        {
+            @Override
+            public void initialize(ConfigurableApplicationContext applicationContext)
+            {
+
+            }
+        }};
+    }
 
     protected Class<?>[] getRootConfigClasses()
     {
