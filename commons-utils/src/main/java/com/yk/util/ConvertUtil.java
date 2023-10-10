@@ -19,6 +19,7 @@ public class ConvertUtil
      */
     public static List<Integer> asList(Integer[] integers)
     {
+        // 若以int[]作为参数, int[]会被认为是一个Object, 结果就变成了List<int[]>
         return Arrays.asList(integers);
     }
 

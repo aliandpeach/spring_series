@@ -217,15 +217,15 @@ public class BinHexSHAUtil
     }
     
     /**
-     * 10进制数字转二进制字符串
+     * 10进制数字转二进制字符串（不能用于转16进制和8进制）
      *
      * @param i     10进制数字
      * @param radix 进制只能是 2
      * @return 1010101010
      */
-    private static String integer2BinaryString(int i, int radix)
+    public static String integer2BinaryString(long i, int radix)
     {
-        Stack<Integer> stack = new Stack<>();
+        Stack<Long> stack = new Stack<>();
         while (i > 0)
         {
             stack.push(i % radix);
@@ -242,27 +242,27 @@ public class BinHexSHAUtil
     }
     
     /**
-     * 二进制字符串转10进制
+     * 二进制字符串转10进制 （不能用于转16进制和8进制）
      *
      * @param s     101010101010
      * @param radix 进制只能是 2
      * @return int
      */
-    private static int binaryString2Integer(String s, int radix)
+    public static long binaryString2Integer(String s, int radix)
     {
-        int r = 0;
+        long r = 0;
         char ary[] = s.toCharArray();
-        Stack<Integer> stack = new Stack<>();
+        Stack<Long> stack = new Stack<>();
         for (int k = ary.length - 1; k >= 0; k--)
         {
-            stack.push(Integer.parseInt(ary[k] + ""));
+            stack.push(Long.parseLong(ary[k] + ""));
         }
         
         int t = stack.size() - 1;
         while (!stack.empty())
         {
-            int p = stack.pop();
-            r += p * (int) Math.pow(radix, t);
+            long p = stack.pop();
+            r += p * (long) Math.pow(radix, t);
             t--;
         }
         return r;

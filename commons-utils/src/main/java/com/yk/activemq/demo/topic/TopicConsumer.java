@@ -1,4 +1,4 @@
-package com.yk.demo.activemq.demo.topic;
+package com.yk.activemq.demo.topic;
 
 import lombok.SneakyThrows;
 import org.apache.activemq.ActiveMQConnectionFactory;

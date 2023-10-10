@@ -1,4 +1,4 @@
-package com.yk.demo.activemq.demo.queue;
+package com.yk.activemq.demo.queue;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;

@@ -5,13 +5,16 @@ import com.yk.crypto.BinHexSHAUtil;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Test;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 
 /**
  * BinHexSHAUtilTest
@@ -95,14 +98,30 @@ public class BinHexSHAUtilTest
             e.printStackTrace();
         }
         
-        int _num = 13;
+        int _num = 21474836;
         System.out.println("十进制转二进制：" + Integer.toBinaryString(_num));
         System.out.println("十进制转八进制：" + Integer.toOctalString(_num));
         System.out.println("十进制转十六进制：" + Integer.toHexString(_num));
         System.out.println("十进制转二进制：" + Integer.toString(_num, 2));
         System.out.println("十进制转八进制：" + Integer.toString(_num, 8));
         System.out.println("十进制转十六进制：" + Integer.toString(_num, 16));
-        
+
+        System.out.println("整数转16进制1: " + Integer.toString(21474836, 16));
+
+        long m = Integer.MAX_VALUE;
+        System.out.println(m);
+        System.out.println("整数转2进制1: " + Integer.toString(2147483646, 2));
+        System.out.println("整数转2进制2: " + BinHexSHAUtil.integer2BinaryString(2147483646, 2));
+        System.out.println("2进制转整数1: " + Integer.parseInt("1111111111111111111111111111110", 2));
+        System.out.println("2进制转整数2: " + BinHexSHAUtil.binaryString2Integer("1111111111111111111111111111110", 2));
+
+        long n = Long.MAX_VALUE;
+        System.out.println(n);
+        System.out.println("long型整数转2进制1: " + Long.toString(9223372036854775806L, 2));
+        System.out.println("long型整数转2进制2: " + BinHexSHAUtil.integer2BinaryString(9223372036854775806L, 2));
+        System.out.println("2进制转long型整数1: " + Long.parseLong("111111111111111111111111111111111111111111111111111111111111110", 2));
+        System.out.println("2进制转long型整数2: " + BinHexSHAUtil.binaryString2Integer("111111111111111111111111111111111111111111111111111111111111110", 2));
+
         
         System.out.println("十六进制转换十进制：" + new BigInteger("fffff", 16).intValue());
         System.out.println("十六进制转换十进制：" + BinHexSHAUtil.change("fffff", 16, 10));
@@ -120,10 +139,55 @@ public class BinHexSHAUtilTest
         System.out.println("二进制转换十进制：" + Integer.valueOf(_bnum, 2));
 
 
-        System.out.println("Double转十六进制：" + Double.toHexString(0.1527049328));
-        System.out.println("Double转longBits： " + Double.doubleToLongBits(0.1527049328));
-        System.out.println("Double转longBits： " + Long.toBinaryString(Double.doubleToLongBits(0.1527049328)));
+        System.out.println("Double转十六进制: " + Double.toHexString(0.1527049328));
+        System.out.println("Double转longBits: " + Double.doubleToLongBits(0.1527049328));
+        System.out.println("Double转longBits: " + Long.toBinaryString(Double.doubleToLongBits(0.1527049328)));
 
-        System.out.println(Long.toBinaryString(Double.doubleToRawLongBits(0.1527049328)));
+        System.out.println("                : " + Long.toBinaryString(Double.doubleToRawLongBits(0.1527049328)));
+
+        System.out.println(doubleToBase36(0.04095588448534948));
+
+        byte[] bytes = new byte[32];
+        new SecureRandom().nextBytes(bytes);
+        String str = BinHexSHAUtil.byteArrayToHex(bytes);
+        System.out.println(str);
+        System.out.println(DatatypeConverter.printHexBinary(bytes));
+        System.out.println(HexUtil.encodeHexStr(bytes));
+    }
+
+    public static String doubleToBase36(double value) {
+        // 使用 BigDecimal 来确保精确度
+        BigDecimal decimalValue = BigDecimal.valueOf(value);
+
+        // 转换为整数部分和小数部分
+        BigInteger integerPart = decimalValue.toBigInteger();
+        BigDecimal fractionalPart = decimalValue.subtract(new BigDecimal(integerPart));
+
+        // 将整数部分转换为36进制
+        String integerBase36 = integerPart.toString(36);
+
+        // 如果存在小数部分，将小数部分转换为36进制并添加到整数部分后面
+        if (fractionalPart.compareTo(BigDecimal.ZERO) > 0)
+        {
+            StringBuilder resultBuilder = new StringBuilder(integerBase36);
+            resultBuilder.append(".");
+
+            // 限制小数部分的精度，避免无限循环
+            int maxFractionalDigits = 10;
+            while (fractionalPart.compareTo(BigDecimal.ZERO) > 0 && maxFractionalDigits > 0)
+            {
+                fractionalPart = fractionalPart.multiply(BigDecimal.valueOf(36));
+                BigInteger fractionalDigit = fractionalPart.toBigInteger();
+                resultBuilder.append(fractionalDigit.toString(36));
+                fractionalPart = fractionalPart.subtract(new BigDecimal(fractionalDigit));
+                maxFractionalDigits--;
+            }
+
+            return resultBuilder.toString();
+        }
+        else
+        {
+            return integerBase36;
+        }
     }
 }

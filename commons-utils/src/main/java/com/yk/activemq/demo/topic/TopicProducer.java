@@ -1,4 +1,4 @@
-package com.yk.demo.activemq.demo.topic;
+package com.yk.activemq.demo.topic;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.slf4j.Logger;
