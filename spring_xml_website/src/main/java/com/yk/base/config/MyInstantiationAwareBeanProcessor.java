@@ -2,8 +2,6 @@ package com.yk.base.config;
 
 import org.springframework.beans.BeansException;
 import org.springframework.beans.PropertyValues;
-import org.springframework.beans.factory.config.BeanPostProcessor;
-import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessor;
 import org.springframework.beans.factory.config.InstantiationAwareBeanPostProcessorAdapter;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +16,6 @@ import java.beans.PropertyDescriptor;
  * 链接：https://juejin.cn/post/7271924341734228023
  * 来源：稀土掘金
  * 著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
- *
  *
  * 该类主要的扩展点有以下5个方法，主要在bean生命周期的两大阶段：实例化阶段和初始化阶段，下面一起进行说明，按调用顺序为：
  *
