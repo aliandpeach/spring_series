@@ -125,6 +125,8 @@ public class DemoController
     {
         List<DemoModel> list2 = demoDAO.queryByName2(name);
         list2 = otherDAO.queryBy(name);
+        Map<String, Object> variables = otherDAO.showVariable("max_allowed_packet");
+        List<Map<String, Object>> result = otherDAO.query(1, "name1");
         return demoDAO.queryByName(name);
     }
 

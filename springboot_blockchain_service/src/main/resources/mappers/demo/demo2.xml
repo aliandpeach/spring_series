@@ -3,5 +3,15 @@
 
     <select id="queryBy" parameterType="java.lang.String" resultType="DemoModel">
         SELECT * FROM  t_demo WHERE name = #{name}
+--         SELECT * FROM  t_demo WHERE name = #{value}
+--         SELECT * FROM  t_demo WHERE name = #{_parameter}
+    </select>
+
+    <select id="showVariable" parameterType="java.lang.String" resultType="java.util.HashMap">
+        SHOW VARIABLES LIKE #{variableName}
+    </select>
+
+    <select id="query" resultType="java.util.HashMap">
+        SELECT * FROM  t_demo WHERE id = #{id,jdbcType=INTEGER} and name = #{name}
     </select>
 </mapper>
