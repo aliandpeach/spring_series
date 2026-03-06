@@ -26,7 +26,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
@@ -34,10 +33,12 @@ import org.springframework.web.servlet.ModelAndView;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.ValidationException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-
-import static org.springframework.web.context.request.RequestAttributes.SCOPE_REQUEST;
 
 @Slf4j
 @Controller
@@ -52,14 +53,17 @@ public class ShiroErrorController implements ErrorController
     @Autowired(required = false)
     private HttpServletRequest request;
 
+    @Getter
+    @Autowired(required = false)
+    private HttpServletResponse response;
+
     /**
      * 支持HTML的错误视图
      */
     @RequestMapping(value = ERROR_PATH, method = {RequestMethod.GET, RequestMethod.POST}, produces = {MediaType.TEXT_HTML_VALUE})
-    public ModelAndView page()
+    public ModelAndView page(HttpServletRequest request, HttpServletResponse response)
     {
-
-        return buildPage(getRequest());
+        return buildPage(request, response);
     }
 
     /**
@@ -67,31 +71,46 @@ public class ShiroErrorController implements ErrorController
      */
     @RequestMapping(value = ERROR_PATH, method = {RequestMethod.GET, RequestMethod.POST}, produces = {MediaType.APPLICATION_JSON_VALUE})
     @ResponseBody
-    public Object body()
+    public Object body(HttpServletRequest request, HttpServletResponse response)
     {
-        return buildBody(getRequest());
+        return buildBody(request, response);
     }
 
-    private ModelAndView buildPage(HttpServletRequest request)
+    private HttpStatus getStatus(HttpServletRequest request)
     {
-        Map<String, Object> errorAttributes = this.getErrorAttributes(request);
-        Object httpStatus = RequestContextHolder.currentRequestAttributes().getAttribute("http_status", SCOPE_REQUEST);
-        if (null != httpStatus)
+        Integer statusCode = (Integer) request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
+        if (statusCode == null)
         {
-            return new ModelAndView("error/".concat(String.valueOf(httpStatus)), "errors", errorAttributes);
+            return HttpStatus.INTERNAL_SERVER_ERROR;
         }
-        return new ModelAndView(
-                "error/".concat(String.valueOf(errorAttributes.get("status"))), "errors", errorAttributes
-        );
+        try
+        {
+            return HttpStatus.valueOf(statusCode);
+        }
+        catch (Exception ex)
+        {
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
     }
 
-    private BaseResponse<?> buildBody(HttpServletRequest request)
+    private ModelAndView buildPage(HttpServletRequest request, HttpServletResponse response)
     {
-        Map<String, Object> errorAttributes = this.getErrorAttributes(request);
+        Map<String, Object> errorAttributes = this.getErrorAttributes(request, response);
+        HttpStatus status = getStatus(request);
+        response.setStatus(status.value());
+        return new ModelAndView("error/".concat(String.valueOf(status.value())), "errors", errorAttributes);
+    }
+
+    private BaseResponse<?> buildBody(HttpServletRequest request, HttpServletResponse response)
+    {
+        Map<String, Object> errorAttributes = this.getErrorAttributes(request, response);
+        HttpStatus status = getStatus(request);
+        response.setStatus(status.value());
+
         String message = String.valueOf(errorAttributes.get("message"));
         BaseResponse<?> baseResponse = new BaseResponse<>();
         baseResponse.setMessage(message);
-        baseResponse.setStatus((int) errorAttributes.get("status"));
+        baseResponse.setCode((int) errorAttributes.getOrDefault("code", "0"));
         return baseResponse;
     }
 
@@ -110,14 +129,13 @@ public class ShiroErrorController implements ErrorController
             @Override
             public Map<String, Object> getErrorAttributes(WebRequest webRequest, ErrorAttributeOptions options)
             {
-                // 结果包含异常的message信息
                 Map<String, Object> attrs = super.getErrorAttributes(webRequest, ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.MESSAGE, ErrorAttributeOptions.Include.EXCEPTION));
                 return attrs;
             }
         };
     }
 
-    private Map<String, Object> getErrorAttributes(HttpServletRequest request)
+    private Map<String, Object> getErrorAttributes(HttpServletRequest request, HttpServletResponse response)
     {
 
 //        errorProperties.setIncludeException(true);
@@ -125,8 +143,7 @@ public class ShiroErrorController implements ErrorController
 //        errorProperties.setIncludeStacktrace(ErrorProperties.IncludeAttribute.ALWAYS);
 
         WebRequest requestAttributes = new ServletWebRequest(request);
-        Map<String, Object> errorAttributes =
-                this.errorAttributes.getErrorAttributes(requestAttributes, ErrorAttributeOptions.of(ErrorAttributeOptions.Include.MESSAGE, ErrorAttributeOptions.Include.EXCEPTION));
+        Map<String, Object> errorAttributes = this.errorAttributes.getErrorAttributes(requestAttributes, ErrorAttributeOptions.of(ErrorAttributeOptions.Include.MESSAGE, ErrorAttributeOptions.Include.EXCEPTION));
 
         // 从errorAttributes中获取异常信息, errorAttributes中的异常信息实际也是从request中获取的
         Object obj = errorAttributes.get("message");
@@ -137,56 +154,44 @@ public class ShiroErrorController implements ErrorController
         Object statusObject1 = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE);
         Object exceptionObject = request.getAttribute("javax.servlet.error.exception");
 
+        log.error("errorAttributes exception {}, status {}", exceptionObject, statusObject);
+
         Throwable ex = this.errorAttributes.getError(requestAttributes);
         if (ex instanceof ShiroException)
         {
             log.error("customer exception：[{}]", ex.getMessage());
             errorAttributes.put("message", ex.getMessage());
-            errorAttributes.put("status", ((ShiroException) ex).getStatus());
+            errorAttributes.put("code", ((ShiroException) ex).getCode());
         }
         else if (ex instanceof BindException)
         {
             BindException e = (BindException) ex;
-            BindingResult bindingResult = e.getBindingResult();
-            if (bindingResult.hasErrors())
-            {
-                FieldError fieldError = bindingResult.getFieldErrors().get(0);
-                errorAttributes.put(
-                        "message", StrBuilder.create(fieldError.getField(), fieldError.getDefaultMessage()).toString()
-                );
-            }
+            errorAttributes.put("message", ResponseCode.BIND_EXCEPTION.message);
+            errorAttributes.put("code", ResponseCode.BIND_EXCEPTION.code);
         }
         else if (ex instanceof DataAccessException)
         {
             log.error("数据访问异常，异常信息：[{}]", ex.getMessage());
+            errorAttributes.put("message", ResponseCode.DATA_ACCESS_EXCEPTION.message);
+            errorAttributes.put("code", ResponseCode.DATA_ACCESS_EXCEPTION.code);
         }
         // api请求数据参数异常
         else if (ex instanceof HttpMessageNotReadableException)
         {
             log.error("请求数据参数异常，异常信息：[{}]", ex.getMessage());
+            errorAttributes.put("message", ResponseCode.HTTP_MESSAGE_NOT_READABLE.message);
+            errorAttributes.put("code", ResponseCode.HTTP_MESSAGE_NOT_READABLE.code);
         }
         else if (ex instanceof MethodArgumentNotValidException)
         {
-            MethodArgumentNotValidException e = (MethodArgumentNotValidException) ex;
-            BindingResult bindingResult = e.getBindingResult();
-            if (bindingResult.hasErrors())
-            {
-                if (null == bindingResult.getFieldError())
-                {
-                    ObjectError objectError = bindingResult.getAllErrors().get(0);
-                    errorAttributes.put("message", objectError.getDefaultMessage());
-                }
-                else
-                {
-                    FieldError fieldError = bindingResult.getFieldErrors().get(0);
-                    errorAttributes.put("message", fieldError.getDefaultMessage());
-                }
-                log.error("异常：参数校验异常，异常信息：[{}]", e.getMessage());
-            }
+            log.error("异常：参数校验异常，异常信息：[{}]", ex.getMessage());
+            errorAttributes.put("message", ResponseCode.METHOD_ARGUMENT_NOT_VALID.message);
+            errorAttributes.put("code", ResponseCode.METHOD_ARGUMENT_NOT_VALID.code);
         }
         else if (ex instanceof HttpMediaTypeNotSupportedException || ex instanceof HttpMediaTypeNotAcceptableException)
         {
-            errorAttributes.put("message", ex.getMessage());
+            errorAttributes.put("message", ResponseCode.HTTP_MEDIA.message);
+            errorAttributes.put("code", ResponseCode.HTTP_MEDIA.code);
             log.error("媒体类型异常，异常信息：[{}]", ex.getMessage());
         }
         else if (ex instanceof ServletException)
@@ -197,34 +202,32 @@ public class ShiroErrorController implements ErrorController
             if (cause instanceof ShiroException)
             {
                 errorAttributes.put("message", cause.getMessage());
-                errorAttributes.put("status", ((ShiroException) cause).getStatus());
+                errorAttributes.put("code", ((ShiroException) cause).getCode());
                 log.error("登录异常：异常信息：[{}]", cause.getMessage());
+            }
+            else
+            {
+                errorAttributes.put("message", ResponseCode.SERVLET_EXCEPTION.message);
+                errorAttributes.put("code", ResponseCode.SERVLET_EXCEPTION.code);
             }
         }
         else if (ex instanceof ValidationException)
         {
-            ValidationException e = (ValidationException) ex;
-
-            errorAttributes.put(
-                    "message", e.getCause() instanceof ValidateException ? e.getCause().getMessage() : ex.getMessage());
+            errorAttributes.put("message", ResponseCode.VALIDATION_EXCEPTION.message);
+            errorAttributes.put("code", ResponseCode.VALIDATION_EXCEPTION.code);
         }
         else
         {
             if (null == ex)
             {
-                if (HttpStatus.NOT_FOUND.value() == (int) errorAttributes.get("status"))
-                {
-                    log.error("页面未找到，URL[{}]", errorAttributes.get("path"));
-                }
-                else
-                {
-                    log.error("系统内部异常，请查看日志处理");
-                }
+                log.error("系统内部异常，请查看日志处理");
             }
             else
             {
                 log.error("系统内部异常，请查看日志处理，异常信息：[{}]", ex.getMessage());
             }
+            errorAttributes.put("message", ResponseCode.UNKNOWN_ERROR.message);
+            errorAttributes.put("code", ResponseCode.UNKNOWN_ERROR.code);
         }
         return errorAttributes;
     }

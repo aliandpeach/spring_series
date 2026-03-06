@@ -54,6 +54,12 @@ public class VideoController
         return new ModelAndView("video");
     }
 
+    /**
+     * 常用的场景中非 multipart/form-data 请求, 使用@RequestBody 传入json数据由于convert转换为对象
+     * multipart/form-data场景, 不能再使用@RequestBody 传输json数据, 若非要文件+json, 则使用 (@RequestPart File file, @RequestPart Entity obj), json数据作为整个form-data的一部分, 设置ContentType=application/json
+     *
+     * MultipartFile可以作为对象的属性, 直接获取上传的文件, 但请求的form-data对象中, 该属性不能为空
+     */
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     public ResponseEntity<UploadChunkResponse> upload(MultipartHttpServletRequest request, WebUploadChunkRequest uploadChunkRequest) throws IOException, InterruptedException
     {
@@ -126,7 +132,7 @@ public class VideoController
     }
 
     @RequestMapping("/play/test")
-    public ModelAndView playTet()
+    public ModelAndView playTest()
     {
         return new ModelAndView("play").addObject("source", "/video/123.mp4");
     }

@@ -104,7 +104,7 @@ public class Main {
         Function<UserModel, Double> f8 = p -> p.getWeight();
         Function<UserModel, String> f9 = p -> p.getHairColor();
         list.sort(Comparator.comparing(f6).thenComparing(f7).thenComparing(f8).thenComparing(f9).reversed());
-        // Collections.sort(list); // UserModel 需要实现 Comparable
+        // Collections.sort(list); // 不指定Comparator, 则 UserModel 需要实现 Comparable
         Collections.sort(list, Comparator.comparing(UserModel::getAge));
 
         list = new ArrayList<>();
@@ -119,7 +119,8 @@ public class Main {
         list.add(new UserModel(13, "Zao2", 29.5, "pink"));
         list.add(new UserModel(3, "Divid", 26.1, "red"));
         list.add(new UserModel(12, "Zao1", 29.5, "pink"));
-        List<UserModel> list_sorted_test = list.stream().sorted(Comparator.comparing(f6)).collect(Collectors.toList());
+        List<UserModel> list_sorted_test = list.stream()
+                .sorted(Comparator.comparing(f6).thenComparing(f7).thenComparing(f8).thenComparing(f9)).collect(Collectors.toList());
 
         Optional.<List<UserModel>>ofNullable(list).map(l -> l.toString()).ifPresent(System.out::println);
 
@@ -150,7 +151,7 @@ public class Main {
         // 转换List<UserModel>  为 Map<Long, List<UserModel>>
         Map<Long, List<UserModel>> m2 = list.stream().collect(Collectors.groupingBy(t -> t.getId()));
 
-        // 原集合不变，生成了一个新的排好序的集合 //sorted()需要集合内的实体实现 Comparable接口 否则要报错
+        // 原集合不变，生成了一个新的排好序的集合 //sorted()没有指定Comparator, 则需要集合内的实体实现 Comparable接口 否则要报错 (String默认已经实现了)
         List<String> stringList = new ArrayList<>();
         List<String> an = stringList.stream().sorted().collect(Collectors.toList());
 
@@ -206,8 +207,16 @@ public class Main {
         Map<String, Field> fieldValues = Arrays.stream(fields).collect(Collectors.toMap(t -> t.getAnnotation(Value.class).value(), t -> t, (k1, k2) -> k1));
 
         Map<String, List<Field>> temp = Arrays.stream(fields).collect(Collectors.groupingBy(t -> t.getAnnotation(Value.class).value()));
+
+
+        Map<String, List<String>> tablespaceQuotasMap = Arrays.stream(fields).collect(Collectors.groupingBy(t -> t.getAnnotation(Value.class).value(), Collectors.mapping(Field::getName, Collectors.toList())));
+        Map<String, List<String>> yyyy = temp.entrySet().stream()
+                .flatMap(t -> new HashMap<>(Collections.singletonMap(t.getKey(), t.getValue().stream().map(Field::getName).collect(Collectors.toList()))).entrySet().stream())
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (k1, k2) -> k1));
+
+
         Map<String, Field> fieldValues3 = temp.entrySet().stream()
-                .flatMap(t -> new HashMap<>(Collections.singletonMap(t.getKey(), t.getValue().get(0))).entrySet().stream()).collect(Collectors.toMap(k -> k.getKey(), v -> v.getValue(), (k1, k2) -> k1));
+                .flatMap       (t -> new HashMap<>(Collections.singletonMap(t.getKey(), t.getValue().get(0))).entrySet().stream()).collect(Collectors.toMap(k -> k.getKey(), v -> v.getValue(), (k1, k2) -> k1));
 
         // List<Map<String, String>> -> Map<String, List<Map<String, String>> -> Map<String, String>
         list.add(new UserModel(13, "Zao1", 29.51, "pink1"));

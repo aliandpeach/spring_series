@@ -34,6 +34,7 @@
     <!--有component-scan不再需要annotation-config -->
     <context:annotation-config/>
 
+    <!-- EncryptPropertyPlaceholderConfigurer做了两件事: 1. 替换配置文件中的加密密码 2. 替换xml配置中的占位符-->
     <bean class="com.yk.base.config.EncryptPropertyPlaceholderConfigurer"
           p:location="classpath:druid.properties" p:fileEncoding="UTF-8"/>
 
@@ -91,15 +92,51 @@
         <property name="dataSource" ref="dataSource"/>
     </bean>
 
+
+    <!-- 这里的context:property-placeholder等价于 PropertySourcesPlaceholderConfigurer -->
+    <!-- <context:property-placeholder location="classpath:mybatis-config.properties"/> -->
+    <!-- 注意: spring xml注册bean, 若其中有Properties params;的全局变量, 并不能简单使用 <property name="params" value="classpath:params.properties"/> 作为该bean的配置-->
+    <!-- 需要PropertiesFactoryBean解析params.properties后, 把myConfigProperties代入到该bean的配置中-->
+
+    <!-- 这个配置可以将xml文件中的占位符位置上的信息替换为配置文件中的值, 若配置文件中存在加密等特殊信息, 可以自定义PropertySourcesPlaceholderConfigurer -->
+    <!--<bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+        <property name="location" value="classpath:params.properties"/>
+    </bean>-->
+
+    <!-- 这个配置可以将xml文件中的占位符位置上的信息替换为配置文件中的值, 若配置文件中存在加密等特殊信息, 可以自定义PropertySourcesPlaceholderConfigurer -->
+    <!--<bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:params.properties"/>
+    </bean>-->
+
+    <!-- 这里就是定义了一个普通的Properties的bean 这个Properties中包含了params.properties中的所有配置项
+    (若配置中存在加密密码等信息, 可以同时配置自定义的PropertySourcesPlaceholderConfigurer来替换, 这个优先于PropertiesFactoryBean会将配置中的特殊值替换) -->
+    <!--<bean id="myConfigProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="location" value="classpath:params.properties"/>
+    </bean>-->
+
     <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
         <property name="dataSource" ref="dataSource"/>
-        <!--<property name="configLocation" value=""></property>-->
         <property name="mapperLocations" value="classpath:mapper/**/*.xml"/>
         <property name="typeAliasesPackage" value="com.yk.demo.model"/>
-        <!-- mybatis 通过configLocation配置mybatis-config.xml生成Configuration, mybatis-config.xml中的properties会写入Configuration中的variables-->
-        <!-- 通过configurationProperties配置后, properties配置文件中的信息会写入Configuration中的variables -->
+
         <!-- variables作为全局变量, 可以在sql中直接用 '${xxx.xxx}' 直接获取到, 也可用于sql中的表达式(例如<if test="'${xxx.xxx}' == 'value'">) -->
-        <!-- <property name="configurationProperties" value="classpath:xxx.properties" /> -->
+
+        <!-- 设置mybatis全局变量方式一(Configuration.variables) -->
+        <!-- mybatis通过configLocation配置mybatis-config.xml生成Configuration, 其中配置的中的<properties resource="xx.properties"/>会写入Configuration中的variables-->
+        <!-- <property name="configLocation" value="classpath:mybatis-config.xml"></property> -->
+
+        <!-- 设置mybatis全局变量方式二(Configuration.variables) -->
+        <!-- <property name="configurationProperties" ref="myConfigProperties" /> -->
+
+        <!-- 通过下面的方式可以注册mybatis的interceptor, 可以不定义mybatis-config.xml去配置configLocation -->
+        <!--<property name="plugins">
+            <array>
+                <bean class="com.example.MyInterceptor">
+                    dialect作为key-value, 放入MyInterceptor的properties属性
+                    <property name="dialect" value="${xxx.xxx}"></property>
+                </bean>
+            </array>
+        </property>-->
     </bean>
 
     <bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
@@ -152,7 +189,28 @@
             <list>
                 <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
                 <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
+                <bean class="org.springframework.http.converter.FormHttpMessageConverter">
+                    <!-- 使用配置方式配置FormHttpMessageConverter 如果要自定义supportedMediaTypes和partConverters必须把FormHttpMessageConverter构造函数中默认的信息也带上 -->
+                    <property name="supportedMediaTypes">
+                        <list>
+                            <value>application/x-www-form-urlencoded</value>
+                            <value>multipart/form-data</value>
+                            <value>multipart/mixed</value>
+                            <value>application/json</value>
+                        </list>
+                    </property>
+                    <property name="partConverters">
+                        <list>
+                            <bean class="org.springframework.http.converter.ByteArrayHttpMessageConverter"/>
+                            <bean class="org.springframework.http.converter.StringHttpMessageConverter"/>
+                            <bean class="org.springframework.http.converter.ResourceHttpMessageConverter"/>
+                            <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter"/>
+                        </list>
+                    </property>
+                </bean>
             </list>
         </property>
     </bean>
+    <import resource="spring-cxf.xml" />
 </beans>

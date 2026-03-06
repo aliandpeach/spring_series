@@ -25,6 +25,19 @@ import java.util.List;
  * <p>
  * 继承WebMvcConfigurationSupport 某些配置失效问题
  * https://blog.csdn.net/weixin_43606226/article/details/105047572
+ * 失效问题: WebMvcConfigurationSupport是webmvc的配置类，如果在springboot项目中，有配置类继承了WebMvcConfigurationSupport，
+ * 那么webmvc的自动配置类WebMvcAutoConfiguration就会失效。
+ *
+ *
+ *
+ * 1. 在非springboot项目中, 使用 @EnableWebMvc + 实现WebMvcConfigurer接口, 既能使用WebMvcConfigurationSupport的配置, 又能拓展接口配置
+ * 2. 在非springboot项目中, 继承WebMvcConfigurationSupport就相当于使用了@EnableWebMvc, 但不要重复添加@EnableWebMvc注释 (这条备注场景没测试过)
+ *
+ * 1. 在springboot项目中, 不使用@EnableWebMvc注释, 除非做好了不使用自动配置的配置项的准备
+ *                       (在springboot工程中没试过使用@EnableWebMvc注释, 但效果应该和第三条备注继承WebMvcConfigurationSupport一样)
+ * 2. 在springboot项目中, 只需实现WebMvcConfigurer接口
+ * 3. 在springboot项目中, 一般不使用WebMvcConfigurationSupport, 因为继承了WebMvcConfigurationSupport就会失去自动配置(WebMvcAutoConfiguration)中的配置项
+ *                       本工程就使用了extends WebMvcConfigurationSupport, 用于测试一些特殊情况
  */
 @Configuration
 public class BaseWebMvcConfiguration extends WebMvcConfigurationSupport
@@ -99,7 +112,8 @@ public class BaseWebMvcConfiguration extends WebMvcConfigurationSupport
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
         registry.addResourceHandler("/other/**").addResourceLocations("classpath:/META-INF/resources/");
         // 非classpath下的文件 SpringBoot默认是在src/main/webapp  public  static 目录中, 这三个目录和打出来的jar得在同一级目录
-        // 也可以使用factory.setDocumentRoot("test");设置为test目录
+        // 也可以使用factory.setDocumentRoot("test");设置为test目录, 即: test目录和jar同级
+
         // 这里的 https://192.168.32.152:9027/png/webapp.png 就可以被访问到
         registry.addResourceHandler("/png/**").addResourceLocations("/png/");
     }

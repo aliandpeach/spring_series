@@ -49,6 +49,7 @@ public abstract class AbstractKeyGenerator implements Runnable
     {
         while (true)
         {
+            //
             if (forceStopped())
             {
                 status.info("{} force stopped! current thread = {}", this.getName(), Thread.currentThread().getName());
@@ -93,15 +94,16 @@ public abstract class AbstractKeyGenerator implements Runnable
             }
             catch (InterruptedException e)
             {
+                // 执行到shutdownNow后中断线程, 实现强制退出
                 error.error("{} Thread.sleep error", this.getName(), e);
+                break;
             }
         }
     }
 
     public static AbstractKeyGenerator createKeyGenerator(int type,
                                                           KeyGenerator generator,
-                                                          Context context)
-    {
+                                                          Context context)    {
         AbstractKeyGenerator abstractKeyGenerator;
         switch (type)
         {

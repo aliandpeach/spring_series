@@ -1,5 +1,6 @@
 package com.socket.common;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -68,5 +69,36 @@ public class TCPDownloadServer
             {
             }
         }
+    }
+
+    private static void handleRequest(Socket clientSocket) throws IOException
+    {
+        // 读取HTTP请求
+        BufferedReader reader = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+        StringBuilder request = new StringBuilder();
+
+        String line;
+        while ((line = reader.readLine()) != null && !line.isEmpty())
+        {
+            request.append(line).append("\r\n");
+        }
+
+        // 构建HTTP响应
+        String jsonResponse = "{\"message\": \"你好，世界！\"}";
+        byte[] responseBytes = jsonResponse.getBytes(StandardCharsets.UTF_8);
+
+        // 设置HTTP响应头
+        String responseHeaders = "HTTP/1.1 200 OK\r\n" +
+                "Content-Type: application/json;charset=UTF-8\r\n" +
+                "Content-Length: " + responseBytes.length + "\r\n" +
+                "\r\n";
+
+        // 发送HTTP响应
+        OutputStream outputStream = clientSocket.getOutputStream();
+        outputStream.write(responseHeaders.getBytes(StandardCharsets.UTF_8));
+        outputStream.write(responseBytes);
+
+        // 关闭连接
+        clientSocket.close();
     }
 }

@@ -1,4 +1,4 @@
-package com.yk.util;
+package com.yk.base.util;
 
 import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.springframework.lang.NonNull;

@@ -5,6 +5,7 @@ import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.apache.shiro.authc.credential.PasswordMatcher;
 import org.apache.shiro.authc.pam.ModularRealmAuthenticator;
 import org.apache.shiro.cache.CacheManager;
 import org.apache.shiro.cache.ehcache.EhCacheManager;
@@ -30,9 +31,11 @@ import org.crazycake.shiro.RedisSessionDAO;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.springframework.core.io.ClassPathResource;
 
 import javax.servlet.Filter;
 import java.util.Collection;
@@ -164,7 +167,7 @@ public class ShiroConfig
 
         // SessionManager不使用自定义, 默认为 ServletContainerSessionManager,
         // 前端请求被 AbstractShiroFilter -> doFilterInternal -> createSubject -> resolveSession -> getSession 解析为Session,
-        // (获取HttpSession组装为Session, 组装Subject信息), 通过UserFilter, 从Subject获取当前登录用户, 若不存在则redirectToLogin
+        // (获取HttpSession组装为Session, 组装Subject信息), UserFilter -> 从Subject获取当前登录用户, 若不存在则 onAccessDenied -> redirectToLogin (token认证分类下的url)
 
         securityManager.setSessionManager(sessionManager);
         SecurityUtils.setSecurityManager(securityManager);
@@ -258,6 +261,7 @@ public class ShiroConfig
     public EhCacheManagerFactoryBean ehCacheManagerFactoryBean()
     {
         EhCacheManagerFactoryBean factoryBean = new EhCacheManagerFactoryBean();
+        factoryBean.setConfigLocation(new ClassPathResource("shiro-ehcache.xml"));
         factoryBean.setShared(true);
         return factoryBean;
     }
@@ -332,5 +336,16 @@ public class ShiroConfig
         AuthorizationAttributeSourceAdvisor authorizationAttributeSourceAdvisor = new AuthorizationAttributeSourceAdvisor();
         authorizationAttributeSourceAdvisor.setSecurityManager(securityManager);
         return authorizationAttributeSourceAdvisor;
+    }
+
+    /**
+     * 作为UsernamePasswordRealm的依赖, 但不再使用, UsernamePasswordRealm已经使用了自定义的UsernamePasswordMatcher
+     */
+//    @Bean
+    public PasswordMatcher passwordMatcher(PasswordService passwordService)
+    {
+        PasswordMatcher passwordMatcher = new PasswordMatcher();
+        passwordMatcher.setPasswordService(passwordService);
+        return passwordMatcher;
     }
 }

@@ -183,18 +183,33 @@ public class GenKeyTest
         System.out.println(pri2);
         System.out.println(keyGenerator.addressGen(bytes, true));
     }
-    
+
+    /**
+     * 可以在PrivateKey1Example类中，通过计算数字2的私钥/地址（压缩和不压缩两种）进行对比验证
+     */
     @Test
     public void genKey3()
     {
         byte[] bytes = "0".getBytes();
-        byte[] privateKey = Utils.bigIntegerToBytes(new BigInteger(bytes), 32);
+        BigInteger b = new BigInteger(bytes);
+        // BigInteger b = new BigInteger("2");
+        byte[] privateKey = Utils.bigIntegerToBytes(b, 32);
         String binaryString = BinHexSHAUtil.bytes2BinaryString(privateKey);
+        System.out.println(binaryString);
+        System.out.println(HexUtil.encodeHexStr(privateKey));
+
+        System.out.println("========================compressed===========================");
         KeyGenerator keyGenerator = new KeyGenerator();
         String pri = keyGenerator.keyGen(privateKey, true);
         System.out.println(pri);
         String pub = keyGenerator.addressGen(privateKey, true);
         System.out.println(pub);
+
+        System.out.println("===================================================");
+        String pri2 = keyGenerator.keyGen(privateKey, false);
+        System.out.println(pri2);
+        String pub2 = keyGenerator.addressGen(privateKey, false);
+        System.out.println(pub2);
     }
 
     @Test
@@ -203,6 +218,10 @@ public class GenKeyTest
         byte[] keys = Utils.bigIntegerToBytes(new BigInteger("0"), 32);
         KeyGenerator keyGenerator = new KeyGenerator();
         String pub = keyGenerator.addressBy(keys);
+        System.out.println(pub);
+
+        keys = Utils.bigIntegerToBytes(new BigInteger("1"), 32);
+        pub = keyGenerator.addressBy(keys);
         System.out.println(pub);
     }
     

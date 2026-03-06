@@ -2,6 +2,6 @@
 <html>
 <body>
 <h2>compile</h2>
-<img src="/picture/1.png">
+<img src="/34.png">
 </body>
 </html>

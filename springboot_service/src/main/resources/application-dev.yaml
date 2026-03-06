@@ -2,6 +2,7 @@ spring:
   autoconfigure:
     exclude:
       - com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
+      #- org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
   application:
     name: springboot-service
   security:
@@ -11,20 +12,54 @@ spring:
         expire-length: 300000 # 5 minutes duration by default: 5 minutes * 60 seconds * 1000 miliseconds
 
   datasource:
-    type: com.zaxxer.hikari.HikariDataSource
-    driverClassName: com.mysql.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:13306/demo?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true
-    username: root
-    password: root
-    hikari:
-      maximumPoolSize: 15
-      minimumIdle: 5
-      idleTimeout: 30000
-      connectionTimeout: 30000
-      maxLifetime: 1800000
-      connectionTestQuery: SELECT 1
-      poolName: DatebookHikariCP
-      autoCommit: true
+    # hikari的自动装配过程:
+    # DataSourceAutoConfiguration -> DataSourceConfiguration.Hikari (装配bean, 通过 @ConfigurationProperties(prefix = "spring.datasource.hikari") 将连接池参数在后续自动装配到bean中)
+    # @ConfigurationProperties让SpringBoot在方法返回HikariDataSource对象后，从配置文件中读取spring.datasource.hikari前缀的属性，并通过setter或反射注入到对象中
+
+#    type: com.zaxxer.hikari.HikariDataSource
+#    driverClassName: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://127.0.0.1:13306/demo?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true
+#    username: root
+#    password: root
+#    hikari:
+#      maximumPoolSize: 15
+#      minimumIdle: 5
+#      idleTimeout: 30000
+#      connectionTimeout: 30000
+#      maxLifetime: 1800000
+#      connectionTestQuery: SELECT 1
+#      poolName: DatebookHikariCP
+#      autoCommit: true
+    primary:
+      type: com.zaxxer.hikari.HikariDataSource
+      driverClassName: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://127.0.0.1:13306/xywl_online_1?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true
+      username: root
+      password: root
+      hikari:
+        maximumPoolSize: 12
+        minimumIdle: 5
+        idleTimeout: 30000
+        connectionTimeout: 30000
+        maxLifetime: 1800000
+        connectionTestQuery: SELECT 1
+        poolName: DatebookHikariCP-primary
+        autoCommit: true
+    another:
+      type: com.zaxxer.hikari.HikariDataSource
+      driverClassName: com.mysql.jdbc.Driver
+      url: jdbc:mysql://127.0.0.1:13306/xywl_online_2?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true
+      username: root
+      password: root
+      hikari:
+        maximumPoolSize: 11
+        minimumIdle: 5
+        idleTimeout: 30000
+        connectionTimeout: 30000
+        maxLifetime: 1800000
+        connectionTestQuery: SELECT 1
+        poolName: DatebookHikariCP-another
+        autoCommit: true
   redis:
     host: 127.0.0.1
     port: 6379

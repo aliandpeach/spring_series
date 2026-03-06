@@ -11,6 +11,21 @@
 
     <!--springboot-war 步骤(3) jar改为war-->
     <packaging>war</packaging>
+    <!--
+    注释:
+    1. 如果打成jar包, 以java -jar 的方式启动, <packaging>改为jar, 需要将jsp文件打包到和jar文件同级的/src/main/webapp/或者public或者static目录中
+      （该目录也能更改factory.setDocumentRoot("xxx")）
+       例如1, 在jar的同级static目录, 拷贝jsp/compile1.jsp, 其中图片路径改为"/picture/png/2.png", 访问https://127.0.0.1:9026/jsp/compile1.jsp就能正常访问
+       例如2, 在jar的同级static目录, 拷贝views/compile2.jsp, 既能使用https://127.0.0.1:9026/views/compile2.jsp正常访问,
+             又能通过https://127.0.0.1:9026/demo/compile2正常访问(DemoController-compile2接口跳转到setPrefix("views")定义的views目录中寻找到compile2.jsp)
+       例如3, (thymeleaf的html文件既能打包到jar, 又能放到DocumentRoot定义的目录中) 若jsp也想打包到jar中, 则: 需要将spring-boot-maven-plugin版本改为1.4.2.RELEASE, 将jsp/compile0.jsp打包到jar的根目录中
+
+    2. 如果打成war包, 以java -jar 的方式启动, 修改<packaging>为war, webapp-views下的文件打包到war根目录中, 即可正常访问
+       例如1, https://127.0.0.1:9026/views/view.jsp可以正常访问views目录下的view.jsp
+       例如2, https://127.0.0.1:9026/demo/compile2可以正常访问views目录下的view.jsp
+
+    3. 如果打成war包, 使用tomcat部署, 则需要按照步骤修改成war包才能正常部署到tomcat
+    -->
 
     <artifactId>springboot_jsp_website</artifactId>
 
@@ -128,10 +143,10 @@
             </resource>
 
             <!-- idea启动配置成这个也可以访问到jsp -->
-            <resource>
+            <!--<resource>
                 <directory>src/main/webapp-views</directory>
                 <targetPath>META-INF/resources</targetPath>
-            </resource>
+            </resource>-->
         </resources>
         <plugins>
             <!--不使用parent的构建方式，那么spring-boot-maven-plugin 必须加上repackage，
@@ -220,6 +235,7 @@
             <!--3.0版本插件不存在web.xml缺少时无法打包的情况-->
             <!-- springboot工程打包成war时, src/main/webapp-views中的资源和jsp被打包到war中(在war的根目录中), 通过DocumentRoot.getWarFileDocumentRoot获取jsp资源-->
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.2.2</version>
                 <configuration>

@@ -14,7 +14,7 @@ public class RMIPublish
 {
     public static final int PORT = 61535;
 
-    private static final String HOST = "192.168.31.105";
+    private static final String HOST = "127.0.0.1";
 
     private List<AbstractRMIService> list = new ArrayList<>();
 

@@ -1,12 +1,15 @@
 package com.crypto.cert;
 
 import com.yk.crypto.KeyUtil;
+import com.yk.crypto.RSA2048Util;
+import org.apache.commons.io.FileUtils;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.jcajce.provider.asymmetric.rsa.RSAUtil;
 import org.bouncycastle.openssl.PEMKeyPair;
 import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter;
@@ -14,9 +17,11 @@ import org.bouncycastle.util.io.pem.PemReader;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStreamReader;
+import java.io.StringReader;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -110,6 +115,8 @@ public class KeyUtilTest
     {
         try
         {
+            String dir = System.getProperty("user.dir");
+            System.out.println(dir);
             KeyPair keyPair = KeyUtil.readKeyStore(KeyUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/rsa.key"),
                     "crazy",
                     rsa_key_keystore_passwd,
@@ -153,8 +160,34 @@ public class KeyUtilTest
     @Test
     public void comparePkcs1AndPkcs8PrivateKey()
     {
+        // RSA 1024 pkcs1
+        String __ss = "-----BEGIN RSA PRIVATE KEY-----\n" +
+                "MIICXAIBAAKBgQCqZa0uWQ1Uecv8KI1AZXXXzAh/DAdvgdPB9yos9XismZoFJOGP\n" +
+                "4ZgBw1EZ/duxKoxkWE15W9jJhqpoQ4W80Z7h9i2WTwcz8g84J6vbCDXurKji1eHT\n" +
+                "BOv7Oq4vPTycNuerpVXiwNXoVp9aRNUb/p3001/uLQaysu0XV+8Tk6rpRwIDAQAB\n" +
+                "AoGABxEcc5Wh5eT/Pr/3y7npfz+pAovfKxK5U4wKpb6weIgOSTRUXoE+qqQNEwTi\n" +
+                "PaDEHc1DuUrD3OfG3XgfbctLyYXzUVdy6vjk/nbcdX/y7cXkKce4tujxDsDIDyHO\n" +
+                "nIb0b0x7yMpjTlCLkXssYjm4ABLeMuIZptFFUzfIdw55zgECQQDZz+HLnDc/ZKsm\n" +
+                "jNw1pjvQiDC0etxVwS8XWqqat5+MYUiQjjmIuWmFFdjscPR3n5/CajHeyPG5bYem\n" +
+                "KL7Vhh7HAkEAyEWo80ma8xfeNQZ5CechW6msrbGwQ8wS+1CDI/TZeycLxxFiL6Aa\n" +
+                "Pay6ioLqfAvqLTC4UlXHexYGpG4XzzRhgQJAYQUABrnmwg4NTnagACWzrwd66mlv\n" +
+                "i6MpXrW8GH6CSv1qXTl81zH/lpBMt8T4n/AyMV8sJ5hKU9Y9/f1YQ7QiMQJBALxn\n" +
+                "M/Jzew5XlNYDWdikE/CcZXMdpvmQwQaljklELVg6ukyyoNC26Bi/JtnpINhDiTCs\n" +
+                "Fap3QescJHGJlGJ8H4ECQAESYgz+qZ6eQxcgHrftKnDsp/gJJdsNoKMI0GxFeyfc\n" +
+                "5RpzZXLZWeyQUDKpbBZteMVs4Vmtdf8JMSRShf2RM5I=\n" +
+                "-----END RSA PRIVATE KEY-----";
         try
         {
+
+            RSAPrivateKey __ssKey = KeyUtil.readPrivateKeySecondApproach(new ByteArrayInputStream(__ss.getBytes(StandardCharsets.UTF_8)));
+            // String __ssDeResult = RSA2048Util.getInstance(__ssKey.getEncoded(), KeyUtil.exportPublicKey(__ssKey).getEncoded()).decrypt("RLkISa5akApKQfc97kTt/iHy5leClqOo33TU96z1d3lBRKuRZYYXXH9iEU2H9/Js0/zdr1SfZPnLrpUBBh2pWCa0HTLv6Mc+8pNNsjE+i2PnYDfjiZVKlP9qGor9gulvDy4oqCjd0t0AmLyINmE9PVxPcAeJd4pg/2xPn904rYQ=");
+            String __ssEnResult = Base64.getEncoder().encodeToString(RSA2048Util.getInstance(__ssKey.getEncoded(), KeyUtil.exportPublicKey(__ssKey).getEncoded())
+                    .encrypt(FileUtils.readFileToByteArray(new File("D:\\idea_workspace\\development_tools\\documents_\\test.txt"))).array());
+            System.out.println(__ssEnResult);
+            __ssEnResult = Base64.getEncoder().encodeToString(RSA2048Util.getInstance(__ssKey.getEncoded(), KeyUtil.exportPublicKey(__ssKey).getEncoded())
+                    .encrypt(FileUtils.readFileToByteArray(new File("D:\\idea_workspace\\development_tools\\documents_\\test.txt"))).array());
+            System.out.println(__ssEnResult);
+
             RSAPrivateKey rsaPrivateKeyPKCS1 = KeyUtil.readPrivateKeySecondApproach(KeyUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/pkcs1.pem"));
 
             RSAPrivateKey rsaPrivateKeyPKCS8 = KeyUtil.readPrivateKey(KeyUtilTest.class.getClassLoader().getResourceAsStream("com/crypto/cert/pkcs8.pem"));

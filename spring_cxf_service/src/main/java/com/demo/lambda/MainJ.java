@@ -1,9 +1,9 @@
 package com.demo.lambda;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -95,6 +95,53 @@ public class MainJ
         List<QuotaVo> topRes = sort(map, tops);
 
         System.out.println(topRes);
+
+        List<Integer> list = new ArrayList<>();
+        list.add(1);
+        list.add(3);
+        list.add(2);
+
+        // 升序
+        List<Integer> _sortedList = list.stream().sorted(Comparator.naturalOrder()).collect(Collectors.toList());
+        // 降序
+        List<Integer> _sortedList2 = list.stream().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+
+        // 升序1
+        Function<Integer, Integer> f1 = p -> p;
+        List<Integer> _sortedList3 = list.stream().sorted(Comparator.comparing(f1)).collect(Collectors.toList());
+        // 升序2
+        List<Integer> _sortedList4 = list.stream().sorted(Comparator.comparing(p -> p)).collect(Collectors.toList());
+        // 降序1
+        List<Integer> _sortedList5 = list.stream().sorted(Comparator.comparing(f1).reversed()).collect(Collectors.toList());
+        // 降序2
+        List<Integer> _sortedList6 = list.stream().sorted(Comparator.comparing((Integer p) -> p).reversed()).collect(Collectors.toList());
+
+        // 排序后转数组
+        int[] _sortedArray = list.stream().sorted(Comparator.comparing(t -> t)).mapToInt(t -> t).toArray();
+
+
+        // 降序
+        list.sort(Comparator.comparing((Integer p) -> p).reversed());
+        System.out.println(list);
+
+        // 升序
+        List<Integer> _sortedList7 = list.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing((Integer t) -> t))), ArrayList::new));
+        // 降序
+        List<Integer> _sortedList8 = list.stream().collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing((Integer t) -> t).reversed())), ArrayList::new));
+        System.out.println(_sortedList8);
+
+        // 升序
+        Collections.sort(list);
+        System.out.println(list);
+        // 降序
+        Collections.sort(list, Comparator.comparing((Integer p) -> p).reversed());
+        System.out.println(list);
+
+        // 升序
+        Arrays.sort(new int[]{1, 3, 2});
+        // 降序
+        Arrays.sort(new Integer[]{1, 3, 2}, Comparator.comparingInt((Integer p) -> p).reversed());
+        System.out.println();
     }
 
     public static List<QuotaVo> sort(Map<Integer, List<QuotaVo>> map, List<QuotaVo> currents)

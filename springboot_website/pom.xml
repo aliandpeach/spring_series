@@ -192,10 +192,18 @@
 
             <!--3.0版本插件不存在web.xml缺少时无法打包的情况-->
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.3.2</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
+                    <webResources>
+                        <resource>
+                            <!-- 拷贝文件到war的根目录中 -->
+                            <directory>${basedir}/upload</directory>
+                            <targetPath>upload</targetPath>
+                        </resource>
+                    </webResources>
                 </configuration>
             </plugin>
         </plugins>

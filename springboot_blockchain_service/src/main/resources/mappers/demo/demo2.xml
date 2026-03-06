@@ -1,6 +1,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.yk.demo.dao.IOtherDAO">
-
+    <!--
+        MyBatis有两个内置参数，分别是_parameter、_datebaseId，也就是说这两个参数是不需要我们定义也可以直接拿来使用的。
+        _parameter：代表整个参数，如果传入的是单个参数或对象，那么_parameter就可以代表这个参数或对象，如果传入的是多
+        个参数，那么_parameter代表的就是一个map（MyBatis会默认将参数封装为map）
+        _datebaseId：代表我们当前使用的数据库别名，前提是我们配置了databaseIDProvider标签
+    -->
     <select id="queryBy" parameterType="java.lang.String" resultType="DemoModel">
         SELECT * FROM  t_demo WHERE name = #{name}
 --         SELECT * FROM  t_demo WHERE name = #{value}

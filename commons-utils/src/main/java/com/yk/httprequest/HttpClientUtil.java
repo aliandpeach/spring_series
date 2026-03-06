@@ -22,9 +22,12 @@ import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.socket.PlainConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustStrategy;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -33,6 +36,7 @@ import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.DefaultProxyRoutePlanner;
@@ -100,9 +104,31 @@ public class HttpClientUtil
         requestConfigBuilder.setConnectTimeout(config.getConnectTimeout());
         requestConfigBuilder.setConnectionRequestTimeout(config.getConnectionRequestTimeout());
 
-        SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
-        sslContextBuilder.loadTrustMaterial((chain, authType) -> true);
+        // 两个代码片段在配置 SSLContext 时功能上相似，尤其是在信任管理和密钥管理上。无论是使用信任存储还是不使用，两个片段的行为都一致：只信任信任存储中的证书或信任所有证书。
+        // 唯一的差异在于协议版本：第一个片段可能支持多个协议版本，而第二个片段固定为 TLSv1.2。
 
+        // 1.
+        SSLContextBuilder sslContextBuilder = new SSLContextBuilder();
+        // sslContextBuilder.loadTrustMaterial((chain, authType) -> true);
+        if (config.isSslKeyManager())
+        {
+            KeyStore key = KeyStore.getInstance(config.getType());
+            key.load(new FileInputStream(config.getKeyStore()), config.getKeyStorePasswd().toCharArray());
+            sslContextBuilder.loadKeyMaterial(key, config.getKeyPasswd().toCharArray());
+        }
+        if (config.isSslTrustManager())
+        {
+            KeyStore trust = KeyStore.getInstance(config.getType());
+            trust.load(new FileInputStream(config.getTrustStore()), config.getTrustStorePasswd().toCharArray());
+            sslContextBuilder.loadTrustMaterial(trust, null);
+        }
+        else
+        {
+            sslContextBuilder.loadTrustMaterial((chain, authType) -> true);
+        }
+        SSLContext _sslContext = sslContextBuilder.build();
+
+        // 2.
         SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
 
         config.configError();
@@ -138,6 +164,7 @@ public class HttpClientUtil
 
         HttpClientBuilder httpClientBuilder = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory)
                 .setConnectionManager(poolingHttpClientConnectionManager)
+                .setRetryHandler(new DefaultHttpRequestRetryHandler(5, true))
                 .setConnectionManagerShared(true)/*.setDefaultRequestConfig(defaultRequestConfigBuilder.build())*/;
 
         // 服务器认证: Basic, Digest and NTLM. 主要用于soap-webservice的登录验证
@@ -684,5 +711,31 @@ public class HttpClientUtil
         {
             return false;
         }
+    }
+
+    private static HttpClientConnectionManager getHttpClientConnectionManager() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException
+    {
+        // 1和2代码是一个效果
+        // 1.
+        /*return PoolingHttpClientConnectionManagerBuilder.create()
+                .setSSLSocketFactory(getSslConnectionSocketFactory())
+                .build();*/
+        // 2.
+        return new PoolingHttpClientConnectionManager(RegistryBuilder.<ConnectionSocketFactory>create()
+                .register("http", new PlainConnectionSocketFactory())
+                .register("https", getSslConnectionSocketFactory())
+                .build());
+    }
+
+    /**
+     * 支持SSL
+     *
+     * @return SSLConnectionSocketFactory
+     */
+    private static SSLConnectionSocketFactory getSslConnectionSocketFactory() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException
+    {
+        TrustStrategy acceptingTrustStrategy = (chain, authType) -> true;
+        SSLContext sslContext = SSLContextBuilder.create().loadTrustMaterial(null, acceptingTrustStrategy).build();
+        return new SSLConnectionSocketFactory(sslContext, new NoopHostnameVerifier());
     }
 }

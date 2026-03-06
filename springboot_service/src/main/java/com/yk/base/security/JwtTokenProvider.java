@@ -75,6 +75,9 @@ public class JwtTokenProvider
                 .compact();
     }
 
+    /**
+     * 从token中获取用户名和角色全新信息, 不要查询
+     */
     public Authentication getAuthentication(String token)
     {
 //        UserDetails userDetails = userDetailsService.loadUserByUsername(getUsername(token));

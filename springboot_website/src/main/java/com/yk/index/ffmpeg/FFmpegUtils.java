@@ -2,11 +2,19 @@ package com.yk.index.ffmpeg;
 
 import com.google.gson.Gson;
 import org.apache.commons.codec.binary.Hex;
+import org.bytedeco.ffmpeg.global.avcodec;
+import org.bytedeco.ffmpeg.global.avutil;
+import org.bytedeco.javacv.FFmpegFrameGrabber;
+import org.bytedeco.javacv.FFmpegFrameRecorder;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.Java2DFrameConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import javax.crypto.KeyGenerator;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -17,22 +25,206 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
+import java.util.UUID;
 
 public class FFmpegUtils
 {
+    private static final Logger logger = LoggerFactory.getLogger(FFmpegUtils.class);
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(FFmpegUtils.class);
+    private final static String SUFFIX = ".jpg";
 
-    // 跨平台换行符
     private static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     /**
-     * 生成随机16个字节的AESKEY
+     * 获取视频文件信息
+     */
+    public static VideoInfo getVideoInfo(File file)
+    {
+        VideoInfo videoInfo = new VideoInfo();
+        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(file))
+        {
+            grabber.start();
+
+            videoInfo.setLengthInFrames(grabber.getLengthInVideoFrames());
+
+            videoInfo.setFrameRate(grabber.getVideoFrameRate());
+
+            videoInfo.setDuration(grabber.getLengthInTime() / 1000000.00);
+
+            videoInfo.setWidth(grabber.getImageWidth());
+
+            videoInfo.setHeight(grabber.getImageHeight());
+
+            videoInfo.setAudioChannel(grabber.getAudioChannels());
+
+            videoInfo.setVideoCode(grabber.getVideoCodecName());
+
+            videoInfo.setAudioCode(grabber.getAudioCodecName());
+            // String md5 = MD5Util.getMD5ByInputStream(new FileInputStream(file));
+
+            videoInfo.setSampleRate(grabber.getSampleRate());
+            return videoInfo;
+        }
+        catch (Exception e)
+        {
+            logger.error("javacv obtain video information error", e);
+            return null;
+        }
+    }
+
+    /**
+     * 随机获取视频截图
      *
-     * @return
+     * @param videFile 视频文件
+     * @param count    输出截图数量
+     * @return 截图列表
+     */
+    public static List<VideoImageInfo> randomGrabberFFmpegImage(File videFile, int count, String path)
+    {
+        try (FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(videFile))
+        {
+            List<VideoImageInfo> images = new ArrayList<>(count);
+            grabber.start();
+            // 获取视频总帧数
+            // int lengthInVideoFrames = grabber.getLengthInVideoFrames();
+            // 获取视频时长， / 1000000 将单位转换为秒
+            long delayedTime = grabber.getLengthInTime() / 1000000;
+
+            Random random = SecureRandom.getInstanceStrong();
+            int[] timeList = new int[count];
+            for (int i = 0; i < count; i++)
+            {
+                timeList[i] = random.nextInt((int) delayedTime - 1) + 1;
+            }
+            // 让截图按时间线排列
+            Arrays.sort(timeList);
+            for (int i : timeList)
+            {
+                // 跳转到响应时间
+                grabber.setTimestamp(i * 1000000L);
+                Frame f = grabber.grabImage();
+                Java2DFrameConverter converter = new Java2DFrameConverter();
+                BufferedImage bi = converter.getBufferedImage(f);
+                String imageName = UUID.randomUUID().toString().replace("-", "") + SUFFIX;
+                File out = Paths.get(path, imageName).toFile();
+                ImageIO.write(bi, "jpg", out);
+
+                VideoImageInfo videoImageInfo = new VideoImageInfo();
+                videoImageInfo.setFilePath(path + File.separator + imageName);
+                videoImageInfo.setFileNewName(imageName);
+                videoImageInfo.setSize(f.image.length);
+                videoImageInfo.setFileOriginalName(videFile.getName());
+                videoImageInfo.setType(5);
+                videoImageInfo.setSuffixName(SUFFIX);
+
+                images.add(videoImageInfo);
+            }
+            return images;
+        }
+        catch (Exception e)
+        {
+            logger.error("javacv obtain video images error", e);
+            return null;
+        }
+    }
+
+    /**
+     * @param inputFilePath  inputFilePath
+     * @param outputFilePath outputFilePath
+     * @param baseUrl        baseUrl
+     * @param filename       filename
+     * @param keyInfo        格式为
+     *                       /upload/key/xxx/encrypt.key        - uri
+     *                       F:\Movies\encrypt.key              - key file path, 生成 openssl random 16 > encrypt.key
+     *                       a9a9b1d3c819990ef4f7284f9ffd1320   iv
+     */
+    public static void convertMediaToM3u8(String inputFilePath, String outputFilePath, String baseUrl, String filename, String keyInfo) throws IOException
+    {
+        avutil.av_log_set_level(avutil.AV_LOG_INFO);
+        FFmpegFrameGrabber grabber = null;
+        FFmpegFrameRecorder recorder = null;
+        try
+        {
+            grabber = new FFmpegFrameGrabber(inputFilePath);
+            grabber.start();
+
+            recorder = new FFmpegFrameRecorder(outputFilePath,
+                    grabber.getImageWidth(),
+                    grabber.getImageHeight(),
+                    grabber.getAudioChannels());
+
+            recorder.setFormat("hls");
+            recorder.setOption("hls_time", "5");
+            recorder.setOption("hls_list_size", "0");
+            recorder.setOption("hls_flags", "delete_segments");
+            recorder.setOption("hls_delete_threshold", "1");
+            recorder.setOption("hls_segment_type", "mpegts");
+            if (null != keyInfo && keyInfo.trim().length() > 0)
+            {
+                recorder.setOption("hls_key_info_file", keyInfo);
+            }
+            recorder.setOption("hls_segment_filename", filename + "_%d.ts");
+            recorder.setOption("hls_base_url", baseUrl);
+
+            recorder.setFrameRate(25);
+            recorder.setGopSize(2 * 25);
+            recorder.setVideoQuality(1.0);
+            recorder.setVideoBitrate(10 * 1024);
+            recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264);
+            recorder.setAudioCodec(avcodec.AV_CODEC_ID_AAC);
+            recorder.start();
+
+
+            Frame frame;
+            while ((frame = grabber.grabImage()) != null)
+            {
+                recorder.record(frame);
+            }
+            recorder.setTimestamp(grabber.getTimestamp());
+        }
+        catch (Exception e)
+        {
+            logger.error("javacv convert video to m3u8 error", e);
+        }
+        finally
+        {
+            try
+            {
+                if (null != recorder)
+                {
+                    recorder.stop();
+                    recorder.release();
+                }
+            }
+            catch (Exception e)
+            {
+                logger.error("javacv close recorder error", e);
+            }
+            try
+            {
+                if (null != grabber)
+                {
+                    grabber.stop();
+                    grabber.release();
+                }
+            }
+            catch (Exception e)
+            {
+                logger.error("javacv close grabber error", e);
+            }
+        }
+    }
+
+    /*=======================================以上使用javacv===============================================*/
+
+    /**
+     * 生成随机16个字节的AESKEY
      */
     private static byte[] genAesKey()
     {
@@ -55,8 +247,11 @@ public class FFmpegUtils
      */
     private static Path genKeyInfo(String folder) throws IOException
     {
-        // AES 密钥
         byte[] aesKey = genAesKey();
+        if (null == aesKey)
+        {
+            return null;
+        }
         // AES 向量
         String iv = Hex.encodeHexString(Objects.requireNonNull(genAesKey()));
 
@@ -65,22 +260,20 @@ public class FFmpegUtils
         Files.write(keyFile, aesKey, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
         // key_info 文件写入
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("key").append(LINE_SEPARATOR);                    // m3u8加载key文件网络路径
-        stringBuilder.append(keyFile.toString()).append(LINE_SEPARATOR);    // FFmeg加载key_info文件路径
-        stringBuilder.append(iv);                                            // ASE 向量
 
         Path keyInfo = Paths.get(folder, "key_info");
 
-        Files.write(keyInfo, stringBuilder.toString().getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-
+        String stringBuilder = "key" + LINE_SEPARATOR +
+                keyFile.toString() + LINE_SEPARATOR +
+                iv;
+        Files.write(keyInfo, stringBuilder.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         return keyInfo;
     }
 
     /**
      * 指定的目录下生成 master index.m3u8 文件
      *
-     * @param file  master m3u8文件
+     * @param file      master m3u8文件
      * @param indexPath 访问子index.m3u8的路径
      * @param bandWidth 流码率
      * @throws IOException
@@ -99,8 +292,6 @@ public class FFmpegUtils
      * @param source     源视频
      * @param destFolder 目标文件夹
      * @param config     配置信息
-     * @throws IOException
-     * @throws InterruptedException
      */
     public static void transcodeToM3u8(String source, String destFolder, TranscodeConfig config) throws IOException, InterruptedException
     {
@@ -162,7 +353,7 @@ public class FFmpegUtils
                 String line = null;
                 while ((line = bufferedReader.readLine()) != null)
                 {
-                    LOGGER.info(line);
+                    logger.info(line);
                 }
             }
             catch (IOException e)
@@ -178,7 +369,7 @@ public class FFmpegUtils
                 String line = null;
                 while ((line = bufferedReader.readLine()) != null)
                 {
-                    LOGGER.info(line);
+                    logger.info(line);
                 }
             }
             catch (IOException e)
@@ -216,10 +407,7 @@ public class FFmpegUtils
     /**
      * 获取视频文件的媒体信息
      *
-     * @param source
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
+     * @param source source
      */
     public static MediaInfo getMediaInfo(String source) throws IOException, InterruptedException
     {
@@ -280,10 +468,8 @@ public class FFmpegUtils
         commands.add("image2");
         commands.add(file);
 
-        Process process = new ProcessBuilder(commands)
-                .start();
+        Process process = new ProcessBuilder(commands).start();
 
-        // 读取进程标准输出
         new Thread(() ->
         {
             try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream())))
@@ -291,7 +477,7 @@ public class FFmpegUtils
                 String line = null;
                 while ((line = bufferedReader.readLine()) != null)
                 {
-                    LOGGER.info(line);
+                    logger.info(line);
                 }
             }
             catch (IOException e)
@@ -307,7 +493,7 @@ public class FFmpegUtils
                 String line = null;
                 while ((line = bufferedReader.readLine()) != null)
                 {
-                    LOGGER.error(line);
+                    logger.error(line);
                 }
             }
             catch (IOException e)

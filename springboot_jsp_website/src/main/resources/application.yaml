@@ -21,7 +21,7 @@ spring:
   #  password:
   #  username:
     druid:
-      url: jdbc:mysql://127.0.0.1:3307/website?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true
+      url: jdbc:mysql://127.0.0.1:13306/demo?autoReconnect=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=false&allowMultiQueries=true
       username: root
       password: root
       initial-size: 10

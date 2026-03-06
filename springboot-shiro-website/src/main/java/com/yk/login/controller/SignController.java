@@ -72,7 +72,7 @@ public class SignController
         Subject subject = SecurityUtils.getSubject();
         if (!subject.isAuthenticated())
         {
-            throw new ShiroException("已经退出");
+            throw new ShiroException("已经退出", 0);
         }
         securityManager.logout(subject);
         // delete redis key

@@ -1,0 +1,56 @@
+
+1. .getClassLoader().getResource("/")
+    和
+   .getClassLoader().getResource("")
+
+    System.out.println(AESUtil2.class.getClassLoader().getResource(""));
+    // System.out.println(AESUtil2.class.getClassLoader().getResource("/")); 非web场景返回null
+    System.out.println(AESUtil2.class.getResource("")); 结果携带包名
+    System.out.println(AESUtil2.class.getResource("/"));
+
+2.
+    String appPath = context.getRealPath("/"); 服务根目录
+
+
+    // 获取 Tomcat 安装目录
+    String catalinaHome = System.getProperty("catalina.home");
+    String appPath = catalinaHome + "/webapps/" + appName + "/";
+
+
+    URL resourceUrl = PathUtil.class.getClassLoader().getResource("");
+    // 转换为文件路径
+    String classPath = resourceUrl.getPath();
+    // Web 应用中，classPath 通常是 /path/to/apache-tomcat/webapps/myapp/WEB-INF/classes/
+    // 去掉 /WEB-INF/classes/，获取 Web 应用根目录
+    String appPath = classPath.replace("/WEB-INF/classes/", "/");
+
+
+    String classPath = new DefaultResourceLoader().getResource("classpath:").getFile().getAbsolutePath();
+    // 去掉 /WEB-INF/classes/ 或 /classes/
+    String appPath = classPath.replace("/WEB-INF/classes/", "/").replace("/classes/", "/");
+
+例如:
+服务器环境启动, 利用spring placeholder替换"${catalina.home}/webapps/datamask/static/file/IDAndArea.json"中的"${catalina.home}"
+但在本机启动(idea或者eclipse), 需要下面的方式访问文件
+URL resourceUrl = DicMapConstant.class.getClassLoader().getResource("");
+String classPath = resourceUrl.getPath();
+String appPath = classPath.replace("/WEB-INF/classes/", "/");
+appPath = appPath.endsWith("/") ? appPath.substring(0, appPath.length() - 1) : appPath;
+Province[] provinces = dataReadGeneratePrintDebug.readJson(appPath +  "/static/file/IDAndArea.json");
+
+// classPath也可这样获取
+classPath = new DefaultResourceLoader().getResource(ResourceLoader.CLASSPATH_URL_PREFIX).getFile().getAbsolutePath();
+
+本机tomcat环境：
+user.dir = D:\idea_workspace\development_tool\apache-tomcat-9.0.80\bin
+catalina.home = D:\idea_workspace\development_tool\apache-tomcat-9.0.80
+.class.getClassLoader().getResource("").getPath() = /D:/workspace/SDM/datamask/datamask-simp-sdm2021-optimization/datamask/target/datamask-simp-sdm2021-optimization/WEB-INF/classes/
+
+linux的tomcat环境
+user.dir = /    (当 JVM 被 systemd 拉起时，user.dir 就是 /)
+catalina.home = /opt/sdm/Spinfo/apache-tomcat
+.class.getClassLoader().getResource("").getPath() = /opt/sdm/Spinfo/apache-tomcat/webapps/datamask/WEB-INF/classes/
+
+
+
+

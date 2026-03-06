@@ -1,5 +1,6 @@
 package com.reg;
 
+import cn.hutool.core.io.FileUtil;
 import com.yk.crypto.BinHexSHAUtil;
 import org.junit.Test;
 
@@ -133,9 +134,21 @@ public class RegTest
         FileOutputStream out = new FileOutputStream(new File("D:\\1text_" + System.currentTimeMillis() + ".txt"));
         BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
         String special = "0x01";
+        int aaa1 = 0x012;
+        int aaa2 = 0x7F;
+        int aaa3 = 0x12;
+        System.out.print(aaa1 == aaa3);
         int i = Integer.parseInt("01", 16);
         int j = Integer.parseInt("a0", 16);
-        String str = "input" + ((char) i) + "|" + ((char) j) + "test";
+        String str = "input" + ((char) 0x01) + "|" + ((char) 0x02) + "test";
+
+        String __str = "input" + (new String(Character.toChars(0x01))) + "|" + (new String(Character.toChars(0x02))) + "test";
+        System.out.println();
+        System.out.println(str.equals(__str));
+        __str = "input" + (new String(Character.toChars(Integer.parseInt("01", 16)))) + "|" + (new String(Character.toChars(Integer.parseInt("02", 16)))) + "test";
+        System.out.println();
+        System.out.println(str.equals(__str));
+
         writer.write(str);
         writer.flush();
 
@@ -145,5 +158,76 @@ public class RegTest
         byte[] temp = new byte[]{(byte) 'i', (byte) 'n', 'p', (byte) 't', BinHexSHAUtil.intToByte(Integer.parseInt("a0", 16))};
         _out.write(temp);
         _out.flush();
+
+        // 全角半角
+        String rep = "123　456 789";
+        String blankFull = "　";
+        char blankFullChar = '\u3000';
+        String blankHalf = " ";
+        char blankHalfChar = ' ';
+        System.out.println(blankFull.toCharArray()[0] == blankFullChar);
+        System.out.println(Character.toString(blankFullChar).equals(blankFull));
+        System.out.println(("" + (blankFullChar)).equals(blankFull));
+        System.out.println(rep.replace(Character.toString(blankFullChar), ""));
+
+        System.out.println(blankHalf.toCharArray()[0] == blankHalfChar);
+        System.out.println(Character.toString(blankHalfChar).equals(blankHalf));
+        System.out.println(("" + (blankHalfChar)).equals(blankHalf));
+        System.out.println(rep.replace(Character.toString(blankHalfChar), ""));
+        System.out.println();
+
+        FileUtil.writeString(new String(Character.toChars(0x07)) + "|" + new String(Character.toChars(0x07)), new File("F:\\SDM\\data\\sp1.txt"), StandardCharsets.UTF_8);
+        // FileUtil.writeString(new String(Character.toChars(0x01)), new File("F:\\SDM\\data\\sp1.txt"), StandardCharsets.UTF_8);
+        FileUtil.writeString(new String(new byte[]{(byte) 0x01}), new File("F:\\SDM\\data\\sp2.txt"), StandardCharsets.UTF_8);
+        FileUtil.writeBytes(new byte[]{(byte) 0x01}, new File("F:\\SDM\\data\\sp3.txt"));
+        System.out.println();
+    }
+
+    /**
+     * 处理 Unicode 字符的常用方法
+     * Character.isSurrogate(char c): 检查是否是代理对中的字符。
+     * Character.toChars(int codePoint): 将 Unicode 码点转换为 char 数组。
+     * Character.toCodePoint(char high, char low): 将高位和低位代理转换为完整的 Unicode 码
+     */
+    @Test
+    public void testReg()
+    {
+        String input = "&#x4EF6; and &#125;";
+
+        // 正则表达式匹配 &#xXXXX; 格式
+        String hexPattern = "&#x([0-9A-Fa-f]+);";
+        Pattern hexRegex = Pattern.compile(hexPattern);
+        Matcher hexMatcher = hexRegex.matcher(input);
+
+        // 转换 &#xXXXX;
+        StringBuffer result = new StringBuffer();
+        while (hexMatcher.find())
+        {
+            String hexValue = hexMatcher.group(1);
+            int unicode = Integer.parseInt(hexValue, 16);
+            char[] _unicode = Character.toChars(unicode);
+            hexMatcher.appendReplacement(result, new String(_unicode));
+        }
+        hexMatcher.appendTail(result);
+
+        // 正则表达式匹配 &#XXX; 格式
+        String decPattern = "&#(\\d+);";
+        Pattern decRegex = Pattern.compile(decPattern);
+        Matcher decMatcher = decRegex.matcher(result.toString());
+
+        // 转换 &#XXX;
+        result.setLength(0);
+        while (decMatcher.find())
+        {
+            String aaa = decMatcher.group(1);
+            int decValue = Integer.parseInt(aaa);
+            String _unicode = String.format("\\u%04X", decValue);
+            char[] unicode = Character.toChars(decValue);
+            decMatcher.appendReplacement(result, new String(unicode));
+        }
+        decMatcher.appendTail(result);
+
+        // 输出最终结果
+        System.out.println(result.toString());  // 正确显示 \u4EF6 and \u007D
     }
 }

@@ -1,8 +1,10 @@
 package com.yk.base.shiro.filter;
 
+import com.yk.base.exception.ResponseCode;
 import com.yk.base.exception.ShiroException;
 import com.yk.base.shiro.jwt.JwtTokenProvider;
-import com.yk.base.shiro.token.CustomerToken;
+import com.yk.base.shiro.token.TokenForm;
+import com.yk.base.shiro.token.TokenForm;
 import com.yk.base.utils.RequestUtils;
 import com.yk.user.model.User;
 import io.jsonwebtoken.Claims;
@@ -49,7 +51,7 @@ public class TokenFilter extends AccessControlFilter
         String authorization = jwtTokenProvider.resolveToken((HttpServletRequest) request);
         if (null == authorization)
         {
-            throw new ShiroException(400, "token not exist");
+            throw new ShiroException(ResponseCode.ACCOUNT_TOKEN_NOT_EXIST_ERROR.message, ResponseCode.ACCOUNT_TOKEN_NOT_EXIST_ERROR.code);
         }
 
         String username = null;
@@ -69,10 +71,10 @@ public class TokenFilter extends AccessControlFilter
         }
         if (null == username)
         {
-            throw new ShiroException(400, "token not support");
+            throw new ShiroException(ResponseCode.ACCOUNT_TOKEN_NOT_SUPPORT_ERROR.message, ResponseCode.ACCOUNT_TOKEN_NOT_SUPPORT_ERROR.code);
         }
 
-        CustomerToken token = new CustomerToken(username, authorization);
+        TokenForm token = new TokenForm(username, authorization);
         Subject subject = super.getSubject(request, response);
         try
         {
@@ -100,19 +102,19 @@ public class TokenFilter extends AccessControlFilter
                     try
                     {
                         // 刷新token后, 需要重新set, 否则如果需要checkRole或者checkPermission时 (@RequiresRoles/@RequiresPermissions), 会在 DelegatingSubject.assertAuthzCheckPossible 抛出 This subject is anonymous 的异常
-                        subject.login(new CustomerToken(username, newToken));
+                        subject.login(new TokenForm(username, newToken));
                         boolean isAuthenticated = subject.isAuthenticated();
                         logger.debug("isAuthenticated : {}", isAuthenticated);
                     }
                     catch (Exception ee)
                     {
                         logger.error("refresh token re login error", e);
-                        throw new ShiroException(400, "token verify error");
+                        throw new ShiroException(ResponseCode.ACCOUNT_TOKEN_VERIFY_ERROR.message, ResponseCode.ACCOUNT_TOKEN_VERIFY_ERROR.code);
                     }
                     return true;
                 }
             }
-            throw new ShiroException(400, "token verify error");
+            throw new ShiroException(ResponseCode.ACCOUNT_TOKEN_VERIFY_ERROR.message, ResponseCode.ACCOUNT_TOKEN_VERIFY_ERROR.code);
         }
         return true;
     }

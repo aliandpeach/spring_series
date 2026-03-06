@@ -1,0 +1,167 @@
+1. mvc:default-servlet-handler 不配置解析不了jsp, 只用addResourceHandlers配置jsp目录无法解析
+
+    Spring MVC 项目中 JSP 页面无法被正常解析，只配置了 addResourceHandlers 而没有配置 <mvc:default-servlet-handler>，导致 JSP 报 404 或不解析。
+
+    这是一个经典配置误区，我们来深入解释一下。
+
+    ✅ 问题本质
+    💡 addResourceHandlers() 是用来处理 静态资源（如 js/css/png/pdf）
+
+    它告诉 Spring MVC 去哪里找静态资源文件
+
+    不能用来处理 JSP，因为 JSP 是由 Servlet 容器（Tomcat）处理的动态资源
+
+    💡 JSP 的解析需要使用 默认的 Servlet（default servlet）
+
+    也就是让 Spring MVC 把未映射的请求（通常是 .jsp）交还给容器去处理，例如 Tomcat 的默认 DefaultServlet 或 JspServlet
+
+    如果你没配置，Spring MVC 会尝试自己处理 .jsp，找不到对应 Controller，就报 404。
+
+    ✅ 正确做法（两种方式）
+    ✅ XML 方式
+    <!-- 启用注解驱动 -->
+    <mvc:annotation-driven/>
+
+    <!-- 让未匹配的请求（如 jsp）交给 default servlet -->
+    <mvc:default-servlet-handler/>
+
+    <!-- 视图解析器 -->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/views/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
+
+
+    页面路径 /hello 实际会解析到 /WEB-INF/views/hello.jsp
+
+    ✅ Java Config 方式（基于 WebMvcConfigurer）
+    @Configuration
+    @EnableWebMvc
+    public class WebConfig implements WebMvcConfigurer {
+
+        // JSP视图解析器
+        @Bean
+        public InternalResourceViewResolver viewResolver() {
+            InternalResourceViewResolver vr = new InternalResourceViewResolver();
+            vr.setPrefix("/WEB-INF/views/");
+            vr.setSuffix(".jsp");
+            return vr;
+        }
+
+        // 启用 default servlet handler，让 JSP 由容器处理
+        @Override
+        public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+            configurer.enable();
+        }
+
+        // 静态资源处理（可选）
+        @Override
+        public void addResourceHandlers(ResourceHandlerRegistry registry) {
+            registry.addResourceHandler("/static/**")
+            .addResourceLocations("/static/");
+        }
+    }
+
+    ⚠️ 错误配置示例
+
+    如果你只配置了：
+
+    registry.addResourceHandler("/WEB-INF/views/**")
+    .addResourceLocations("/WEB-INF/views/");
+
+
+    Spring 会尝试把 JSP 当作静态资源返回（浏览器接收的是 JSP 源码），而不是交给 JSP 引擎去解析，从而导致：
+
+    浏览器直接看到 JSP 源码
+
+    报 404（找不到）
+
+    或 MIME 类型错误
+
+    ✅ 最终小结
+    功能	是否必须	配置方式
+    configureDefaultServletHandling() 或 <mvc:default-servlet-handler/>	✅ 是	让容器处理 JSP
+    addResourceHandlers()	✅ 可选	仅用于静态资源
+    viewResolver	✅ 是	告诉 Spring 如何找 JSP 文件
+
+
+
+2. 开启 default-servlet-handler， 不配置即可直接访问静态资源 (非WEB-INF目录)， 是这样的嘛
+
+
+    ✅ 开启 <mvc:default-servlet-handler/> 的作用
+
+    当你在 Spring MVC 中配置：
+
+    <mvc:default-servlet-handler />
+
+
+    或使用 Java Config：
+
+    @Override
+    public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+        configurer.enable();
+    }
+
+    ➤ 它的作用是：
+
+    让 Spring MVC 把没有被自己拦截（没有匹配到 Controller 或 ResourceHandler） 的请求，转发给 Servlet 容器的 DefaultServlet 来处理。
+
+    🗂️ 静态资源访问的几种情况
+    ✅ 默认可以访问的目录（只要没有被 Spring MVC 拦截）
+
+    例如：
+
+    /webapp
+    ├── index.html
+    ├── style.css
+    ├── /images/logo.png
+
+
+    你不配置 addResourceHandlers，只开启 default-servlet-handler 的话，这些静态资源：
+
+    http://localhost:8080/index.html
+
+    http://localhost:8080/style.css
+
+    http://localhost:8080/images/logo.png
+
+    👉 是可以直接访问的，因为它们不在 Spring MVC 的处理路径内，直接交给默认的 Servlet 处理。
+
+    ❌ 不能访问的情况
+    🧱 如果静态资源在 /WEB-INF/ 目录内
+
+    比如你放在 /WEB-INF/static/logo.png，是无法通过浏览器访问的：
+
+    /WEB-INF 是 Servlet 容器的受保护路径
+
+    不论你配置什么，都无法通过 URL 访问 /WEB-INF 下的文件
+
+    解决方式：
+
+    把静态资源放在 /static、/public、/resources、/META-INF/resources（Spring Boot 支持）
+
+    或者配置 addResourceHandlers 将其映射出来
+
+    ✅ 简单判断：
+    情况	只开启 default-servlet-handler 是否能访问
+    /index.html	✅ 可以
+    /images/logo.png	✅ 可以
+    /WEB-INF/views/page.jsp	❌ 不可以直接访问
+    /WEB-INF/static/logo.png	❌ 不可以直接访问
+    ✅ 总结一句话：
+
+    开启 <mvc:default-servlet-handler/> 后，未被 Spring MVC 拦截的请求，会交给默认 Servlet 处理，因此只要资源不在 /WEB-INF 等受保护路径中，就可以直接访问，无需 addResourceHandlers 配置。
+
+3. 若有Springboot工程, 需要内置静态页面(打包到jar中或者在classpath目录，或者在WEB-INF等安全目录中), 则需要：
+    3.1 写前端编译前端, 放入classpath路径, 保持资源路径统一, 例如都放在工程resources/check-events/目录中
+    3.2 使用addResourceHandlers映射目录, 保持访问路径统一, 例如统一映射为 "/check-events/**" -> "classpath:/check-events/"
+    3.3 若使用了模板, 还需要配置模板路径, 例如SpringResourceTemplateResolver.setPrefix("classpath:/thymeleaf/"), 默认在 "classpath:/templates/" 则不需要配置
+    3.4 静态资源访问路径需要配置登录例外
+
+4. 若只是普通静态资源，不放置在WEB-INF目录， 只是放在和WEB-INF同级目录中， 则需要：
+    4.1 静态资源访问路径需要配置登录例外
+    4.2 按照需要, 使用addResourceHandlers映射目录,
+        例如在webapps/datamask/web/目录中放置静态资源, 则需要映射 "/web/**" -> "/web/", "/web/" -> "/web/index.html"
+        但若配置了<mvc:default-servlet-handler>, 则不需要addResourceHandlers映射目录, 直接访问即可(前提是访问路径和资源路径是一致的，不一致的话还是需要映射)
+        (DispatcherServlet拦截了所有请求，包括静态资源的请求， 配置default-servlet-handler后，Spring MVC会将未被拦截的请求交给Servlet容器的默认Servlet处理，这样就可以直接访问静态资源了

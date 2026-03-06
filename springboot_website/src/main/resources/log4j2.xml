@@ -6,12 +6,13 @@
     </properties>
 
     <Appenders>
+        <!-- SYSTEM_OUT 不再打印到catalina.out -->
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d %-5p (%F:%L) - %m%n"/>
         </Console>
         <RollingRandomAccessFile name="other"
                                  fileName="${LOG_HOME}/logs/other.log"
-                                 filePattern="${LOG_HOME}/logs/other.log.%d{yyyy-MM-dd}.gz">
+                                 filePattern="${LOG_HOME}/logs/other.log.%d{yyyy-MM-dd}-%i.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
@@ -23,7 +24,7 @@
 
         <RollingRandomAccessFile name="base"
                                  fileName="${LOG_HOME}/logs/base.log"
-                                 filePattern="${LOG_HOME}/logs/base.log.%d{yyyy-MM-dd}.gz">
+                                 filePattern="${LOG_HOME}/logs/base.log.%d{yyyy-MM-dd}-%i.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>
@@ -35,7 +36,7 @@
 
         <RollingRandomAccessFile name="common"
                                  fileName="${LOG_HOME}/logs/common.log"
-                                 filePattern="${LOG_HOME}/logs/common.log.%d{yyyy-MM-dd}.gz">
+                                 filePattern="${LOG_HOME}/logs/common.log.%d{yyyy-MM-dd}-%i.gz">
             <PatternLayout
                     pattern="%d %-5p (%F:%L) - %m%n"/>
             <Policies>

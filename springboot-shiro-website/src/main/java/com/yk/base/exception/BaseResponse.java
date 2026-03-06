@@ -11,11 +11,11 @@ public class BaseResponse<T>
     /**
      * 响应代码
      */
-    private int status;
+    private int code = ResponseCode.SUCCESS.code;
     /**
      * 响应消息
      */
-    private String message;
+    private String message = ResponseCode.SUCCESS.message;
 
     /**
      * data
@@ -27,9 +27,9 @@ public class BaseResponse<T>
     {
     }
 
-    public BaseResponse(Integer status, String message, T data)
+    public BaseResponse(Integer code, String message, T data)
     {
-        this.status = status;
+        this.code = code;
         this.message = message;
         this.data = data;
     }

@@ -8,8 +8,8 @@ import com.yk.base.shiro.matcher.PasswordMatcher;
 import com.yk.base.shiro.matcher.TokenMatcher;
 import com.yk.base.shiro.realm.PasswordRealm;
 import com.yk.base.shiro.realm.TokenRealm;
-import com.yk.base.shiro.token.CustomerToken;
-import com.yk.base.shiro.token.PasswordToken;
+import com.yk.base.shiro.token.TokenForm;
+import com.yk.base.shiro.token.PasswordForm;
 import com.yk.user.service.UserService;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
@@ -29,14 +29,18 @@ import org.apache.shiro.subject.Subject;
 import org.apache.shiro.subject.SubjectContext;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
 import org.apache.shiro.web.mgt.DefaultWebSubjectFactory;
+import org.apache.shiro.web.servlet.AbstractShiroFilter;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.web.filter.DelegatingFilterProxy;
 
+import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,7 +76,26 @@ public class ShiroConfig
     @Autowired
     private UserService userService;
 
+    /**
+     * shiroFilter bean 手动注册为Filter
+     */
     @Bean
+    protected FilterRegistrationBean<AbstractShiroFilter> filterShiroFilterRegistrationBean(ShiroFilterFactoryBean shiroFilter) throws Exception
+    {
+
+        FilterRegistrationBean<AbstractShiroFilter> filterRegistrationBean = new FilterRegistrationBean<>();
+        filterRegistrationBean.setDispatcherTypes(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ERROR);
+        filterRegistrationBean.setFilter((AbstractShiroFilter) shiroFilter.getObject());
+//        filterRegistrationBean.setFilter(new DelegatingFilterProxy("shiroFilter"));
+        filterRegistrationBean.setName("shiroFilter");
+        filterRegistrationBean.setOrder(1);
+        return filterRegistrationBean;
+    }
+
+    /**
+     * springboot中 shiroFilter只是bean,没有通过 FilterRegistrationBean 去注册为Filter, 需要上面代码手动注册为Filter
+     */
+    @Bean("shiroFilter")
     public ShiroFilterFactoryBean shiroFilterFactoryBean(@Qualifier("securityManager") SecurityManager securityManager)
     {
         ShiroFilterFactoryBean shiroFilterFactoryBean = new ShiroFilterFactoryBean();
@@ -142,11 +165,11 @@ public class ShiroConfig
         List<Realm> realmList = new LinkedList<>();
         // 密码校验器
         passwordRealm.setCredentialsMatcher(passwordMatcher);
-        passwordRealm.setAuthenticationTokenClass(PasswordToken.class);
+        passwordRealm.setAuthenticationTokenClass(PasswordForm.class);
         realmList.add(passwordRealm);
         // token校验器
         tokenRealm.setCredentialsMatcher(tokenMatcher);
-        tokenRealm.setAuthenticationTokenClass(CustomerToken.class);
+        tokenRealm.setAuthenticationTokenClass(TokenForm.class);
         realmList.add(tokenRealm);
         securityManager.setRealms(realmList);
 

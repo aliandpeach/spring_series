@@ -13,9 +13,9 @@
     <artifactId>spring_cxf_service</artifactId>
 
     <properties>
-        <spring.version>5.0.8.RELEASE</spring.version>
+        <spring.version>5.3.39</spring.version>
         <java.version>1.8</java.version>
-        <cxf.version>3.1.7</cxf.version>
+        <cxf.version>3.5.10</cxf.version>
     </properties>
     <dependencies>
         <!-- spring基本框架核心工具类，其他spring组件都需要依赖这个包 -->
@@ -147,6 +147,15 @@
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
             <version>${cxf.version}</version>
+        </dependency>
+
+        <!-- 运行环境是jdk8不需要这个依赖, 但运行环境是jdk11需要 (在Java8及以下javax.xml.ws.* 是 JDK 自带的一部分, 在Java11中被移除) -->
+        <!-- 如果是Java11+ 和 Jakarta EE 和 CXF4.x, 需要切换到 jakarta.xml.ws -->
+        <dependency>
+            <groupId>javax.xml.ws</groupId>
+            <artifactId>jaxws-api</artifactId>
+            <version>2.2.9</version>
+            <scope>provided</scope>
         </dependency>
         <!--<dependency>
             <groupId>org.apache.cxf</groupId>

@@ -113,7 +113,15 @@ public class AESUtilTest
     @Test
     public void testMysqlDecrypt() throws Exception
     {
-        // mysql aes_decrypt("xxxxx", "keytest")
+        // 1.
+        // select hex(AES_ENCRYPT(to_base64('Abc@123'),'keytest')) from dual;
+        // select from_base64(AES_DECRYPT(unhex('66B7253A53BEA4E4CA1B13B7DF83E834'),'keytest')) from dual;
+        // 2.
+        // select hex(AES_ENCRYPT('Abc@123','keytest')) from dual;
+        // select AES_DECRYPT(unhex('E7C02D2D0F4B1316F12BDD88D3AD010D'),'keytest') from dual;
+        // 3.
+        // select hex(AES_ENCRYPT('字段','keytest')) from dual;
+        // select CONVERT(AES_DECRYPT(UNHEX('9959D8E4068F962B72A06F7AB48AE6EB'),'keytest') USING utf8) from dual;
         SecretKeySpec key = generateMySQLAESKey("keytest", StandardCharsets.UTF_8.name());
         Cipher cipher = Cipher.getInstance("AES");// 创建密码器
         cipher.init(Cipher.DECRYPT_MODE, key);// 初始化

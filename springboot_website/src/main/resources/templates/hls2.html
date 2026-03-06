@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <meta name=viewport content="width=device-width,initial-scale=1,maximum-scale=1,minimum-scale=1,user-scalable=no,minimal-ui">
+    <meta name="referrer" content="no-referrer">
+    <title>video-hls</title>
+</head>
+<body>
+<div style="width: 600px; height: 337px">
+    <video id="video" width="80%"></video>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script th:inline="javascript">
+    if (Hls.isSupported()) {
+        var video = document.getElementById('video');
+        if (Hls.isSupported()) {
+            var hls = new Hls();
+            hls.loadSource(/*<![CDATA[*//*[[${source}]]*/ ""/*]]>*/);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function () {
+                video.play();
+            });
+        }
+        // hls.js is not supported on platforms that do not have Media Source Extensions (MSE) enabled.
+        // When the browser has built-in HLS support (check using `canPlayType`), we can provide an HLS manifest (i.e. .m3u8 URL) directly to the video element throught the `src` property.
+        // This is using the built-in support of the plain video element, without using hls.js.
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+        video.src = /*<![CDATA[*//*[[${source}]]*/ ""/*]]>*/;
+        video.addEventListener('canplay', function () {
+            video.play();
+        });
+    }
+</script>
+</body>
+</html>

@@ -213,6 +213,7 @@
 
             <!--3.0版本插件不存在web.xml缺少时无法打包的情况-->
             <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>3.0.0</version>
                 <configuration>

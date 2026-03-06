@@ -26,6 +26,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * https://www.cnblogs.com/xfeiyun/p/16932297.html : 这个测试用例的工程也是注解工程
+ *
  * 利用该类可以实现替代web.xml  底层接口是 WebApplicationInitializer (怎么启动具体看ServletContainerInitializer的加载配置方式), 因此该类不需要自行new 对象
  *
  * 所以BaseWebApplicationInitializer 也可以，

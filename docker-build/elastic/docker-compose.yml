@@ -1,0 +1,72 @@
+services:
+  spinfo-es-single:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.14-arm64
+    container_name: spinfo-es-single
+    restart: always
+    privileged: true
+    environment:
+      - node.name=spinfo-es-single
+      - cluster.name=es-docker-cluster
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - TAKE_FILE_OWNERSHIP=true
+      - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ES_PASSWORD}
+      - xpack.security.transport.ssl.enabled=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./spinfo-es-single/data:/usr/share/elasticsearch/data
+      - ./spinfo-es-single/logs:/usr/share/elasticsearch/logs
+      - ./spinfo-es-single/plugins:/usr/share/elasticsearch/plugins
+      - ./spinfo-es-single/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    networks:
+      - spinfo-network
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+
+      #  spinfo-es-head:
+      #    image: wallbase/elasticsearch-head:6-alpine
+      #    container_name: spinfo-es-head
+      #    environment:
+      #      TZ: 'Asia/Shanghai'
+      #    networks:
+      #      - spinfo-network
+      #    ports:
+      #      - '9210:9100'
+      #    expose:
+      #      - 9210
+      #    depends_on:
+      #      - spinfo-es-single
+
+  spinfo-es-kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.14-arm64
+    container_name: spinfo-es-kibana
+    restart: always
+    environment:
+      - ES_HOST=${ES_HOST}
+      - ES_PORT=${ES_PORT}
+      - ES_USERNAME=${ES_USERNAME}
+      - ES_PASSWORD=${ES_PASSWORD}
+      - TZ='Asia/Shanghai'
+    volumes:
+      - ./spinfo-es-kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
+    networks:
+      - spinfo-network
+    expose:
+      - 5601
+    ports:
+      - '5601:5601'
+    depends_on:
+      - spinfo-es-single
+
+
+
+networks:
+  spinfo-network:
+    name: spinfo-network

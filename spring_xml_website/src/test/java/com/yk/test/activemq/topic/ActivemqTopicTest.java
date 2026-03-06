@@ -41,9 +41,9 @@ public class ActivemqTopicTest
         service.start();
 
 
-        new com.yk.demo.activemq.demo.topic.TopicConsumer();
-        new com.yk.demo.activemq.demo.topic.TopicConsumer2();
-        com.yk.demo.activemq.demo.topic.TopicProducer producer = new com.yk.demo.activemq.demo.topic.TopicProducer();
+        new com.yk.activemq.demo.topic.TopicConsumer();
+        new com.yk.activemq.demo.topic.TopicConsumer2();
+        com.yk.activemq.demo.topic.TopicProducer producer = new com.yk.activemq.demo.topic.TopicProducer();
         producer.publishMessages();
         Thread.sleep(1000);
     }

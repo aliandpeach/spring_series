@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 描述
@@ -31,7 +32,7 @@ public class RoleRepository extends HibernateDaoSupport
 
     public Role findRoleByName(String name)
     {
-        return this.getSessionFactory().getCurrentSession().createQuery("select r from Role r where r.name = :name", Role.class)
+        return Objects.requireNonNull(this.getSessionFactory()).getCurrentSession().createQuery("select r from Role r where r.name = :name", Role.class)
                 .setParameter("name", name).uniqueResult();
     }
 }

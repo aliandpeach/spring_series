@@ -34,7 +34,8 @@ public class UserDetailsServiceImpl implements UserDetailsService
         return org.springframework.security.core.userdetails.User
                 .withUsername(username)
                 .password(user.getPasswd())
-                .authorities(user.getRoles())
+                .roles() // 设置不带ROLE_开头的角色名称数组
+                .authorities(user.getRoles()) // 设置菜单权限名数据(后续增加角色菜单权限关系)
                 .accountExpired(false)
                 .accountLocked(false)
                 .credentialsExpired(false)

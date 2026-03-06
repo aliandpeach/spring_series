@@ -14,7 +14,7 @@ import javax.sql.DataSource;
 import java.util.Properties;
 
 /**
- * 描述
+ * 本工程为SpringBoot+hibernate (非JPA)
  *
  * @author yangk
  * @version 1.0

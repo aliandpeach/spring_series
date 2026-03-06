@@ -73,16 +73,20 @@ public class StartUpListener implements ServletContextListener
             InputStream in1 = StartUpListener.class.getResource("/druid.properties").openStream();
             // path : /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
             String s1 = StartUpListener.class.getResource("/").getPath();
+            logger.debug("StartUpListener s1: {}", s1);
             // path : /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/com/yk/base/config/
             String s2 = StartUpListener.class.getResource("").getPath();
+            logger.debug("StartUpListener s2: {}", s2);
 
             // 默认从根目录查询，不能带/, 属于简化版的class.getResource方法 (web项目中，带不带/都可以，这是因为web项目获取的是相对路径)
             InputStream in2 = StartUpListener.class.getClassLoader().getResource("druid.properties").openStream();
 
             // /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
             String s3 = StartUpListener.class.getClassLoader().getResource("/").getPath();
+            logger.debug("StartUpListener s3: {}", s3);
             // /D:/idea_workspace/spring_series/spring_xml_website/target/spring_xml_website/WEB-INF/classes/
             String s4 = StartUpListener.class.getClassLoader().getResource("").getPath();
+            logger.debug("StartUpListener s4: {}", s4);
 
             // 无法获取到getClassLoader 不可用
             // InputStream in3 = Thread.currentThread().getClass().getClassLoader().getResource("druid.properties").openStream();

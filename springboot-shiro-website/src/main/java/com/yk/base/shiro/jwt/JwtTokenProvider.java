@@ -1,5 +1,6 @@
 package com.yk.base.shiro.jwt;
 
+import com.yk.base.exception.ResponseCode;
 import com.yk.base.exception.ShiroException;
 import com.yk.base.shiro.redis.RedisServiceImpl;
 import com.yk.user.model.Permission;
@@ -116,13 +117,14 @@ public class JwtTokenProvider
             }
             else
             {
-                throw new ShiroException(e.getMessage());
+                throw new ShiroException(ResponseCode.ACCOUNT_TOKEN_VERIFY_ERROR.message, ResponseCode.ACCOUNT_TOKEN_VERIFY_ERROR.code);
             }
         }
+        // 这里不应该频繁查询数据库, 应该提前将用户信息放入缓存
         User user = userService.queryUserByUsername(_username);
         if (null == user || StringUtils.isEmpty(user.getUsername()))
         {
-            throw new ShiroException(400, "user not exist");
+            throw new ShiroException(ResponseCode.ACCOUNT_USER_NOT_EXIST_ERROR.message, ResponseCode.ACCOUNT_USER_NOT_EXIST_ERROR.code);
         }
         return new SimpleAuthenticationInfo(user.getUsername(), token, realmName);
     }

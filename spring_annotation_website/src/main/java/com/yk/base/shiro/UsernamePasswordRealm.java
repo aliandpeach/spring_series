@@ -15,6 +15,9 @@ import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/**
+ * 组装数据库查询的用户名密码, 传递给matcher, 和提交的用户名密码做校验
+ */
 @Component
 public class UsernamePasswordRealm extends AuthorizingRealm
 {

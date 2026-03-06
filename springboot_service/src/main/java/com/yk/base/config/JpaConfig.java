@@ -33,6 +33,8 @@ public class JpaConfig
 
     /**
      * JPA中使用 JpaTransactionManager 类生成事务管理器
+     *
+     * entityManagerFactory - bean 在JpaRepositoriesAutoConfiguration中自动配置
      */
     @Bean
     public PlatformTransactionManager transactionManager(DataSource dataSource, EntityManagerFactory entityManagerFactory)

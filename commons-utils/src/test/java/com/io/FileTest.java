@@ -3,11 +3,14 @@ package com.io;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.channels.FileChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.locks.ReentrantLock;
@@ -73,7 +76,7 @@ public class FileTest
         }
     }
 
-    public static void main(String[] args)
+    public static void main1(String[] args)
     {
         ExecutorService service = Executors.newFixedThreadPool(10);
         ReentrantReadWriteLock.WriteLock lock = new ReentrantReadWriteLock().writeLock();
@@ -99,5 +102,27 @@ public class FileTest
             });
         });
         service.shutdown();
+    }
+
+    public static void main(String[] args) throws IOException
+    {
+        try (FileInputStream inputStream = new FileInputStream("C:\\Users\\yangkai\\Desktop\\update.sql");
+             InputStreamReader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8);
+             BufferedReader br = new BufferedReader(reader))
+        {
+            int c;
+            StringBuilder stringBuilder = new StringBuilder();
+            while ((c = br.read()) != -1)
+            {
+                if (((char) c) == ';')
+                {
+                    System.out.println(stringBuilder.toString().trim());
+                    stringBuilder.setLength(0);
+                    continue;
+                }
+                stringBuilder.append((char) c);
+            }
+            System.out.println(stringBuilder);
+        }
     }
 }

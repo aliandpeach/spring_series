@@ -1,9 +1,13 @@
 package com.yk.db.jpa.repository;
 
 import com.yk.db.jpa.model.Role;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
@@ -27,4 +31,23 @@ public interface RoleRepository
     List<Role> findAll();
 
     Role findRoleByName(String name);
+
+    /**
+     * JPA的分页查询1
+     */
+    @Query(value = "SELECT * FROM t_role WHERE name = ?1",
+            countQuery = "SELECT count(*) FROM t_role WHERE name = ?1",
+            nativeQuery = true)
+    Page<Role> findRoleByName(String roleName, Pageable pageable);
+
+    /**
+     * JPA的分页查询2
+     */
+    @Query(value = "select r from Role r where r.name=:name order by r.name desc")
+    Page<Role> findRoleByName2(@Param("name") String roleName, Pageable pageable);
+
+    /**
+     * JPA的分页查询3
+     */
+    Page<Role> findAll(Specification<Role> spec, Pageable pageable);
 }

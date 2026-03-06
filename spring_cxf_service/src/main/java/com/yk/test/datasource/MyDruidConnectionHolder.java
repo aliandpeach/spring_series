@@ -23,7 +23,6 @@ public class MyDruidConnectionHolder
         return MyDruidConnectionHolderInstance.INSTANCE;
     }
 
-    //不适用ConCurrentHashMap是因为其只支持最大16条线程
     private Map<String, MyDruidDataSource> dataSourceMap = Collections.synchronizedMap(new HashMap<>());
 
     synchronized DruidPooledConnection getConnection(DruidDataSource druidDataSource)

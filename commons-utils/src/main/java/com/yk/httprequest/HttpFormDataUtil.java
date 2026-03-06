@@ -180,7 +180,7 @@ public class HttpFormDataUtil
                 // 第二版是利用FormBodyPartBuilder 构建 FormBodyPart
                 FormBodyPartBuilder formBodyPartBuilder = FormBodyPartBuilder.create();
                 // 重点在这句, 没有设置contentType, FormData中同时传递的json数据无法被controller解析
-                formBodyPartBuilder.addField(MIME.CONTENT_DISPOSITION, "form-data; name=\"" + _entry.getKey() + "\"\r\nContent-Type: " + contentType);
+                formBodyPartBuilder.addField(MIME.CONTENT_DISPOSITION, "form-data; name=\"" + _entry.getKey() + "\"");
                 formBodyPartBuilder.addField(MIME.CONTENT_TYPE, contentType);
                 formBodyPartBuilder.addField(MIME.CONTENT_TRANSFER_ENC, "binary");
                 formBodyPartBuilder.setName(_entry.getKey());

@@ -243,6 +243,7 @@ public class SM2Test
         try
         {
             String time = LocalDateTime.now().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+            String time2 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
             System.out.println("加密前：" + str);
             String encode = sm2.encode("SS0EA21120003:" + time, "04B917C2246315CEE1BB413E44FD0093373C1E04263E473954BE36CAA470EE3651FCFF0DCCEA3173646BC3C779627FF7ADA0E66495A15D317F253E37F0070269E4");
             System.out.println("加密后：" + encode);

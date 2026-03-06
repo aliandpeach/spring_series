@@ -1,6 +1,6 @@
 package com.yk.test.activemq.general;
 
-import com.yk.demo.activemq.demo.general.GeneralExample;
+import com.yk.activemq.demo.general.GeneralExample;
 import org.apache.activemq.broker.BrokerService;
 
 import javax.jms.BytesMessage;

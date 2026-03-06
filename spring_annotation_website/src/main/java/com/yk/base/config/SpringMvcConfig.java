@@ -83,9 +83,11 @@ public class SpringMvcConfig implements WebMvcConfigurer
     }*/
 
     /**
-     * <mvc:default-servlet-handler/>
-     *     Spring mvc 不配置这个的话，由于dispatchServlet完全取代了 default servlet(容器)，就访问不到静态资源了， 这时候要么使用addResourceHandler去映射静态资源
-     *     (但是这么做 jps无法被解析)，要么就开启 default-servlet-handler， 可直接访问静态资源 (非WEB-INF目录), 同时直接访问jsp也可以被解析
+     * 等价于<mvc:default-servlet-handler/>
+     * 作用是, 让 Spring MVC 把没有被自己拦截（没有匹配到 Controller 或 ResourceHandler） 的请求，转发给 Servlet 容器的 DefaultServlet 来处理。
+     *
+     * Spring mvc 不启用该配置，由于dispatchServlet完全取代了 default servlet(容器)，就访问不到静态资源了， 这时候要么使用addResourceHandler去映射静态资源
+     * (但是这么做 jps无法被解析)，要么就开启 default-servlet-handler， 可直接访问静态资源 (非WEB-INF目录), 同时直接访问jsp也可以被解析
      *
      * 交由web容器默认的servlet处理
      *
@@ -93,6 +95,9 @@ public class SpringMvcConfig implements WebMvcConfigurer
      *
      * 每次请求过来，先经过DefaultServletHttpRequestHandler判断是否是静态文件，如果是静态文件，则进行处理，
      * 不是则放行交由DispatcherServlet控制器处理。
+     *
+     * DispatcherServlet 拦截了所有请求包括静态资源，开启这个配置，就可以直接访问除安全目录外的其他静态资源, 不开启访问静态资源需要在addResourceHandler中配置映射
+     * addResourceHandler 无法映射jsp, 因此解析访问jsp的解析还需要配置InternalResourceViewResolver
      */
     /*@Override
     public void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer)

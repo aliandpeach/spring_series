@@ -1,0 +1,44 @@
+配置不同应用的访问权限:
+1. 在apache-tomcat/conf/server.xml的<Host></Host>节点中配置全局参数:
+   <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+                 allow="127\.0\.0\.1|localhost|0:0:0:0:0:0:0:1"
+                 deny=""/>
+
+
+2. 在apache-tomcat/conf/server.xml 配置某应用的参数:
+
+   <Context path="" docBase="ABC">
+     <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+                   allow="127\.0\.0\.1|localhost|0:0:0:0:0:0:0:1"
+                   deny=""/>
+   </Context>
+
+
+   或者在应用的META-INF/目录中增加context.xml:
+   <?xml version="1.0" encoding="UTF-8"?>
+   <Context>
+       <Valve className="org.apache.catalina.valves.RemoteAddrValve"
+              allow="127\.0\.0\.1|localhost|0:0:0:0:0:0:0:1"
+              deny=""/>
+   </Context>
+
+appBase和docBase的关系:
+
+<Host appBase="webapps">
+<Context path="" docBase="">
+
+appBase: 该目录下的子目录会被部署为应用
+         1. 默认相对路径webapps, 指的是apache-tomcat/webapps/目录, 访问 https://127.0.0.1:4433/就是访问apache-tomcat/webapps/ROOT/目录的资源
+         2. 自定义相对路径为webapps/wxy, 指的是apache-tomcat/webapps/xyz/目录, 访问 https://127.0.0.1:4433/就是访问apache-tomcat/webapps/xyz/ROOT/目录的资源
+         3. 自定义配置绝对路径可以指定到其他任何目录例如D:\abc\apps, 访问 https://127.0.0.1:4433/就是访问D:/abc/apps/ROOT/目录的资源
+
+
+docBase: 指定具体应用的目录路径
+         1. 配置相对路径, 指向的是appBase中的目录(appBase本身是相对还是绝对路径无所谓), 例如配置"/abc/website", 访问 https://127.0.0.1:4433/就是访问appBase/abc/website/目录的资源
+         2. 配置绝对路径, 指向的是就是绝对路径的目录, 例如"D:\abc\website", 访问 https://127.0.0.1:4433/就是访问D:/abc/website/目录的资源 (appBase在这时就无效了)
+         3. 若配置了path, 则相对路径或者绝对路径的配置下, 都需要加上path路径
+
+         4. 若不配置<Context>, 应用目录app/website/直接放在指定的appBase中, 则启动检测不到website应用, 需要将website应用直接放在appBase目录下(或者和第一步一样,配置docBase="/app/website/")
+
+         5. 若配置为<Context path="/abc" docBase="website">, 而应用也放在appBase下, 则访问https://127.0.0.1:4433/abc 和 https://127.0.0.1:4433/website/是一样的
+

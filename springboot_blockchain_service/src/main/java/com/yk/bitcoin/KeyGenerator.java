@@ -1,5 +1,6 @@
 package com.yk.bitcoin;
 
+import cn.hutool.core.util.HexUtil;
 import com.yk.crypto.Base58;
 import com.yk.crypto.Sha256Hash;
 import com.yk.crypto.Utils;
@@ -48,6 +49,9 @@ public class KeyGenerator
         return pointQ.getEncoded(compressed);
     }
 
+    /**
+     * 生成BTC私钥地址, compressed=true为WIF格式
+     */
     public String keyGen(byte[] privateKey, boolean compressed)
     {
         if (null == privateKey || privateKey.length != 32)
@@ -92,6 +96,9 @@ public class KeyGenerator
         return privateString;
     }
 
+    /**
+     * 返回比特币地址, 格式:P2PKH
+     */
     public String addressGen(byte[] privateKey, boolean compressed)
     {
         // 使用上述的私钥 根据椭圆曲线生成公钥
@@ -117,10 +124,14 @@ public class KeyGenerator
 
         byte[] binaryBitcoinAddressBytes = add(extendedRipemd160Bytes, checksumPub);
 
+        System.out.println("original pub hex: " + publicKey.length + ", " + Utils.HEX.encode(publicKey));
         String bitcoinAddress = Base58.encode(binaryBitcoinAddressBytes);
         return bitcoinAddress;
     }
 
+    /**
+     * 无用的方法，没有经过椭圆曲线
+     */
     public String addressBy(byte[] bytes)
     {
         byte[] networkID = new BigInteger("00", 16).toByteArray();

@@ -47,7 +47,7 @@ public class RestfulPublish
             restServer.setResourceClasses(clazzs);
             restServer.setServiceBeanObjects(objects);
             restServer.setProvider(new JacksonJsonProvider());
-            restServer.setAddress("http://192.168.31.105:9095/");
+            restServer.setAddress("https://127.0.0.1:9095/");
             restServer.create();
         } catch (Exception e)
         {

@@ -2,7 +2,7 @@ package com.yk.base.shiro.realm;
 
 
 import com.yk.base.shiro.jwt.JwtTokenProvider;
-import com.yk.base.shiro.token.CustomerToken;
+import com.yk.base.shiro.token.TokenForm;
 import com.yk.user.model.Permission;
 import com.yk.user.model.Role;
 import com.yk.user.model.User;
@@ -102,13 +102,13 @@ public class TokenRealm extends AuthorizingRealm
      * 认证逻辑
      */
     @Override
-    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken customerToken) throws AuthenticationException
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken tokenForm) throws AuthenticationException
     {
-        if (!(customerToken instanceof CustomerToken))
+        if (!(tokenForm instanceof TokenForm))
         {
             return null;
         }
-        CustomerToken token = (CustomerToken) customerToken;
+        TokenForm token = (TokenForm) tokenForm;
         String tokenCred = (String) token.getCredentials();
         return jwtTokenProvider.getJwtAuthenticationToken(tokenCred, this.getName());
     }
@@ -116,7 +116,7 @@ public class TokenRealm extends AuthorizingRealm
     @Override
     public Class<?> getAuthenticationTokenClass()
     {
-        return CustomerToken.class;
+        return TokenForm.class;
     }
 
     /**

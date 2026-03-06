@@ -10,14 +10,14 @@ import java.io.IOException;
  * 推荐使用
  * //https://github.com/apache/cxf/blob/540bb76f6f3d3d23944c566905f9f395c6f86b79/systests/transports/src/test/java/org/apache/cxf/systest/https/conduit/KeyPasswordCallbackHandler.java
  */
-public class KeyManagerPassworkAuthHandler implements CallbackHandler
+public class KeyManagerPasswordAuthHandler implements CallbackHandler
 {
     @Override
     public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException
     {
         for (Callback callback : callbacks)
         {
-            if (null == callback || !(callback instanceof PasswordCallback))
+            if (!(callback instanceof PasswordCallback))
             {
                 return;
             }

@@ -103,20 +103,34 @@ public class SessionFilter extends OncePerRequestFilter
             return;
         }
 
+        // redis-session/tomcat-session ....
         HttpSession session = httpServletRequest.getSession(false);
         if (null == session)
         {
-            filterChain.doFilter(httpServletRequest, httpServletResponse);
+            // filterChain.doFilter(httpServletRequest, httpServletResponse);
+            httpServletResponse.setStatus(HttpStatus.BAD_REQUEST.value());
+            httpServletResponse.setContentType("application/json");
+            httpServletResponse.getWriter().write("{\"code\":\"-1\",\"message\": \"Invalid tokenId.\"}");
             return;
         }
         try
         {
+            // session只要不是null, 就是做了验证
             if (session.getAttribute("SPRING_SECURITY_CONTEXT") instanceof SecurityContext)
             {
                 SecurityContext securityContext = (SecurityContext) session.getAttribute("SPRING_SECURITY_CONTEXT");
                 Authentication authentication = securityContext.getAuthentication();
-                Authentication authentication2 = SecurityContextHolder.getContext().getAuthentication();
+                UsernamePasswordAuthenticationToken authentication2 = (UsernamePasswordAuthenticationToken) SecurityContextHolder.getContext().getAuthentication();
                 LOGGER.debug("session filter securityContext {}", authentication != null);
+                if (!(authentication instanceof UsernamePasswordAuthenticationToken)
+                        || ((UsernamePasswordAuthenticationToken) authentication).getCredentials() == null)
+                {
+                    throw new CustomException("session 校验失败");
+                }
+            }
+            else
+            {
+                throw new CustomException("session 校验失败");
             }
             // Session验证完成后, 在这里会更新该登录用户的权限（权限可能是由管理员通过其他接口或者直接在数据库修改的）
             // 保证了token不用重新登录, 用户也可以直接获取权限

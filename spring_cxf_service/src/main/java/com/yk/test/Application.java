@@ -1,5 +1,6 @@
 package com.yk.test;
 
+import com.http.ws.service.CXFWsService;
 import com.yk.test.restful.RestfulPublish;
 import com.yk.test.rmi.publish.RMIPublish;
 import com.yk.test.service.TestService;
@@ -19,6 +20,7 @@ public class Application
         Executors.newFixedThreadPool(1).submit(() -> {
             RestfulPublish.getInstance().publish();
             RMIPublish.getInstance().publish();
+            CXFWsService.getInstance().publish();
         });
 
         TestService testService = ContextUtil.getInstance().getBean(TestService.class);

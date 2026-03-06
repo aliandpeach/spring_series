@@ -1,5 +1,8 @@
 package com;
 
+import org.apache.xmlbeans.impl.regex.Match;
+import org.junit.Test;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,6 +15,19 @@ import java.util.regex.Pattern;
  */
 public class Reg
 {
+    @Test
+    public void testReg() throws Exception
+    {
+        Pattern pattern = Pattern.compile("127.0.0.1|localhost|::1");
+        Matcher matcher1 = pattern.matcher("127.0.0.1");
+        Matcher matcher2 = pattern.matcher("localhost");
+        Matcher matcher3 = pattern.matcher("::1");
+
+        System.out.println(matcher1.matches());
+        System.out.println(matcher2.matches());
+        System.out.println(matcher3.matches());
+        System.out.println();
+    }
     public static void main(String agrs[]) throws Exception
     {
         //String reg = "(?:(?:^.*\\*。123$))";

@@ -51,4 +51,10 @@ public class HlsVideoController
             return IOUtils.toString(input);
         }
     }
+
+    @GetMapping("/watch2/{id}")
+    public ModelAndView watch2(@PathVariable String id) throws Exception
+    {
+        return new ModelAndView("hls2").addObject("source", "/video/hls/play/1213");
+    }
 }

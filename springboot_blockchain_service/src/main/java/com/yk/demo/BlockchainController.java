@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.validation.groups.Default;
 import java.math.BigInteger;
 import java.util.Collections;
 import java.util.HashMap;
@@ -56,7 +57,7 @@ public class BlockchainController
 
     @RequestMapping(value = "/option", method = RequestMethod.POST, produces = "application/json")
     @ResponseBody
-    public Map<String, String> opt(@RequestBody @Validated(GroupConstant.SequentialCombination1.class) TaskForm body)
+    public Map<String, String> opt(@RequestBody @Validated({Default.class, GroupConstant.SequentialCombination1.class}) TaskForm body)
     {
         Context context = KeyCache.runningTaskContext();
         if (null != context && context.queryTaskStatus() == 1 && body.getState() == 1)

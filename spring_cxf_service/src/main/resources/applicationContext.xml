@@ -76,6 +76,35 @@
         </property>
     </bean>
 
+    <bean id="firstDataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+    <bean id="secondDataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <!--    -->
+    <bean id="dynamicDataSource" primary="true" class="com.yk.test.dynamic.DynamicDataSource">
+        <property name="defaultTargetDataSource" ref="firstDataSource"/>
+        <property name="targetDataSources">
+            <util:map key-type="com.yk.test.dynamic.DatabaseType" value-type="com.alibaba.druid.pool.DruidDataSource">
+                <entry key="FIRST_MYSQL" value-ref="firstDataSource"/>
+                <entry key="SECOND_MYSQL" value-ref="secondDataSource"/>
+            </util:map>
+        </property>
+    </bean>
+
+    <!--FactoryBean在初始化阶段根据配置动态初始化所需bean-->
+    <bean id="testSwitchService" class="com.yk.test.sw.ITestSwitchFactoryBean">
+        <property name="key" value="ONE"/>
+    </bean>
+
     <bean id="dbcp_dataSource" class="org.apache.commons.dbcp.BasicDataSource ">
         <property name="url" value="${jdbc.url}"/>
         <property name="driverClassName" value="${jdbc.driver}"/>

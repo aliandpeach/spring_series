@@ -1,10 +1,8 @@
 package com.yk.test.activemq.queue;
 
-import com.yk.demo.activemq.demo.queue.QueueConsumer;
-import com.yk.demo.activemq.demo.queue.QueueConsumer2;
-import com.yk.demo.activemq.demo.queue.QueueProducer;
-import com.yk.demo.activemq.demo.topic.TopicConsumer;
-import com.yk.demo.activemq.demo.topic.TopicProducer;
+import com.yk.activemq.demo.queue.QueueConsumer;
+import com.yk.activemq.demo.queue.QueueConsumer2;
+import com.yk.activemq.demo.queue.QueueProducer;
 import org.apache.activemq.broker.BrokerService;
 
 public class ActiveMQQueueMain

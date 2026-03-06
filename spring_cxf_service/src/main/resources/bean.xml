@@ -13,7 +13,7 @@
     <httpj:engine-factory id="port-9095-tls-config">
         <httpj:engine port="9095">
             <httpj:tlsServerParameters>
-                <sec:keyManagers keyPasswordCallbackHandler="com.yk.test.restful.KeyManagerPassworkAuthHandler">
+                <sec:keyManagers keyPasswordCallbackHandler="com.yk.test.restful.KeyManagerPasswordAuthHandler">
                     <sec:keyStore type="JKS"
                                   file="D:\cert\mytestkeystore"/>
                 </sec:keyManagers>

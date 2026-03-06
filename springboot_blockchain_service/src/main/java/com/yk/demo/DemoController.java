@@ -22,10 +22,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -404,5 +404,31 @@ public class DemoController
     public DemoModel object3(DemoModel demoModel, BlockchainModel blockchainModel)
     {
         return demoModel;
+    }
+
+    /**
+     * 对应 DockerController - "/transfer/0"接口
+     * 注, @RequestParam 和 @RequestPart都可以用于文件上传 MultipartFile
+     * RequestParam 注释还可用于将“multipart/form-data”请求的部分与支持相同方法参数类型的方法参数相关联。
+     * 主要区别在于，当方法参数不是 String 时，@RequestParam 依赖于 RequestParamMethodArgumentResolver，
+     * 而 @RequestPart 依赖于 RequestPartMethodArgumentResolver，同时考虑请求部分的“Content-Type”标头。
+     * RequestParam 可能与名称-值表单字段一起使用，而 @RequestPart 可能与包含更复杂内容（例如 JSON、XML）的部分一起使用。
+     */
+    @RequestMapping(value = "/request/object4", method = RequestMethod.POST)
+    @ResponseBody
+    public DemoModel save(@RequestParam(value = "coreSiteFile", required = false) MultipartFile coreSiteFile,
+                          @RequestParam(value = "hdfsSiteFile", required = false) MultipartFile hdfsSiteFile,
+                          DemoModel form)
+    {
+        return form;
+    }
+
+    @RequestMapping(value = "/request/object5", method = RequestMethod.POST)
+    @ResponseBody
+    public DemoModel save5(@RequestPart(value = "coreSiteFile", required = false) MultipartFile coreSiteFile,
+                           @RequestPart(value = "hdfsSiteFile", required = false) MultipartFile hdfsSiteFile,
+                           DemoModel form)
+    {
+        return form;
     }
 }

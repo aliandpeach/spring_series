@@ -135,5 +135,9 @@ public class JSONUtil
         {
             super();
         }
+        public Type getType()
+        {
+            return _type;
+        }
     }
 }

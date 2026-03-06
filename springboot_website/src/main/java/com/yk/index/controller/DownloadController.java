@@ -289,6 +289,9 @@ public class DownloadController
         return ResponseEntity.ok(indexModel);
     }
 
+    /**
+     * (@RequestPart File file, @RequestPart Entity obj)的提交方式, 接受form-data格式报文, 参考 DockerController - "/transfer/0"接口
+     */
     @RequestMapping(value = "/v8", method = RequestMethod.POST)
     public ResponseEntity<String> download(@RequestPart("file") MultipartFile file,
                                            @RequestPart("indexModel") IndexModel indexModel)

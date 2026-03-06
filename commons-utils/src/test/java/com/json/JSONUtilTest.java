@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.yk.httprequest.JSONUtil;
@@ -54,27 +56,60 @@ public class JSONUtilTest
         String json = JSONUtil.toJson(users);
         String mapuser_json = JSONUtil.toJson(mapUsers);
         Optional.of(json).ifPresent(System.out::println);
-        JSONUtil.CurParameterizedType type = new JSONUtil.CurParameterizedType(List.class, new Type[]{TestUser.class});
-        
+
+        List<Map<String, Object>> _usersY = JSONUtil.fromJson(json, new TypeReference<List<Map<String, Object>>>()
+        {
+        });
+        System.out.println(_usersY);
         List<TestUser> _usersx = JSONUtil.fromJson(json, new TypeReference<List<TestUser>>()
         {
         });
         System.out.println(_usersx);
+        System.out.println(1 % 2);
 
         // CurTypeReference2 这么写的话, 会造成List<>中的对象是LinkedHashMap而不是TestUser
         List<TestUser> __users = JSONUtil.fromJson(json, new JSONUtil.CurTypeReference2<List<TestUser>>());
+        JSONUtil.CurParameterizedType type = new JSONUtil.CurParameterizedType(List.class, new Type[]{TestUser.class});
         List<TestUser> _users = JSONUtil.fromJson(json, new JSONUtil.CurTypeReference<List<TestUser>>(type));
         System.out.println(_users);
-        
-        
+
+        // 1 微复杂场景, 转换为List<TestUser>
+        JavaType javaType = new ObjectMapper().getTypeFactory().constructParametricType(List.class, TestUser.class);
+        List<TestUser> testUserList2 = JSONUtil.fromJson(json, javaType);
+        // 2 微复杂场景, 转换为List<TestUser>
+        JSONUtil.CurParameterizedType _type2 = new JSONUtil.CurParameterizedType(List.class, new Type[]{TestUser.class});
+        List<TestUser> testUserList3 = JSONUtil.fromJson(json, new JSONUtil.CurTypeReference<List<TestUser>>(_type2));
+
+        // 3 微复杂场景, 转换为Map<Integer, TestUser>
+        JavaType _javaType = new ObjectMapper().getTypeFactory().constructParametricType(Map.class, Integer.class, TestUser.class);
+        Map<Integer, TestUser> _mapUsers2 = JSONUtil.fromJson(mapuser_json, _javaType);
+        // 4 微复杂场景, 转换为Map<Integer, TestUser>
         JSONUtil.CurParameterizedType _type = new JSONUtil.CurParameterizedType(Map.class, new Type[]{Integer.class, TestUser.class});
         Map<Integer, TestUser> _mapUsers = JSONUtil.fromJson(mapuser_json, new JSONUtil.CurTypeReference<Map<Integer, TestUser>>(_type));
         System.out.println(_mapUsers);
-        
+
+        // 5 复杂场景, 转换为List<Map<String, Object>>
+        JavaType javaTypeMap = new ObjectMapper().getTypeFactory().constructParametricType(Map.class, String.class, Object.class);
+        JavaType javaTypeList = new ObjectMapper().getTypeFactory().constructParametricType(List.class, javaTypeMap);
+        List<Map<String, Object>> testListMap1 = JSONUtil.fromJson(json, javaTypeList);
+        // 6 复杂场景, 转换为List<Map<String, Object>>
+        JSONUtil.CurParameterizedType typeMap2 = new JSONUtil.CurParameterizedType(Map.class, new Type[]{String.class, Object.class});
+        JSONUtil.CurParameterizedType typeList2 = new JSONUtil.CurParameterizedType(List.class, new Type[]{typeMap2});
+        List<Map<String, Object>> testListMap2 = JSONUtil.fromJson(json, new JSONUtil.CurTypeReference<List<Map<String, Object>>>(typeList2));
+
         Map<Integer, TestUser> __mapUsers = JSONUtil.fromJson(mapuser_json, new TypeReference<Map<Integer, TestUser>>()
         {
         });
         System.out.println(__mapUsers);
+
+        //
+        String _jsonFromString = JSONUtil.toJson(json);
+        String _json = JSONUtil.fromJson(_jsonFromString, String.class);
+        System.out.println(json.equals(_json));
+        String _json2 = JSONUtil.fromJson(_jsonFromString, new TypeReference<String>()
+        {
+        });
+        System.out.println(json.equals(_json2));
         
         JSONUtil.CurParameterizedType __type = new JSONUtil.CurParameterizedType(Map.class, new Type[]{Integer.class, String.class});
         Map<Integer, TestUser> _mapStrings = JSONUtil.fromJson(JSONUtil.toJson(mapStrings), new JSONUtil.CurTypeReference<Map<Integer, TestUser>>(__type));

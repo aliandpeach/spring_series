@@ -91,4 +91,9 @@ public class WebserviceTest
         IOUtils.copy(content, writer, StandardCharsets.UTF_8);
         System.out.println(status + " : " + writer.toString());
     }
+
+    @Test
+    public void webClientTest()
+    {
+    }
 }

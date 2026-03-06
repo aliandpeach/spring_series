@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.ClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -81,5 +83,27 @@ public class BaseWebMvcConfiguration implements WebMvcConfigurer
     {
         // requestFactory方法内部重新new了一个 RestTemplateBuilder对象
         return builder.requestFactory(() -> factory).build();
+    }
+
+    /**
+     * 添加全局校验器 (所有controller参数中注释了@Validated的参数都会被校验, 若要单独给某个Controller添加单独的校验, 则使用@InitBinder)
+     */
+    @Override
+    public Validator getValidator()
+    {
+        return new Validator()
+        {
+            @Override
+            public boolean supports(Class<?> clazz)
+            {
+                return false;
+            }
+
+            @Override
+            public void validate(Object target, Errors errors)
+            {
+                // errors.rejectValue("", "");
+            }
+        };
     }
 }

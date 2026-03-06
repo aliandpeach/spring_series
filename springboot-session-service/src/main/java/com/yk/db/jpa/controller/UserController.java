@@ -81,7 +81,7 @@ public class UserController implements InitializingBean
 //    private ModelMapper modelMapper;
 
     @PostMapping("/log/record")
-    @PreAuthorize("hasRole('ROLE_ADMIN') or hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasAuthority('User:log_record')")
     public BaseResponse<Map<String, String>> log(@RequestParam String log)
     {
         BaseResponse<Map<String, String>> br = new BaseResponse<>();
@@ -91,6 +91,7 @@ public class UserController implements InitializingBean
     }
 
     @GetMapping("/log/throw")
+    @PreAuthorize("hasAuthority('User:log_throw')")
     public BaseResponse<Map<String, String>> log()
     {
         List<User> users = userRepository.findAll();

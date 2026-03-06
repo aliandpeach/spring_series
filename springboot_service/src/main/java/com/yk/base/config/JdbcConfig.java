@@ -1,18 +1,14 @@
 package com.yk.base.config;
 
-import com.alibaba.druid.pool.DruidDataSource;
-import com.yk.base.util.DESUtils;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
-
-import javax.sql.DataSource;
-import java.sql.SQLException;
 
 @Configuration
 @ConfigurationProperties(prefix = "jdbc")
@@ -79,4 +75,81 @@ public class JdbcConfig {
 //        dataSource.setUseGlobalDataSourceStat(true);
 //        return dataSource;
 //    }
+
+    /**
+     * 通过@ConfigurationProperties 让SpringBoot在方法返回 CustomerDataSourceProperties 空对象后,
+     * 从配置文件中读取 spring.datasource.primary 前缀的属性，并通过setter或反射注入到对象中
+     */
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource.primary")
+    public CustomerDataSourceProperties primaryDataSourceProperties()
+    {
+        return new CustomerDataSourceProperties();
+    }
+
+    @Bean
+    @ConfigurationProperties(prefix = "spring.datasource.another")
+    public CustomerDataSourceProperties anotherDataSourceProperties()
+    {
+        return new CustomerDataSourceProperties();
+    }
+
+    @Bean(name = "primaryDataSource")
+    @Primary
+    public HikariDataSource primaryDataSource(CustomerDataSourceProperties primaryDataSourceProperties)
+    {
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setDriverClassName(primaryDataSourceProperties.getDriverClassName());
+        dataSource.setJdbcUrl(primaryDataSourceProperties.getUrl());
+        dataSource.setUsername(primaryDataSourceProperties.getUsername());
+        dataSource.setPassword(primaryDataSourceProperties.getPassword());
+
+        // 设置 Hikari 专属属性
+        CustomerDataSourceProperties.HikariProperties hikari = primaryDataSourceProperties.getHikari();
+        dataSource.setMaximumPoolSize(hikari.getMaximumPoolSize());
+        dataSource.setMinimumIdle(hikari.getMinimumIdle());
+        dataSource.setIdleTimeout(hikari.getIdleTimeout());
+        dataSource.setConnectionTimeout(hikari.getConnectionTimeout());
+        dataSource.setMaxLifetime(hikari.getMaxLifetime());
+        dataSource.setConnectionTestQuery(hikari.getConnectionTestQuery());
+        dataSource.setPoolName(hikari.getPoolName());
+        dataSource.setAutoCommit(hikari.isAutoCommit());
+        return dataSource;
+    }
+
+    @Bean(name = "anotherDataSource")
+    public HikariDataSource anotherDataSource(CustomerDataSourceProperties anotherDataSourceProperties)
+    {
+        HikariDataSource dataSource = new HikariDataSource();
+        dataSource.setDriverClassName(anotherDataSourceProperties.getDriverClassName());
+        dataSource.setJdbcUrl(anotherDataSourceProperties.getUrl());
+        dataSource.setUsername(anotherDataSourceProperties.getUsername());
+        dataSource.setPassword(anotherDataSourceProperties.getPassword());
+
+        // 设置 Hikari 专属属性
+        CustomerDataSourceProperties.HikariProperties hikari = anotherDataSourceProperties.getHikari();
+        dataSource.setMaximumPoolSize(hikari.getMaximumPoolSize());
+        dataSource.setMinimumIdle(hikari.getMinimumIdle());
+        dataSource.setIdleTimeout(hikari.getIdleTimeout());
+        dataSource.setConnectionTimeout(hikari.getConnectionTimeout());
+        dataSource.setMaxLifetime(hikari.getMaxLifetime());
+        dataSource.setConnectionTestQuery(hikari.getConnectionTestQuery());
+        dataSource.setPoolName(hikari.getPoolName());
+        dataSource.setAutoCommit(hikari.isAutoCommit());
+        return dataSource;
+    }
+
+    /**
+     * 若有需要做动态数据源，在primary和another之间动态切换, 则该方法设置为@Primary(取消掉第一个数据源方法上的@Primary以及改bean名称为primaryDatasource),
+     * 其他部分参数spring_cxf_service - dynamic目录中的部分代码
+     */
+    /*@Bean(name = "dataSource")
+    @Primary
+    public DynamicDataSource dataSource(DataSource primaryDataSource, DataSource anotherDataSource)
+    {
+        Map<Object, Object> targetDataSources = new HashMap<>();
+        targetDataSources.put("PRIMARY", primaryDataSource);
+        targetDataSources.put("ANOTHER", anotherDataSource);
+        return new DynamicDataSource(primaryDataSource, targetDataSources);
+    }*/
 }

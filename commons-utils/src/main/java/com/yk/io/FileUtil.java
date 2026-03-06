@@ -32,7 +32,7 @@ public class FileUtil
         {
             byte[] bytes = IOUtils.toByteArray(_input);
             out = channel.map(FileChannel.MapMode.READ_WRITE, start, bytes.length);
-            out.put(bytes);
+            out.put(bytes, 0, bytes.length);
         }
         finally
         {
@@ -106,15 +106,38 @@ public class FileUtil
                 }
                 MappedByteBuffer mappedByteBuffer = channelInput.map(FileChannel.MapMode.READ_WRITE, size * i, bufferSize);
                 byte[] buffer = new byte[(int) (bufferSize)];
-                for (int j = 0; j < bufferSize; j++)
+                // 这行等价于下面注释掉的三行
+                mappedByteBuffer.get(buffer, 0, buffer.length);
+                /*for (int j = 0; j < bufferSize; j++)
                 {
                     buffer[j] = mappedByteBuffer.get(j);
-                }
+                }*/
                 
                 MappedByteBuffer out = channelOut.map(FileChannel.MapMode.READ_WRITE, size * i, bufferSize);
-                out.put(buffer);
+                out.put(buffer, 0, buffer.length);
             }
         }
+    }
+
+    public static void clean(final Object buffer) throws Exception
+    {
+        AccessController.doPrivileged(new PrivilegedAction()
+        {
+            public Object run()
+            {
+                try
+                {
+                    Method getCleanerMethod = buffer.getClass().getMethod("cleaner", new Class[0]);
+                    getCleanerMethod.setAccessible(true);
+                    sun.misc.Cleaner cleaner = (sun.misc.Cleaner) getCleanerMethod.invoke(buffer, new Object[0]);
+                    cleaner.clean();
+                }
+                catch (Exception e)
+                {
+                }
+                return null;
+            }
+        });
     }
     
     /**

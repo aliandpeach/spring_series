@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:jaxws="http://cxf.apache.org/jaxws" xmlns:cxf="http://cxf.apache.org/core"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans-3.1.xsd   
+    http://cxf.apache.org/jaxws   
+    http://cxf.apache.org/schemas/jaxws.xsd">
+
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+
+	<!--  <bean id="incident"
+		class="com.spinfosec.incident.webservice.srv.impl.IncidentDeployServiceImpl" />-->
+
+	<!-- <jaxws:endpoint id="incident" implementor="com.spinfosec.incident.webservice.srv.impl.IncidentDeployServiceImpl" address="/incident" />
+
+	<bean id="client" class="com.spinfosec.incident.webservice.srv.IIncidentWebservice"
+		factory-bean="clientFactory" factory-method="create" />
+
+	<bean id="clientFactory" class="org.apache.cxf.jaxws.JaxWsProxyFactoryBean">
+		<property name="serviceClass" value="com.spinfosec.incident.webservice.srv.IIncidentWebservice" />
+		<property name="address" value="http://localhost:8080/TMC/incident" />
+	</bean>
+
+	<jaxws:endpoint id="taskStatus"
+        implementor="com.spinfosec.taskstatus.webservice.srv.impl.TaskStatusWebserviceImpl" address="/taskStatus" /> -->
+
+    <!-- implementor="#xxxxxx"这种写法可以保证这里引用的是spring bean -->
+	<jaxws:endpoint implementor="#wsSmCommLower" address="/WSSmCommLower/WSSmCommLower" />
+	<jaxws:endpoint implementor="#wsSmCommUpper" address="/WSSmCommUpper/WSSmCommUpper" />
+</beans>

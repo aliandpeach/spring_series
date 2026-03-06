@@ -1,8 +1,9 @@
 package com.yk.base.shiro.realm;
 
 
+import com.yk.base.exception.ResponseCode;
 import com.yk.base.exception.ShiroException;
-import com.yk.base.shiro.token.PasswordToken;
+import com.yk.base.shiro.token.PasswordForm;
 import com.yk.user.model.Permission;
 import com.yk.user.model.Role;
 import com.yk.user.model.User;
@@ -42,7 +43,7 @@ public class PasswordRealm extends AuthorizingRealm
     @Override
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken passwordAuth) throws AuthenticationException
     {
-        if (!(passwordAuth instanceof PasswordToken))
+        if (!(passwordAuth instanceof PasswordForm))
         {
             throw new UnknownAccountException("帐号或密码为空");
         }
@@ -51,10 +52,11 @@ public class PasswordRealm extends AuthorizingRealm
             throw new UnknownAccountException("帐号或密码为空");
         }
         String username = (String) passwordAuth.getPrincipal();
+        // 这里不应该频繁查询数据库, 应该提前将用户信息放入缓存
         User user = userService.queryUserByUsername(username);
         if (null == user)
         {
-            throw new ShiroException("未知帐号");
+            throw new ShiroException(ResponseCode.ACCOUNT_UNKNOWN_ERROR.message, ResponseCode.ACCOUNT_UNKNOWN_ERROR.code);
         }
         return new SimpleAuthenticationInfo(user.getUsername(), user.getPasswd(), this.getName());
     }
@@ -62,6 +64,6 @@ public class PasswordRealm extends AuthorizingRealm
     @Override
     public Class<?> getAuthenticationTokenClass()
     {
-        return PasswordToken.class;
+        return PasswordForm.class;
     }
 }

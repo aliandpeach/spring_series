@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE web-app PUBLIC
-        "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
-        "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
-<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xmlns="http://java.sun.com/xml/ns/javaee"
-         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
+         http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
          version="3.0">
 
     <context-param>
@@ -46,7 +44,7 @@
         该监听器监听HTTP请求事件，web服务器接收的每一次请求都会通知该监听器。
 
         spring容器启动和关闭操作由web容器的启动和关闭事件触发，
-        但如果spring容器中的Bean需要request，session，globalsession作用域的支持，
+        但如果spring容器中的Bean需要request，session，global session作用域的支持，
         spring容器本身就必须获得web容器的HTTP请求事件，以HTTP请求的事件”驱动”Bean作用域的控制逻辑
     -->
     <listener>
@@ -92,6 +90,17 @@
         <servlet-name>springMVC</servlet-name>
         <url-pattern>/*</url-pattern>
     </servlet-mapping>
+
+    <!--CXF 配置  WEB服务-->
+    <servlet>
+        <description>WEB服务</description>
+        <servlet-name>CXFServlet</servlet-name>
+        <servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CXFServlet</servlet-name>
+        <url-pattern>/webService/*</url-pattern>
+    </servlet-mapping>
     
     <!--<welcome-file-list>
         <welcome-file>index.html</welcome-file>
@@ -121,12 +130,15 @@
         <session-timeout>5</session-timeout>
     </session-config>
 
-    <login-config>
-        <!--BASIC：HTTP规范,Base64;  DIGEST:HTTP规范，数据完整性强一些，但不是SSL;  FORM; CLIENT-CERT: J2EE规范,数据完整性很强,公共钥匙(PKC)-->
+    <!--BASIC：HTTP规范,Base64;  DIGEST:HTTP规范，数据完整性强一些，但不是SSL;  FORM; CLIENT-CERT: J2EE规范,数据完整性很强,公共钥匙(PKC)-->
+    <!--<login-config>
         <auth-method>CLIENT-CERT</auth-method>
         <realm-name>Client Cert Users-only Area</realm-name>
-    </login-config>
-    <security-constraint>
+    </login-config>-->
+
+    <!-- security-constraint 配置server.xml中的redirectPort="4433" 访问http会自动跳转至https,
+            若只配置了security-constraint但server.xml没有配置redirectPort, 则访问http会跳转https的默认443端口 -->
+    <!--<security-constraint>
         <web-resource-collection>
             <web-resource-name>secure</web-resource-name>
             <url-pattern>/*</url-pattern>
@@ -134,5 +146,5 @@
         <user-data-constraint>
             <transport-guarantee>CONFIDENTIAL</transport-guarantee>
         </user-data-constraint>
-    </security-constraint>
+    </security-constraint>-->
 </web-app>

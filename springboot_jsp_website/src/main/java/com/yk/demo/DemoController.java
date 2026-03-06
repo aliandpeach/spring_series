@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +29,10 @@ public class DemoController
     @Transactional
     public String welcome()
     {
-        jdbcTemplate.query("SELECT * FROM t_s_role ", resultSet ->
+        jdbcTemplate.query("", new RowMapper<Object>()
+        {
+        });
+        jdbcTemplate.query("SELECT * FROM t_demo ", resultSet ->
         {
             String string1 = resultSet.getString(1);
             String string2 = resultSet.getString(2);
@@ -36,12 +40,12 @@ public class DemoController
         
         CurParameterizedType type = new CurParameterizedType(Map.class, new Type[]{String.class, Object.class});
         
-        List<HashMap> ret = jdbcTemplate.query("SELECT * FROM t_s_role ", new BeanPropertyRowMapper<>(HashMap.class));
+        List<HashMap> ret = jdbcTemplate.query("SELECT * FROM t_demo ", new BeanPropertyRowMapper<>(HashMap.class));
         logger.info("");
-        int count = jdbcTemplate.update("DELETE FROM t_s_role WHERE id = ?", "1");
+        int count = jdbcTemplate.update("DELETE FROM t_demo WHERE id = ?", "1");
         try
         {
-            int result = jdbcTemplate.update("UPDATE t_s_role SET `name` = ? WHERE id = ?", "AAA", "2");
+            int result = jdbcTemplate.update("UPDATE t_demo SET `name` = ? WHERE id = ?", "AAA", "2");
         }
         catch (Exception e)
         {
@@ -49,6 +53,12 @@ public class DemoController
             throw e;
         }
         return "view";
+    }
+
+    @RequestMapping("/compile2")
+    public String compile2()
+    {
+        return "compile2";
     }
     
     public static class CurParameterizedType implements ParameterizedType

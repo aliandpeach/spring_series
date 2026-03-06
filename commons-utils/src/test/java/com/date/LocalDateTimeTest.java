@@ -25,6 +25,7 @@ public class LocalDateTimeTest
     public void test()
     {
         String time = LocalDateTime.now().atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
+        String time2 = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
         // JDK8-BUG cannot format yyyyMMddHHmmssSSS
         LocalDateTime localDateTime = LocalDateTime.parse(time, DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS"));
 

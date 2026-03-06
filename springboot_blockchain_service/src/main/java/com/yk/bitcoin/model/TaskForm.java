@@ -8,6 +8,8 @@ import lombok.Data;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
 @TaskFormValid(groups = GroupConstant.A.class)
 @Data
@@ -25,4 +27,12 @@ public class TaskForm
     private String max;
 
     private int state; // 0 停止 1 启动 2 暂停
+
+    /**
+     * NotBlank不设置groups, 在给@Validated指定groups后, 该校验将不生效, 需要采取以下两种方式的任一种
+     * 1. 若要使得不设置groups的注释/自定义注释生效, 给@Validated同时指定Default.class
+     * 2. 若要使得不设置groups的注释/自定义注释生效, 给@Validated指定的某个groups接口继承javax.validation.groups.Default
+     */
+    @NotBlank
+    private String demo;
 }

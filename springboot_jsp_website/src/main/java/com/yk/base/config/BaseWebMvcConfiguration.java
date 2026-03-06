@@ -75,6 +75,7 @@ public class BaseWebMvcConfiguration implements WebMvcConfigurer
         registry.addResourceHandler("/picture/**").addResourceLocations("/png/",
                                                                 "classpath:/META-INF/resources/",
                                                                 "classpath:/resources/",
+                                                                "classpath:/_resources/",
                                                                 "classpath:/static/",
                                                                 "classpath:/public/");
         registry.addResourceHandler("/other/**").addResourceLocations("/png/",

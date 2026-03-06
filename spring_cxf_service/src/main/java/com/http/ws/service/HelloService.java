@@ -7,10 +7,10 @@ import org.apache.cxf.transport.http_jetty.JettyHTTPServerEngineFactory;
 
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
-import javax.jws.WebResult;
 import javax.jws.WebService;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
+import javax.ws.rs.GET;
 import javax.xml.ws.Endpoint;
 import java.io.InputStream;
 import java.security.KeyStore;
@@ -22,22 +22,23 @@ import java.security.KeyStore;
  * @version 1.0
  * @since 2021/08/06 10:22:34
  */
-@WebService(serviceName = "HelloService")
+@WebService(serviceName = "HelloService", targetNamespace = "HelloService.com")
 public class HelloService
 {
-    @WebMethod(operationName = "sayHello")
-    @WebResult(name = "myReturn")
+    @WebMethod
     public String sayHello(@WebParam(name = "name") String name)
     {
         return "hello: " + name;
     }
 
+    @WebMethod
+    @GET
     public String sayGoodbye(String name)
     {
         return "goodbye: " + name;
     }
 
-    @WebMethod(exclude = true)
+    @WebMethod
     public String sayHello2(String name)
     {
         return "hello " + name;
@@ -47,6 +48,9 @@ public class HelloService
      * 参数1：服务的发布地址
      * 参数2：服务的实现者
      * Endpoint  会重新启动一个线程
+     * <p>
+     * 方法 1：手动发布（简单方式：即 EndpointImpl + Bus 的方式） + Jetty服务器
+     * http://localhost:8086/ws?wsdl
      */
     public static void main(String[] args) throws Exception
     {
