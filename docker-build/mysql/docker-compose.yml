@@ -2,41 +2,54 @@ version: '3.9'
 
 services:
   mysql:
-    #容器名称
-    container_name: mysql-8.0.27-container
-    #镜像名称
-    image: mysql:8.0.27
-    #自动启动
+    container_name: mysql8.0.13
+    image: mysql:8.0.13
     restart: always
-    #参数配置
+
+    # MySQL 8.0 的 lower_case_table_names、字符集等必须在初始化前确定,
+    # 放在 command 里随容器启动注入,保证首次 init 就生效。
     command:
       --default-authentication-plugin=mysql_native_password
       --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
+      --collation-server=utf8mb4_general_ci
       --explicit_defaults_for_timestamp=true
       --lower_case_table_names=1
-      #--sql_mode=ONLY_FULL_GROUP_BY,NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
-      --sql_mode='STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'
-      --default-storage-engine=INNODB
-      --character-set-client-handshake=FALSE
-    #端口映射
+
     ports:
       - 13306:13306
-    #环境变量
+
     environment:
       - MYSQL_ROOT_PASSWORD=root
-    #挂载
+      - TZ=Asia/Shanghai
+
+    ulimits:
+      nproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+
+    # 非 swarm 模式下 deploy.resources.limits.memory 不生效,
+    # 改用 mem_limit(-compose v3 仍兼容)。
+    mem_limit: 2g
+    memswap_limit: 2g
+
     volumes:
-      - ./sql:/opt/sql
       - ./init/:/docker-entrypoint-initdb.d/
       - ./conf/my.cnf:/etc/my.cnf
-      # mysql数据挂在到宿主机的当前目录
-      #- ./mysql/conf:/etc/mysql/conf.d
-      - ./mysql/mysql-files:/var/lib/mysql-files/
-      - ./mysql/data:/var/lib/mysql
-  #数据库可视化
-  #adminer:
-  #  image: adminer
-  #  restart: always
-  #  ports:
-  #    - 8085:8080
+      - ./mysql-files:/var/lib/mysql-files/
+      - ./data:/var/lib/mysql
+      #- ./mysql/log:/var/log/mysql
+      #- ./mysql/tmp:/tmp
+
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"

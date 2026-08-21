@@ -2,12 +2,50 @@ version: '3.9'
 
 services:
   redis:
-    image: redis:latest
+    image: redis:7.2
+    container_name: redis7
+    restart: always
+
+    # 关键:让 redis 启动时读取挂载进来的 redis.conf,
+    # 否则密码、持久化、内存上限等全部不生效
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+
+    # redis 7.x 后台任务用 clone3,老版本 Docker 的默认 seccomp profile 会拦截,
+    # 报 "Can't initialize Background Jobs. Operation not permitted"。
+    # 要么这里关 seccomp,要么升级 Docker 到 20.10.9+
+    security_opt:
+      - seccomp:unconfined
+
     ports:
-      - 6379:6379
+      - 16379:16379
+
+    environment:
+      - TZ=Asia/Shanghai
+      # redis-cli 优先读这个环境变量做认证,避免在命令行 -a 暴露密码
+      - REDISCLI_AUTH=Spinfo@0123
+
+    ulimits:
+      nofile:
+        soft: 20000
+        hard: 40000
+
+    mem_limit: 1g
+    memswap_limit: 1g
+
     volumes:
-      # 持久化 目录映射
-      - "./redis/redis.conf:/usr/local/etc/redis/redis.conf"
-      - "./redis/data:/data"
-    #entrypoint: ["/usr/local/etc/redis/redis-server", "/usr/local/etc/redis/redis.conf"]
-    #command: redis-server /usr/local/etc/redis/redis.conf
+      # 修正路径:从 redis/ 目录看,配置在 ./conf/redis.conf,数据放 ./data
+      - ./conf/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ./data1:/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -p 16379 ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "3"
