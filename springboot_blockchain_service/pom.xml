@@ -16,7 +16,7 @@
 
     <properties>
         <cling.version>2.1.1</cling.version>
-        <jetty.version>8.2.0.v20160908</jetty.version>
+        <jetty.version>9.4.40.v20210413</jetty.version>
     </properties>
 
     <!-- 非parent的配置 -->
