@@ -1,0 +1,9 @@
+server.name: es-kibana
+server.host: "0.0.0.0"
+server.port: 15601
+
+elasticsearch.hosts: ["http://${ES_HOST}:${ES_PORT}"]
+elasticsearch.username: "${ES_USERNAME}"
+elasticsearch.password: "${ES_PASSWORD}"
+
+i18n.locale: "zh-CN"

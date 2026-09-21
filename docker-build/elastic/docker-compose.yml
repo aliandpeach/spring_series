@@ -1,52 +1,52 @@
 services:
-  spinfo-es-single:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.14-arm64
-    container_name: spinfo-es-single
+  es-single:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.28
+    container_name: es-single
     restart: always
     privileged: true
     environment:
-      - node.name=spinfo-es-single
+      - node.name=es-single
       - cluster.name=es-docker-cluster
       - discovery.type=single-node
       - bootstrap.memory_lock=true
       - TAKE_FILE_OWNERSHIP=true
       - "ES_JAVA_OPTS=-Xms1024m -Xmx1024m"
-      - xpack.security.enabled=true
+      #- xpack.security.enabled=true
       - ELASTIC_PASSWORD=${ES_PASSWORD}
-      - xpack.security.transport.ssl.enabled=true
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
+      #- xpack.security.transport.ssl.enabled=true
+    #ulimits:
+    #  memlock:
+    #    soft: -1
+    #    hard: -1
     volumes:
-      - ./spinfo-es-single/data:/usr/share/elasticsearch/data
-      - ./spinfo-es-single/logs:/usr/share/elasticsearch/logs
-      - ./spinfo-es-single/plugins:/usr/share/elasticsearch/plugins
-      - ./spinfo-es-single/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      - ./es-single/data:/usr/share/elasticsearch/data
+      - ./es-single/logs:/usr/share/elasticsearch/logs
+      - ./es-single/plugins:/usr/share/elasticsearch/plugins
+      - ./es-single/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
     networks:
-      - spinfo-network
+      - es-test-network
     expose:
-      - 9200
+      - 19200
     ports:
-      - "9200:9200"
+      - "19200:19200"
 
-      #  spinfo-es-head:
+      #  es-head:
       #    image: wallbase/elasticsearch-head:6-alpine
-      #    container_name: spinfo-es-head
+      #    container_name: es-head
       #    environment:
       #      TZ: 'Asia/Shanghai'
       #    networks:
-      #      - spinfo-network
+      #      - es-test-network
       #    ports:
-      #      - '9210:9100'
+      #      - '19210:19100'
       #    expose:
-      #      - 9210
+      #      - 19210
       #    depends_on:
-      #      - spinfo-es-single
+      #      - es-single
 
-  spinfo-es-kibana:
-    image: docker.elastic.co/kibana/kibana:7.17.14-arm64
-    container_name: spinfo-es-kibana
+  es-kibana:
+    image: docker.elastic.co/kibana/kibana:7.17.28
+    container_name: es-kibana
     restart: always
     environment:
       - ES_HOST=${ES_HOST}
@@ -55,18 +55,18 @@ services:
       - ES_PASSWORD=${ES_PASSWORD}
       - TZ='Asia/Shanghai'
     volumes:
-      - ./spinfo-es-kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
+      - ./es-kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
     networks:
-      - spinfo-network
+      - es-test-network
     expose:
-      - 5601
+      - 15601
     ports:
-      - '5601:5601'
+      - '15601:15601'
     depends_on:
-      - spinfo-es-single
+      - es-single
 
 
 
 networks:
-  spinfo-network:
-    name: spinfo-network
+  es-test-network:
+    name: es-test-network
